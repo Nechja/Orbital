@@ -1,0 +1,209 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  PROJECT_NAME: OrbitalDocking
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact: OrbitalDocking-linux-x64
+          - os: ubuntu-latest
+            rid: linux-arm64
+            artifact: OrbitalDocking-linux-arm64
+          - os: windows-latest
+            rid: win-x64
+            artifact: OrbitalDocking-win-x64
+          - os: macos-latest
+            rid: osx-x64
+            artifact: OrbitalDocking-osx-x64
+          - os: macos-latest
+            rid: osx-arm64
+            artifact: OrbitalDocking-osx-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish Self-Contained Single File
+      run: |
+        dotnet publish -c Release -r ${{ matrix.rid }} \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:EnableCompressionInSingleFile=true \
+          -p:PublishTrimmed=true \
+          -p:TrimMode=partial \
+          -o ./publish
+
+    - name: Prepare artifacts (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        cd publish
+        chmod +x ${{ env.PROJECT_NAME }}
+        tar -czf ../${{ matrix.artifact }}.tar.gz *
+        cd ..
+
+    - name: Prepare artifacts (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Compress-Archive -Path publish/* -DestinationPath ${{ matrix.artifact }}.zip
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact }}
+        path: |
+          *.tar.gz
+          *.zip
+
+  create-appimage:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download Linux x64 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: OrbitalDocking-linux-x64
+
+    - name: Extract artifact
+      run: |
+        tar -xzf OrbitalDocking-linux-x64.tar.gz
+        chmod +x OrbitalDocking
+
+    - name: Create AppImage structure
+      run: |
+        mkdir -p AppDir/usr/bin
+        mkdir -p AppDir/usr/share/applications
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+        
+        # Move executable
+        mv OrbitalDocking AppDir/usr/bin/
+        
+        # Create desktop file
+        cat > AppDir/usr/share/applications/orbital-docking.desktop << 'EOF'
+        [Desktop Entry]
+        Name=Orbital Docking
+        Exec=OrbitalDocking
+        Icon=orbital-docking
+        Type=Application
+        Categories=Development;System;
+        Comment=Docker container management tool
+        Terminal=false
+        EOF
+        
+        # Create a simple icon (you can replace with actual icon later)
+        convert -size 256x256 xc:black \
+          -fill '#4ECDC4' \
+          -draw 'circle 128,128 128,32' \
+          -fill '#050511' \
+          -draw 'circle 128,128 128,80' \
+          AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
+
+    - name: Create AppImage
+      run: |
+        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        ./appimagetool-x86_64.AppImage AppDir OrbitalDocking-x86_64.AppImage
+
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v4
+      with:
+        name: OrbitalDocking-AppImage
+        path: OrbitalDocking-x86_64.AppImage
+
+  release:
+    needs: [build, create-appimage]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: |
+          ./artifacts/OrbitalDocking-linux-x64/*.tar.gz
+          ./artifacts/OrbitalDocking-linux-arm64/*.tar.gz
+          ./artifacts/OrbitalDocking-win-x64/*.zip
+          ./artifacts/OrbitalDocking-osx-x64/*.tar.gz
+          ./artifacts/OrbitalDocking-osx-arm64/*.tar.gz
+          ./artifacts/OrbitalDocking-AppImage/*.AppImage
+        generateReleaseNotes: true
+        draft: false
+        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+        body: |
+          ## Installation
+
+          ### Linux
+          **AppImage (Recommended)**
+          ```bash
+          wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/OrbitalDocking-x86_64.AppImage
+          chmod +x OrbitalDocking-x86_64.AppImage
+          ./OrbitalDocking-x86_64.AppImage
+          ```
+
+          **Self-contained binary**
+          ```bash
+          # x64
+          tar -xzf OrbitalDocking-linux-x64.tar.gz
+          chmod +x OrbitalDocking
+          ./OrbitalDocking
+
+          # ARM64
+          tar -xzf OrbitalDocking-linux-arm64.tar.gz
+          chmod +x OrbitalDocking
+          ./OrbitalDocking
+          ```
+
+          ### Windows
+          Extract `OrbitalDocking-win-x64.zip` and run `OrbitalDocking.exe`
+
+          ### macOS
+          ```bash
+          # Intel
+          tar -xzf OrbitalDocking-osx-x64.tar.gz
+          chmod +x OrbitalDocking
+          ./OrbitalDocking
+
+          # Apple Silicon
+          tar -xzf OrbitalDocking-osx-arm64.tar.gz
+          chmod +x OrbitalDocking
+          ./OrbitalDocking
+          ```
+
+          ## Requirements
+          - Docker must be installed and running
+          - Linux users may need to be in the `docker` group

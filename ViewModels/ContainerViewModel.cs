@@ -9,7 +9,7 @@ using OrbitalDocking.Models;
 
 namespace OrbitalDocking.ViewModels;
 
-public partial class ContainerViewModel : ObservableObject
+public partial class ContainerViewModel : ObservableObject, IDisposable
 {
     private ContainerInfo _container;
     private readonly DockerClient _dockerClient;
@@ -164,9 +164,9 @@ public partial class ContainerViewModel : ObservableObject
                                 DiskIO = "R:0B W:0B";
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // If parsing specific stats fails, show partial data
+                            System.Diagnostics.Debug.WriteLine($"Error parsing stats for {Name}: {ex.Message}");
                         }
                     }
                 });
@@ -222,5 +222,11 @@ public partial class ContainerViewModel : ObservableObject
             return $"{(int)timeSpan.TotalDays} days ago";
         
         return dateTime.ToString("MMM dd, yyyy");
+    }
+    
+    public void Dispose()
+    {
+        StopStatsMonitoring();
+        _dockerClient?.Dispose();
     }
 }

@@ -11,6 +11,9 @@
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
+    <Compile Remove="OrbitalDocking.Tests\**" />
+    <EmbeddedResource Remove="OrbitalDocking.Tests\**" />
+    <None Remove="OrbitalDocking.Tests\**" />
   </ItemGroup>
 
   <ItemGroup>

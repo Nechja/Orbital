@@ -10,7 +10,7 @@ using OrbitalDocking.Models;
 
 namespace OrbitalDocking.Services;
 
-public class DockerService(DockerClient dockerClient) : IDockerService
+public class DockerService(DockerClient dockerClient) : IDockerService, IDisposable
 {
     public event EventHandler<ContainerEventArgs>? ContainerEvent;
 
@@ -30,8 +30,13 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             var container = await dockerClient.Containers.InspectContainerAsync(containerId, cancellationToken);
             return MapToContainerInfo(container);
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error getting container {containerId}: {ex.Message}");
             return null;
         }
     }
@@ -48,8 +53,19 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             OnContainerEvent(containerId, "start");
             return started;
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
+            return false;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified)
+        {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} already running");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error starting container {containerId}: {ex.Message}");
             return false;
         }
     }
@@ -66,8 +82,19 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             OnContainerEvent(containerId, "stop");
             return stopped;
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
+            return false;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified)
+        {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} already stopped");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error stopping container {containerId}: {ex.Message}");
             return false;
         }
     }
@@ -84,8 +111,14 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             OnContainerEvent(containerId, "restart");
             return true;
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error restarting container {containerId}: {ex.Message}");
             return false;
         }
     }
@@ -102,8 +135,19 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             OnContainerEvent(containerId, "remove");
             return true;
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
+            return false;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} is running and cannot be removed");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error removing container {containerId}: {ex.Message}");
             return false;
         }
     }
@@ -116,8 +160,19 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             OnContainerEvent(containerId, "pause");
             return true;
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
+            return false;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} is not running");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error pausing container {containerId}: {ex.Message}");
             return false;
         }
     }
@@ -130,8 +185,19 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             OnContainerEvent(containerId, "unpause");
             return true;
         }
-        catch
+        catch (DockerContainerNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
+            return false;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            System.Diagnostics.Debug.WriteLine($"Container {containerId} is not paused");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error unpausing container {containerId}: {ex.Message}");
             return false;
         }
     }
@@ -163,8 +229,16 @@ public class DockerService(DockerClient dockerClient) : IDockerService
 
             return true;
         }
-        catch
+        catch (DockerApiException ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error pulling image {imageName}: {ex.Message}");
+            progress?.Report($"Failed to pull image: {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Unexpected error pulling image {imageName}: {ex.Message}");
+            progress?.Report("Failed to pull image");
             return false;
         }
     }
@@ -179,132 +253,24 @@ public class DockerService(DockerClient dockerClient) : IDockerService
                 cancellationToken);
             return true;
         }
-        catch
+        catch (DockerImageNotFoundException)
         {
+            System.Diagnostics.Debug.WriteLine($"Image {imageId} not found");
+            return false;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            System.Diagnostics.Debug.WriteLine($"Image {imageId} is in use by a container");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error removing image {imageId}: {ex.Message}");
             return false;
         }
     }
 
-    public async Task<IEnumerable<VolumeInfo>> GetVolumesAsync(CancellationToken cancellationToken = default)
-    {
-        var response = await dockerClient.Volumes.ListAsync(cancellationToken);
-        return response.Volumes.Select(MapToVolumeInfo);
-    }
 
-    public async Task<VolumeInfo?> CreateVolumeAsync(string name, Dictionary<string, string>? labels = null, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var volume = await dockerClient.Volumes.CreateAsync(
-                new VolumesCreateParameters
-                {
-                    Name = name,
-                    Labels = labels ?? new Dictionary<string, string>()
-                },
-                cancellationToken);
-
-            return MapToVolumeInfo(volume);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    public async Task<bool> RemoveVolumeAsync(string name, bool force = false, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await dockerClient.Volumes.RemoveAsync(name, force, cancellationToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task<IEnumerable<NetworkInfo>> GetNetworksAsync(CancellationToken cancellationToken = default)
-    {
-        var networks = await dockerClient.Networks.ListNetworksAsync(cancellationToken: cancellationToken);
-        return networks.Select(MapToNetworkInfo);
-    }
-
-    public async Task<NetworkInfo?> CreateNetworkAsync(string name, string driver = "bridge", CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var response = await dockerClient.Networks.CreateNetworkAsync(
-                new NetworksCreateParameters
-                {
-                    Name = name,
-                    Driver = driver
-                },
-                cancellationToken);
-
-            var network = await dockerClient.Networks.InspectNetworkAsync(response.ID, cancellationToken);
-            return MapToNetworkInfo(network);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    public async Task<bool> RemoveNetworkAsync(string networkId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await dockerClient.Networks.DeleteNetworkAsync(networkId, cancellationToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task<ContainerStats?> GetContainerStatsAsync(string containerId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var statsStream = await dockerClient.Containers.GetContainerStatsAsync(
-                containerId,
-                new ContainerStatsParameters { Stream = false },
-                cancellationToken);
-
-            using var reader = new System.IO.StreamReader(statsStream);
-            var statsJson = await reader.ReadToEndAsync(cancellationToken);
-            
-            return new ContainerStats(
-                CpuPercent: 0,
-                MemoryUsage: 0,
-                MemoryLimit: 0,
-                MemoryPercent: 0,
-                NetworkRx: 0,
-                NetworkTx: 0,
-                BlockRead: 0,
-                BlockWrite: 0,
-                Timestamp: DateTime.UtcNow);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    public async IAsyncEnumerable<LogEntry> StreamLogsAsync(
-        string containerId,
-        bool follow = true,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        await Task.Yield();
-        yield return new LogEntry(
-            DateTime.UtcNow,
-            "Log streaming not yet implemented",
-            LogLevel.Info,
-            "system");
-    }
 
     public async Task<DockerSystemInfo?> GetSystemInfoAsync(CancellationToken cancellationToken = default)
     {
@@ -324,8 +290,14 @@ public class DockerService(DockerClient dockerClient) : IDockerService
                 MemoryTotal: info.MemTotal,
                 Driver: info.Driver);
         }
-        catch
+        catch (TimeoutException)
         {
+            System.Diagnostics.Debug.WriteLine("Docker daemon not responding");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error getting Docker system info: {ex.Message}");
             return null;
         }
     }
@@ -337,8 +309,9 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             await dockerClient.Containers.PruneContainersAsync(cancellationToken: cancellationToken);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error pruning containers: {ex.Message}");
             return false;
         }
     }
@@ -350,8 +323,9 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             await dockerClient.Images.PruneImagesAsync(cancellationToken: cancellationToken);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error pruning images: {ex.Message}");
             return false;
         }
     }
@@ -363,8 +337,9 @@ public class DockerService(DockerClient dockerClient) : IDockerService
             await dockerClient.Volumes.PruneAsync(cancellationToken: cancellationToken);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Error pruning volumes: {ex.Message}");
             return false;
         }
     }
@@ -455,5 +430,10 @@ public class DockerService(DockerClient dockerClient) : IDockerService
     private void OnContainerEvent(string containerId, string action)
     {
         ContainerEvent?.Invoke(this, new ContainerEventArgs(containerId, action, DateTime.UtcNow));
+    }
+    
+    public void Dispose()
+    {
+        dockerClient?.Dispose();
     }
 }

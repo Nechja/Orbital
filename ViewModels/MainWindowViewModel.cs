@@ -301,22 +301,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshVolumesAsync()
     {
-        var volumes = await _dockerService.GetVolumesAsync();
-        Volumes.Clear();
-        foreach (var volume in volumes)
-        {
-            Volumes.Add(new VolumeViewModel(volume));
-        }
+        // Volume management not implemented yet
+        await Task.CompletedTask;
     }
 
     private async Task RefreshNetworksAsync()
     {
-        var networks = await _dockerService.GetNetworksAsync();
-        Networks.Clear();
-        foreach (var network in networks)
-        {
-            Networks.Add(new NetworkViewModel(network));
-        }
+        // Network management not implemented yet
+        await Task.CompletedTask;
     }
 
     private void UpdateContainerList(IEnumerable<ContainerInfo> containers)
@@ -340,6 +332,7 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var container in toRemove)
         {
             Containers.Remove(container);
+            container.Dispose();
         }
 
         OnPropertyChanged(nameof(FilteredContainers));
@@ -357,5 +350,10 @@ public partial class MainWindowViewModel : ViewModelBase
         _refreshTimer?.Dispose();
         _imageRefreshTimer?.Dispose();
         _dockerService.ContainerEvent -= OnContainerEvent;
+        
+        foreach (var container in Containers)
+        {
+            container.Dispose();
+        }
     }
 }

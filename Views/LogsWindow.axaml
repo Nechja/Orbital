@@ -1,0 +1,125 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OrbitalDocking.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        x:Class="OrbitalDocking.Views.LogsWindow"
+        x:DataType="vm:LogsViewModel"
+        Title="Container Logs"
+        Width="900" Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#050511">
+
+    <Design.DataContext>
+        <vm:LogsViewModel/>
+    </Design.DataContext>
+
+    <Panel>
+        <!-- Background gradient -->
+        <Border>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#050511" Offset="0"/>
+                    <GradientStop Color="#0A0A1F" Offset="0.5"/>
+                    <GradientStop Color="#0F0F2A" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="4">
+                    <TextBlock Text="{Binding ContainerName}" 
+                               FontSize="18"
+                               FontWeight="Medium"
+                               Foreground="#FFFFFF"/>
+                    <TextBlock Text="{Binding ContainerId}"
+                               FontSize="12"
+                               Foreground="#6666AA"
+                               FontFamily="Consolas,monospace"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <CheckBox IsChecked="{Binding AutoScroll}"
+                              Content="AUTO SCROLL"
+                              Foreground="#8888AA"
+                              FontSize="11"/>
+                    <CheckBox IsChecked="{Binding ShowTimestamps}"
+                              Content="TIMESTAMPS"
+                              Foreground="#8888AA"
+                              FontSize="11"/>
+                    <Button Content="CLEAR"
+                            Background="#1A1A3F"
+                            Foreground="#8888AA"
+                            Padding="12,4"
+                            CornerRadius="4"
+                            Command="{Binding ClearLogsCommand}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Logs viewer -->
+            <Border Grid.Row="1"
+                    Background="#08081A"
+                    BorderBrush="#1A1A3F"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                <ScrollViewer x:Name="LogsScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding LogsContent}"
+                             IsReadOnly="True"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Foreground="#AAAACC"
+                             FontFamily="Consolas,monospace"
+                             FontSize="12"
+                             Padding="16"
+                             TextWrapping="NoWrap"
+                             AcceptsReturn="True"/>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0"
+                           Text="{Binding StatusMessage}"
+                           FontSize="11"
+                           Foreground="#666688"
+                           VerticalAlignment="Center"/>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <Button Content="EXPORT"
+                            Background="#1A1A3F"
+                            Foreground="#8888AA"
+                            Padding="16,6"
+                            CornerRadius="4"
+                            Command="{Binding ExportLogsCommand}"/>
+                    <Button Content="CLOSE"
+                            Background="#1A1A3F"
+                            Foreground="#8888AA"
+                            Padding="16,6"
+                            CornerRadius="4"
+                            Click="OnCloseClick"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Panel>
+</Window>

@@ -1,0 +1,496 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OrbitalDocking.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+        x:Class="OrbitalDocking.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Orbital Docking"
+        Width="1200" Height="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#050511">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="Button.action">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.action:pointerover">
+            <Setter Property="Opacity" Value="0.8"/>
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <!-- Background gradient -->
+        <Border>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#050511" Offset="0"/>
+                    <GradientStop Color="#0A0A1F" Offset="0.5"/>
+                    <GradientStop Color="#0F0F2A" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- Main content -->
+        <Grid Margin="60,40,60,70">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Minimal header -->
+            <Grid Grid.Row="0" Margin="0,0,0,40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Navigation on the left -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+                    <TextBlock Text="ORBITAL" 
+                               FontSize="14" 
+                               FontWeight="Light"
+                               Foreground="#8888AA"
+                               LetterSpacing="4"
+                               Opacity="0.8"
+                               VerticalAlignment="Center"/>
+                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Cursor="Hand"
+                            Command="{Binding ShowContainersViewCommand}"
+                            VerticalAlignment="Center">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock FontSize="14" Foreground="{Binding ContainersTextColor}" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} CONTAINERS">
+                                    <Binding Path="Containers.Count"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Button>
+                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Cursor="Hand"
+                            Command="{Binding ShowImagesViewCommand}"
+                            VerticalAlignment="Center">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock FontSize="14" Foreground="{Binding ImagesTextColor}" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} IMAGES">
+                                    <Binding Path="Images.Count"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Button>
+                </StackPanel>
+                
+                <!-- Empty middle column for spacing -->
+                <Panel Grid.Column="1"/>
+                
+                <!-- Search box on the right -->
+                <TextBox Grid.Column="2"
+                         Text="{Binding SearchText}"
+                         Background="#0A0A1F"
+                         BorderBrush="#1A1A3F"
+                         BorderThickness="1"
+                         Foreground="#FFFFFF"
+                         FontSize="13"
+                         Padding="10,6"
+                         CornerRadius="4"
+                         Watermark="Search..."
+                         Width="200"
+                         VerticalAlignment="Center">
+                    <TextBox.Styles>
+                        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+                            <Setter Property="BorderBrush" Value="#4ECDC4"/>
+                        </Style>
+                        <Style Selector="TextBox">
+                            <Setter Property="CaretBrush" Value="#4ECDC4"/>
+                        </Style>
+                    </TextBox.Styles>
+                </TextBox>
+            </Grid>
+
+            <!-- Container list -->
+            <ScrollViewer Grid.Row="1" IsVisible="{Binding ShowContainers}">
+                <ItemsControl ItemsSource="{Binding FilteredContainers}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="16"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#0A0A1F"
+                                    BorderBrush="#1A1A3F"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                                    </Transitions>
+                                </Border.Transitions>
+                                
+                                <StackPanel>
+                                    <!-- Main container row -->
+                                    <Button Background="Transparent"
+                                            BorderThickness="0"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Stretch"
+                                            Padding="24"
+                                            Click="OnContainerClick"
+                                            Cursor="Hand">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <!-- Status and info -->
+                                            <Grid Grid.Column="0" ColumnDefinitions="Auto,Auto">
+                                                <Border Grid.Column="0" 
+                                                        Width="3" Height="40"
+                                                        Background="{Binding StateColor}"
+                                                        CornerRadius="2"
+                                                        Margin="0,0,20,0"/>
+                                                
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="300">
+                                                    <TextBlock Text="{Binding Name}" 
+                                                               FontSize="16"
+                                                               Foreground="#FFFFFF"
+                                                               FontWeight="Medium"/>
+                                                    <TextBlock Text="{Binding Image}" 
+                                                               FontSize="13"
+                                                               Foreground="#6666AA"
+                                                               Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Status text -->
+                                            <StackPanel Grid.Column="1" 
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center"
+                                                        Orientation="Horizontal"
+                                                        Spacing="16">
+                                                <TextBlock Text="{Binding Status}"
+                                                           FontSize="12"
+                                                           Foreground="#8888AA"/>
+                                                <TextBlock Text="•" 
+                                                           FontSize="12"
+                                                           Foreground="#333344"/>
+                                                <TextBlock Text="{Binding CreatedRelative}"
+                                                           FontSize="12"
+                                                           Foreground="#8888AA"/>
+                                            </StackPanel>
+
+                                            <!-- Actions -->
+                                            <StackPanel Grid.Column="2" 
+                                                        Orientation="Horizontal" 
+                                                        Spacing="20"
+                                                        VerticalAlignment="Center">
+                                                <Button Classes="action"
+                                                        Content="RESTART"
+                                                        Foreground="#FFA500"
+                                                        IsVisible="{Binding IsRunning}"
+                                                        Click="OnRestartClick"/>
+                                                <Button Classes="action"
+                                                        Content="STOP"
+                                                        Foreground="#FF6B6B"
+                                                        IsVisible="{Binding IsRunning}"
+                                                        Click="OnStopClick"/>
+                                                <Button Classes="action"
+                                                        Content="START"
+                                                        Foreground="#4ECDC4"
+                                                        IsVisible="{Binding IsStopped}"
+                                                        Click="OnStartClick"/>
+                                                <Button Classes="action"
+                                                        Content="REMOVE"
+                                                        Foreground="#AA4444"
+                                                        IsVisible="{Binding IsStopped}"
+                                                        Click="OnRemoveClick"/>
+                                                
+                                                <!-- Expand indicator -->
+                                                <TextBlock Text="▼"
+                                                           FontSize="12"
+                                                           Foreground="#666688"
+                                                           VerticalAlignment="Center"
+                                                           IsVisible="{Binding !IsExpanded}"/>
+                                                <TextBlock Text="▲"
+                                                           FontSize="12"
+                                                           Foreground="#666688"
+                                                           VerticalAlignment="Center"
+                                                           IsVisible="{Binding IsExpanded}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
+
+                                    <!-- Expanded details -->
+                                    <Border IsVisible="{Binding IsExpanded}"
+                                            Background="#08081A"
+                                            BorderBrush="#1A1A3F"
+                                            BorderThickness="0,1,0,0">
+                                        <Grid Margin="24,20" RowDefinitions="Auto,Auto,Auto">
+                                            <!-- Container details -->
+                                            <Grid Grid.Row="0" ColumnDefinitions="*,*,*" Margin="0,0,0,16">
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="CONTAINER ID" 
+                                                               FontSize="10"
+                                                               Foreground="#666688"
+                                                               FontWeight="Medium"
+                                                               LetterSpacing="1"
+                                                               Margin="0,0,0,6"/>
+                                                    <TextBlock Text="{Binding ShortId}"
+                                                               FontSize="13"
+                                                               Foreground="#AAAACC"
+                                                               FontFamily="Consolas,monospace"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="CREATED" 
+                                                               FontSize="10"
+                                                               Foreground="#666688"
+                                                               FontWeight="Medium"
+                                                               LetterSpacing="1"
+                                                               Margin="0,0,0,6"/>
+                                                    <TextBlock Text="{Binding Created, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                               FontSize="13"
+                                                               Foreground="#AAAACC"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="STATUS" 
+                                                               FontSize="10"
+                                                               Foreground="#666688"
+                                                               FontWeight="Medium"
+                                                               LetterSpacing="1"
+                                                               Margin="0,0,0,6"/>
+                                                    <TextBlock Text="{Binding State}"
+                                                               FontSize="13"
+                                                               Foreground="{Binding StateColor}"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Quick stats -->
+                                            <Border Grid.Row="1" 
+                                                    Background="#0F0F2A"
+                                                    CornerRadius="4"
+                                                    Padding="16"
+                                                    Margin="0,0,0,16">
+                                                <Grid ColumnDefinitions="*,*,*,*">
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="CPU" 
+                                                                   FontSize="11"
+                                                                   Foreground="#666688"
+                                                                   Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding CpuUsage}" 
+                                                                   FontSize="18"
+                                                                   Foreground="#4ECDC4"
+                                                                   FontWeight="Bold"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="MEMORY" 
+                                                                   FontSize="11"
+                                                                   Foreground="#666688"
+                                                                   Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding MemoryUsage}" 
+                                                                   FontSize="18"
+                                                                   Foreground="#4ECDC4"
+                                                                   FontWeight="Bold"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBlock Text="NETWORK I/O" 
+                                                                   FontSize="11"
+                                                                   Foreground="#666688"
+                                                                   Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding NetworkIO}" 
+                                                                   FontSize="18"
+                                                                   Foreground="#4ECDC4"
+                                                                   FontWeight="Bold"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="3">
+                                                        <TextBlock Text="DISK I/O" 
+                                                                   FontSize="11"
+                                                                   Foreground="#666688"
+                                                                   Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding DiskIO}" 
+                                                                   FontSize="18"
+                                                                   Foreground="#4ECDC4"
+                                                                   FontWeight="Bold"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Action buttons -->
+                                            <StackPanel Grid.Row="2" 
+                                                        Orientation="Horizontal" 
+                                                        Spacing="12">
+                                                <Button Content="VIEW LOGS"
+                                                        Background="#1A1A3F"
+                                                        Foreground="#8888AA"
+                                                        Padding="12,6"
+                                                        CornerRadius="4"
+                                                        Click="OnViewLogsClick"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Images list -->
+            <ScrollViewer Grid.Row="1" IsVisible="{Binding ShowImages}">
+                <ItemsControl ItemsSource="{Binding FilteredImages}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="16"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#0A0A1F"
+                                    BorderBrush="#1A1A3F"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="24">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <!-- Image info -->
+                                    <Grid Grid.Column="0" ColumnDefinitions="Auto,Auto">
+                                        <Border Grid.Column="0" 
+                                                Width="3" Height="40"
+                                                Background="#9B59B6"
+                                                CornerRadius="2"
+                                                Margin="0,0,20,0"/>
+                                        
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="400">
+                                            <TextBlock Text="{Binding Repository}" 
+                                                       FontSize="16"
+                                                       Foreground="#FFFFFF"
+                                                       FontWeight="Medium"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding Tag}" 
+                                                           FontSize="13"
+                                                           Foreground="#6666AA"/>
+                                                <TextBlock Text="•" 
+                                                           FontSize="12"
+                                                           Foreground="#333344"/>
+                                                <TextBlock Text="{Binding Id}" 
+                                                           FontSize="12"
+                                                           Foreground="#666688"
+                                                           FontFamily="Consolas,monospace"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Size and created -->
+                                    <StackPanel Grid.Column="1" 
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="16">
+                                        <TextBlock Text="{Binding SizeFormatted}"
+                                                   FontSize="14"
+                                                   Foreground="#4ECDC4"
+                                                   FontWeight="Bold"/>
+                                        <TextBlock Text="•" 
+                                                   FontSize="12"
+                                                   Foreground="#333344"/>
+                                        <TextBlock Text="{Binding CreatedRelative}"
+                                                   FontSize="12"
+                                                   Foreground="#8888AA"/>
+                                    </StackPanel>
+
+                                    <!-- Actions -->
+                                    <StackPanel Grid.Column="2" 
+                                                Orientation="Horizontal" 
+                                                Spacing="20"
+                                                VerticalAlignment="Center">
+                                        <Button Classes="action"
+                                                Content="REMOVE"
+                                                Foreground="#AA4444"
+                                                Click="OnImageRemoveClick"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border VerticalAlignment="Bottom"
+                Background="#08081A"
+                BorderBrush="#1A1A3F"
+                BorderThickness="0,1,0,0"
+                Height="30">
+            <Grid Margin="60,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Docker status -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Width="6" Height="6" Fill="{Binding DockerStatusColor}" VerticalAlignment="Center"/>
+                        <TextBlock Text="DOCKER" 
+                                   FontSize="10"
+                                   Foreground="#666688"
+                                   FontWeight="Medium"
+                                   LetterSpacing="1"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding DockerVersion}"
+                               FontSize="11"
+                               Foreground="#8888AA"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Center status message -->
+                <TextBlock Grid.Column="1"
+                           Text="{Binding StatusMessage}"
+                           FontSize="11"
+                           Foreground="#666688"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+                <!-- System stats -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                    <TextBlock FontSize="11" Foreground="#8888AA">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} RUNNING">
+                                <Binding Path="RunningContainersCount"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <TextBlock FontSize="11" Foreground="#666688">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} STOPPED">
+                                <Binding Path="StoppedContainersCount"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Panel>
+</Window>

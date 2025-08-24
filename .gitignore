@@ -1,0 +1,141 @@
+# .NET Build Results
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+.nuget/
+*.nuget.props
+*.nuget.targets
+
+# Visual Studio cache/options
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# All dot folders EXCEPT .github
+.*/
+!.github/
+!.gitignore
+
+# Markdown files (as requested)
+*.md
+README.md
+CHANGELOG.md
+LICENSE.md
+
+# Build results
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+publish/
+PublishProfiles/
+*.publish.settings
+*.pubxml
+*.publishproj
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# Avalonia
+.avalonia/
+*.axaml.cs.tmp
+
+# Application specific
+*.log
+*.sqlite
+*.db
+*.cache
+temp/
+tmp/
+
+# Backup files
+*.bak
+*.backup
+*~
+*.swp
+*.swo
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Profiling
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Publishing output
+PublishOutput/
+dist/
+out/
+
+# Self-contained executables
+OrbitalDocking
+OrbitalDocking.exe
+*.AppImage

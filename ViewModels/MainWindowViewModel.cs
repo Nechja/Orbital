@@ -615,18 +615,23 @@ public partial class MainWindowViewModel : ViewModelBase
             .GroupBy(c => c.StackName)
             .ToList();
         
+        // Keep existing stacks to preserve their expanded state
+        var existingStacks = Stacks.ToDictionary(s => s.Name);
+        
         Stacks.Clear();
         foreach (var group in stackGroups.OrderBy(g => g.Key))
         {
-            var stack = Stacks.FirstOrDefault(s => s.Name == group.Key) ?? new StackViewModel(group.Key!);
-            if (!Stacks.Contains(stack))
-                Stacks.Add(stack);
-            
+            var stack = existingStacks.ContainsKey(group.Key!) 
+                ? existingStacks[group.Key!] 
+                : new StackViewModel(group.Key!);
+                
             stack.Containers.Clear();
             foreach (var container in group.OrderBy(c => c.ServiceName).ThenBy(c => c.Name))
             {
                 stack.Containers.Add(container);
             }
+            
+            Stacks.Add(stack);
         }
         
         StandaloneContainers.Clear();

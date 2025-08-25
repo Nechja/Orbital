@@ -381,6 +381,20 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task PullImageAsync(ImageViewModel? imageVm)
+    {
+        if (imageVm == null) return;
+        
+        StatusMessage = $"Pulling {imageVm.Repository}:{imageVm.Tag}...";
+        var imageName = $"{imageVm.Repository}:{imageVm.Tag}";
+        var result = await _dockerService.PullImageAsync(imageName);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Pulled {imageVm.Repository}:{imageVm.Tag}";
+        await RefreshImagesAsync();
+    }
+
+    [RelayCommand]
     private async Task PruneVolumesAsync()
     {
         StatusMessage = "Pruning volumes...";

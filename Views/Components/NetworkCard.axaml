@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="100"
+             x:Class="OrbitalDocking.Views.Components.NetworkCard"
+             x:DataType="vm:NetworkViewModel">
+    
+    <Border Background="#0A0A1F"
+            BorderBrush="#1A1A3F"
+            BorderThickness="1"
+            CornerRadius="6"
+            Padding="20"
+            Margin="0,4">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Grid.Column="0" 
+                    Width="3" Height="30"
+                    Background="#FFD700"
+                    CornerRadius="2"
+                    Margin="0,0,20,0"/>
+            
+            <StackPanel Grid.Column="0" 
+                        Margin="30,0,0,0"
+                        Spacing="8">
+                <TextBlock Text="{Binding Name}" 
+                           FontSize="14" 
+                           Foreground="#FFFFFF"/>
+                <TextBlock Text="{Binding Driver}" 
+                           FontSize="12" 
+                           Foreground="#8888AA"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Column="1" 
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="{Binding Scope}" 
+                           FontSize="12" 
+                           Foreground="#666688"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+            
+            <Button Grid.Column="2"
+                    Content="REMOVE"
+                    FontSize="11"
+                    Padding="10,6"
+                    Background="#FF6B6B"
+                    Foreground="#FFFFFF"
+                    BorderThickness="0"
+                    CornerRadius="4"
+                    VerticalAlignment="Center"
+                    Name="RemoveButton"/>
+        </Grid>
+    </Border>
+</UserControl>

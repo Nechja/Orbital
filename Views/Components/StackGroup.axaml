@@ -1,0 +1,140 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="400"
+             x:Class="OrbitalDocking.Views.Components.StackGroup"
+             x:DataType="vm:StackViewModel">
+    
+    <Border Background="#0A0A1F"
+            BorderBrush="#1A1A3F"
+            BorderThickness="1"
+            CornerRadius="8">
+        <StackPanel>
+            <!-- Stack Header -->
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="24,16"
+                    Command="{Binding ToggleExpandCommand}"
+                    Cursor="Hand">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                    <Border Grid.Column="0" 
+                            Width="3" Height="30"
+                            Background="{Binding Color}"
+                            CornerRadius="2"
+                            Margin="0,0,20,0"/>
+                    
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ExpandSymbol}"
+                                   FontSize="16"
+                                   Foreground="#4ECDC4"
+                                   FontWeight="Bold"
+                                   Width="20"
+                                   TextAlignment="Center"/>
+                        <TextBlock FontSize="14"
+                                   Foreground="#4ECDC4"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold"
+                                   Text="{Binding Name, StringFormat='STACK: {0}'}"/>
+                    </StackPanel>
+                    
+                    <TextBlock Grid.Column="2" 
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="#8888AA">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} containers • {1}">
+                                <Binding Path="ContainerCount"/>
+                                <Binding Path="CollectiveState"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    
+                    <StackPanel Grid.Column="3" 
+                                Orientation="Horizontal" 
+                                Spacing="12">
+                        <Button Content="START ALL"
+                                FontSize="10"
+                                Padding="8,4"
+                                Background="#4ECDC4"
+                                Foreground="#000000"
+                                BorderThickness="0"
+                                CornerRadius="3"
+                                Name="StartStackButton"
+                                IsVisible="{Binding !AllRunning}"/>
+                        <Button Content="STOP ALL"
+                                FontSize="10"
+                                Padding="8,4"
+                                Background="#FF6B6B"
+                                Foreground="#FFFFFF"
+                                BorderThickness="0"
+                                CornerRadius="3"
+                                Name="StopStackButton"
+                                IsVisible="{Binding !AllStopped}"/>
+                    </StackPanel>
+                </Grid>
+            </Button>
+            
+            <!-- Stack Containers -->
+            <ItemsControl ItemsSource="{Binding Containers}"
+                          IsVisible="{Binding IsExpanded}"
+                          Margin="0,0,0,16">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#08081A"
+                                BorderBrush="#1A1A3F"
+                                BorderThickness="0,1,0,0"
+                                Padding="24,12">
+                            <Grid ColumnDefinitions="400,*,Auto">
+                                <StackPanel Grid.Column="0" 
+                                            Orientation="Horizontal"
+                                            Spacing="12"
+                                            VerticalAlignment="Center">
+                                    <Border Width="2" Height="24"
+                                            Background="{Binding StackColor}"
+                                            CornerRadius="1"/>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding Name}" 
+                                                   FontSize="14"
+                                                   Foreground="#FFFFFF"/>
+                                        <TextBlock Text="{Binding Image}" 
+                                                   FontSize="12"
+                                                   Foreground="#666688"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Status}"
+                                           FontSize="12"
+                                           Foreground="#8888AA"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Margin="20,0"/>
+                                
+                                <StackPanel Grid.Column="2" 
+                                            Orientation="Horizontal" 
+                                            Spacing="8"
+                                            VerticalAlignment="Center"
+                                            Name="ContainerActions">
+                                    <!-- Actions will be wired in code-behind -->
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</UserControl>

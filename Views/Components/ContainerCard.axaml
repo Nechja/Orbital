@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="200"
+             x:Class="OrbitalDocking.Views.Components.ContainerCard"
+             x:DataType="vm:ContainerViewModel">
+    
+    <Border Background="#0A0A1F"
+            BorderBrush="#1A1A3F"
+            BorderThickness="1"
+            CornerRadius="8">
+        <Border.Transitions>
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+            </Transitions>
+        </Border.Transitions>
+        
+        <StackPanel>
+            <!-- Main container row -->
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="24"
+                    Name="ExpandButton"
+                    Cursor="Hand">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- Status and info -->
+                    <Grid Grid.Column="0" ColumnDefinitions="Auto,Auto">
+                        <Border Grid.Column="0" 
+                                Width="3" Height="40"
+                                Background="{Binding StackColor}"
+                                CornerRadius="2"
+                                Margin="0,0,20,0"/>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="300">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{Binding Name}" 
+                                           FontSize="16"
+                                           Foreground="#FFFFFF"
+                                           FontWeight="Medium"/>
+                                <Border Background="{Binding StackColor}"
+                                        CornerRadius="3"
+                                        Padding="6,2"
+                                        VerticalAlignment="Center"
+                                        IsVisible="{Binding IsPartOfStack}">
+                                    <TextBlock Text="{Binding StackName}"
+                                               FontSize="10"
+                                               Foreground="#000000"
+                                               FontWeight="SemiBold"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{Binding Image}" 
+                                       FontSize="13"
+                                       Foreground="#6666AA"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Status text -->
+                    <StackPanel Grid.Column="1" 
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal"
+                                Spacing="16">
+                        <TextBlock Text="{Binding Status}"
+                                   FontSize="12"
+                                   Foreground="#8888AA"/>
+                        <TextBlock Text="•" 
+                                   FontSize="12"
+                                   Foreground="#333344"/>
+                        <TextBlock Text="{Binding CreatedRelative}"
+                                   FontSize="12"
+                                   Foreground="#8888AA"/>
+                    </StackPanel>
+
+                    <!-- Actions -->
+                    <StackPanel Grid.Column="2" 
+                                Orientation="Horizontal" 
+                                Spacing="20"
+                                VerticalAlignment="Center">
+                        <Button Classes="action"
+                                Content="RESTART"
+                                Foreground="#FFA500"
+                                IsVisible="{Binding IsRunning}"
+                                Name="RestartButton"/>
+                        <Button Classes="action"
+                                Content="STOP"
+                                Foreground="#FF6B6B"
+                                IsVisible="{Binding IsRunning}"
+                                Name="StopButton"/>
+                        <Button Classes="action"
+                                Content="START"
+                                Foreground="#4ECDC4"
+                                IsVisible="{Binding IsStopped}"
+                                Name="StartButton"/>
+                        <Button Classes="action"
+                                Content="LOGS"
+                                Foreground="#95E1D3"
+                                Name="LogsButton"/>
+                        <ToggleButton IsChecked="{Binding IsExpanded}"
+                                      Classes="action"
+                                      Content="▼"
+                                      Foreground="#666688"/>
+                    </StackPanel>
+                </Grid>
+            </Button>
+            
+            <!-- Expanded details -->
+            <Border IsVisible="{Binding IsExpanded}"
+                    Background="#08081A"
+                    BorderBrush="#1A1A3F"
+                    BorderThickness="0,1,0,0">
+                <Grid RowDefinitions="Auto,Auto" Margin="24,16">
+                    <!-- Container info -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,*,Auto" Margin="0,0,0,16">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="CONTAINER ID" 
+                                       FontSize="11"
+                                       Foreground="#666688"
+                                       FontWeight="Medium"
+                                       LetterSpacing="1"
+                                       Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding ShortId}"
+                                       FontSize="13"
+                                       Foreground="#8888AA"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="IMAGE" 
+                                       FontSize="11"
+                                       Foreground="#666688"
+                                       FontWeight="Medium"
+                                       LetterSpacing="1"
+                                       Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding Image}"
+                                       FontSize="13"
+                                       Foreground="#8888AA"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="STATUS" 
+                                       FontSize="11"
+                                       Foreground="#666688"
+                                       FontWeight="Medium"
+                                       LetterSpacing="1"
+                                       Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding State}"
+                                       FontSize="13"
+                                       Foreground="{Binding StateColor}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Quick stats -->
+                    <Border Grid.Row="1" 
+                            Background="#0F0F2A"
+                            CornerRadius="4"
+                            Padding="16"
+                            Margin="0,0,0,16">
+                        <Grid ColumnDefinitions="*,*,*,*">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="CPU" 
+                                           FontSize="11"
+                                           Foreground="#666688"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding CpuUsage}" 
+                                           FontSize="18"
+                                           Foreground="#4ECDC4"
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="MEMORY" 
+                                           FontSize="11"
+                                           Foreground="#666688"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding MemoryUsage}" 
+                                           FontSize="18"
+                                           Foreground="#4ECDC4"
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="NETWORK I/O" 
+                                           FontSize="11"
+                                           Foreground="#666688"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding NetworkIO}" 
+                                           FontSize="18"
+                                           Foreground="#4ECDC4"
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="DISK I/O" 
+                                           FontSize="11"
+                                           Foreground="#666688"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding DiskIO}" 
+                                           FontSize="18"
+                                           Foreground="#4ECDC4"
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </Border>
+</UserControl>

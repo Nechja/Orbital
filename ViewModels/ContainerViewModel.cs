@@ -94,14 +94,14 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
         }
     }
 
-    private void StartStatsMonitoring()
+    public void StartStatsMonitoring()
     {
         StopStatsMonitoring();
         _statsTokenSource = new CancellationTokenSource();
         _ = MonitorStats(_statsTokenSource.Token);
     }
 
-    private void StopStatsMonitoring()
+    public void StopStatsMonitoring()
     {
         _statsTokenSource?.Cancel();
         _statsTokenSource?.Dispose();

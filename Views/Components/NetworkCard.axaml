@@ -13,17 +13,17 @@
             CornerRadius="6"
             Padding="20"
             Margin="0,4">
-        <Grid ColumnDefinitions="Auto,*,Auto">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
             <Border Grid.Column="0" 
                     Width="3" Height="30"
                     Background="#FFD700"
                     CornerRadius="2"
                     Margin="0,0,20,0"/>
             
-            <StackPanel Grid.Column="0" 
-                        Margin="30,0,0,0"
-                        Spacing="8">
-                <TextBlock Text="{Binding Name}" 
+            <StackPanel Grid.Column="1" 
+                        Spacing="8"
+                        MinWidth="300">
+                <TextBlock Text="{Binding ShortName}" 
                            FontSize="14" 
                            Foreground="#FFFFFF"/>
                 <TextBlock Text="{Binding Driver}" 
@@ -31,7 +31,7 @@
                            Foreground="#8888AA"/>
             </StackPanel>
             
-            <StackPanel Grid.Column="1" 
+            <StackPanel Grid.Column="2" 
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center">
                 <TextBlock Text="{Binding Scope}" 
@@ -40,7 +40,7 @@
                            HorizontalAlignment="Center"/>
             </StackPanel>
             
-            <Button Grid.Column="2"
+            <Button Grid.Column="3"
                     Content="REMOVE"
                     FontSize="11"
                     Padding="10,6"

@@ -55,6 +55,21 @@ public static class DockerErrors
             Error.Unexpected("Docker.UnexpectedError", $"An unexpected error occurred: {message}");
     }
     
+    public static class Volume
+    {
+        public static Error NotFound(string volumeName) => 
+            Error.NotFound("Volume.NotFound", $"Volume '{volumeName}' was not found");
+            
+        public static Error InUse(string volumeName) => 
+            Error.Conflict("Volume.InUse", $"Volume '{volumeName}' is in use by one or more containers");
+            
+        public static Error RemoveFailed(string volumeName) => 
+            Error.Failure("Volume.RemoveFailed", $"Failed to remove volume '{volumeName}'");
+            
+        public static Error CreateFailed(string volumeName, string reason) => 
+            Error.Failure("Volume.CreateFailed", $"Failed to create volume '{volumeName}': {reason}");
+    }
+    
     public static class Prune
     {
         public static Error ContainersFailed() => 

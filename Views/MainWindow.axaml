@@ -104,6 +104,26 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
+                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Cursor="Hand"
+                            Command="{Binding ShowVolumesViewCommand}"
+                            VerticalAlignment="Center">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock FontSize="14" Foreground="{Binding VolumesTextColor}" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} VOLUMES">
+                                    <Binding Path="Volumes.Count"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Button>
                 </StackPanel>
                 
                 <!-- Empty middle column for spacing -->
@@ -427,6 +447,96 @@
                                                 Content="REMOVE"
                                                 Foreground="#AA4444"
                                                 Click="OnImageRemoveClick"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- Volumes list -->
+            <ScrollViewer Grid.Row="1" IsVisible="{Binding ShowVolumes}">
+                <ItemsControl ItemsSource="{Binding FilteredVolumes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="16"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#0A0A1F"
+                                    BorderBrush="#1A1A3F"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="24">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <!-- Volume info -->
+                                    <Grid Grid.Column="0" ColumnDefinitions="Auto,Auto">
+                                        <Border Grid.Column="0" 
+                                                Width="3" Height="40"
+                                                Background="#3498DB"
+                                                CornerRadius="2"
+                                                Margin="0,0,20,0"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="300">
+                                            <TextBlock Text="{Binding Name}" 
+                                                       FontSize="16"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#FFFFFF"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxWidth="350"
+                                                       ToolTip.Tip="{Binding Name}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,6,0,0">
+                                                <TextBlock FontSize="12" Foreground="#8888AA">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="Driver: {0}">
+                                                            <Binding Path="Driver"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <TextBlock FontSize="12" Foreground="#8888AA">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="Created: {0}">
+                                                            <Binding Path="CreatedRelative"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                    
+                                    <!-- Mount point -->
+                                    <TextBlock Grid.Column="1" 
+                                               Text="{Binding MountPoint}"
+                                               FontSize="11"
+                                               Foreground="#666688"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="300"
+                                               ToolTip.Tip="{Binding MountPoint}"/>
+                                    
+                                    <!-- Actions -->
+                                    <StackPanel Grid.Column="2" 
+                                                Orientation="Horizontal" 
+                                                Spacing="8"
+                                                VerticalAlignment="Center">
+                                        <Button Background="#FF6B6B"
+                                                Foreground="White"
+                                                FontSize="11"
+                                                Padding="12,6"
+                                                BorderThickness="0"
+                                                CornerRadius="4"
+                                                Cursor="Hand"
+                                                Command="{Binding $parent[ItemsControl].DataContext.RemoveVolumeCommand}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Styles>
+                                                <Style Selector="Button:pointerover">
+                                                    <Setter Property="Opacity" Value="0.8"/>
+                                                </Style>
+                                            </Button.Styles>
+                                            <TextBlock Text="REMOVE" FontWeight="Medium"/>
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
                             </Border>

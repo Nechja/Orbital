@@ -337,6 +337,64 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
     }
 
 
+    public async Task<ErrorOr<IEnumerable<VolumeInfo>>> GetVolumesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var volumeList = await dockerClient.Volumes.ListAsync(cancellationToken);
+            return volumeList.Volumes.Select(dockerMapper.MapToVolumeInfo).ToList();
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Docker.UnexpectedError(ex.Message);
+        }
+    }
+    
+    public async Task<ErrorOr<Success>> RemoveVolumeAsync(string volumeName, bool force = false, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await dockerClient.Volumes.RemoveAsync(volumeName, force, cancellationToken);
+            return Result.Success;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return DockerErrors.Volume.NotFound(volumeName);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            return DockerErrors.Volume.InUse(volumeName);
+        }
+        catch (Exception)
+        {
+            return DockerErrors.Volume.RemoveFailed(volumeName);
+        }
+    }
+    
+    public async Task<ErrorOr<VolumeInfo>> CreateVolumeAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var parameters = new VolumesCreateParameters
+            {
+                Name = name,
+                Driver = driver ?? "local",
+                DriverOpts = options
+            };
+            
+            var volume = await dockerClient.Volumes.CreateAsync(parameters, cancellationToken);
+            return dockerMapper.MapToVolumeInfo(volume);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            return DockerErrors.Volume.CreateFailed(name, "Volume already exists");
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Volume.CreateFailed(name, ex.Message);
+        }
+    }
+    
     private void OnContainerEvent(string containerId, string action)
     {
         ContainerEvent?.Invoke(this, new ContainerEventArgs(containerId, action, DateTime.UtcNow));

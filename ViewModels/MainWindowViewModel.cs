@@ -22,6 +22,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly Timer _refreshTimer;
     private readonly Timer _imageRefreshTimer;
+    private readonly Timer _volumeRefreshTimer;
 
     public Window? MainWindow { get; set; }
     
@@ -38,6 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
         
         _refreshTimer = new Timer(async _ => await RefreshContainersAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
         _imageRefreshTimer = new Timer(async _ => await RefreshImagesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
+        _volumeRefreshTimer = new Timer(async _ => await RefreshVolumesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
         
         _dockerService.ContainerEvent += OnContainerEvent;
         _ = GetDockerVersionAsync();
@@ -75,9 +77,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _showImages = false;
+    
+    [ObservableProperty]
+    private bool _showVolumes = false;
 
     public string ContainersTextColor => ShowContainers ? "#FFFFFF" : "#8888AA";
     public string ImagesTextColor => ShowImages ? "#FFFFFF" : "#8888AA";
+    public string VolumesTextColor => ShowVolumes ? "#FFFFFF" : "#8888AA";
 
     [ObservableProperty]
     private string _dockerVersion = "Connecting...";
@@ -141,11 +147,28 @@ public partial class MainWindowViewModel : ViewModelBase
             return new ObservableCollection<ImageViewModel>(filtered);
         }
     }
+    
+    public ObservableCollection<VolumeViewModel> FilteredVolumes
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+                return Volumes;
+
+            var filtered = Volumes.Where(v =>
+                v.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                v.Driver.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            return new ObservableCollection<VolumeViewModel>(filtered);
+        }
+    }
 
     partial void OnSearchTextChanged(string value)
     {
         OnPropertyChanged(nameof(FilteredContainers));
         OnPropertyChanged(nameof(FilteredImages));
+        OnPropertyChanged(nameof(FilteredVolumes));
     }
 
     [RelayCommand]
@@ -287,9 +310,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         ShowContainers = true;
         ShowImages = false;
+        ShowVolumes = false;
         OnPropertyChanged(nameof(FilteredContainers));
         OnPropertyChanged(nameof(ContainersTextColor));
         OnPropertyChanged(nameof(ImagesTextColor));
+        OnPropertyChanged(nameof(VolumesTextColor));
     }
 
     [RelayCommand]
@@ -297,9 +322,23 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         ShowContainers = false;
         ShowImages = true;
+        ShowVolumes = false;
         _ = RefreshImagesAsync();
         OnPropertyChanged(nameof(ContainersTextColor));
         OnPropertyChanged(nameof(ImagesTextColor));
+        OnPropertyChanged(nameof(VolumesTextColor));
+    }
+    
+    [RelayCommand]
+    private void ShowVolumesView()
+    {
+        ShowContainers = false;
+        ShowImages = false;
+        ShowVolumes = true;
+        _ = RefreshVolumesAsync();
+        OnPropertyChanged(nameof(ContainersTextColor));
+        OnPropertyChanged(nameof(ImagesTextColor));
+        OnPropertyChanged(nameof(VolumesTextColor));
     }
 
     private async Task RefreshImagesAsync()
@@ -328,8 +367,39 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshVolumesAsync()
     {
-        // Volume management not implemented yet
-        await Task.CompletedTask;
+        IsLoading = true;
+        var result = await _dockerService.GetVolumesAsync();
+        
+        if (result.IsError)
+        {
+            StatusMessage = $"Error: {result.FirstError.Description}";
+        }
+        else
+        {
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Volumes.Clear();
+                foreach (var volume in result.Value)
+                {
+                    Volumes.Add(new VolumeViewModel(volume));
+                }
+            });
+        }
+        
+        IsLoading = false;
+    }
+    
+    [RelayCommand]
+    private async Task RemoveVolumeAsync(VolumeViewModel? volumeVm)
+    {
+        if (volumeVm == null) return;
+        
+        StatusMessage = $"Removing volume {volumeVm.Name}...";
+        var result = await _dockerService.RemoveVolumeAsync(volumeVm.Name, force: false);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Removed volume {volumeVm.Name}";
+        await RefreshVolumesAsync();
     }
 
     private async Task RefreshNetworksAsync()
@@ -376,6 +446,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _refreshTimer?.Dispose();
         _imageRefreshTimer?.Dispose();
+        _volumeRefreshTimer?.Dispose();
         _dockerService.ContainerEvent -= OnContainerEvent;
         
         foreach (var container in Containers)

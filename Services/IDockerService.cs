@@ -27,6 +27,10 @@ public interface IDockerService
     Task<ErrorOr<Success>> PruneImagesAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> PruneVolumesAsync(CancellationToken cancellationToken = default);
     
+    Task<ErrorOr<IEnumerable<VolumeInfo>>> GetVolumesAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> RemoveVolumeAsync(string volumeName, bool force = false, CancellationToken cancellationToken = default);
+    Task<ErrorOr<VolumeInfo>> CreateVolumeAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default);
+    
     event EventHandler<ContainerEventArgs>? ContainerEvent;
 }
 

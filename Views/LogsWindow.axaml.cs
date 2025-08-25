@@ -17,9 +17,9 @@ public partial class LogsWindow : Window
         _scrollViewer = this.FindControl<ScrollViewer>("LogsScrollViewer");
     }
 
-    public LogsWindow(string containerId, string containerName) : this()
+    public LogsWindow(LogsViewModel logsViewModel) : this()
     {
-        _viewModel = new LogsViewModel(containerId, containerName);
+        _viewModel = logsViewModel;
         DataContext = _viewModel;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
     }

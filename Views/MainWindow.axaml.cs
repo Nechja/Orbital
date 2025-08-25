@@ -1,5 +1,7 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using OrbitalDocking.Services;
 using OrbitalDocking.ViewModels;
 
 namespace OrbitalDocking.Views;
@@ -80,7 +82,11 @@ public partial class MainWindow : Window
         e.Handled = true;
         if (sender is Button button && button.DataContext is ContainerViewModel container)
         {
-            var logsWindow = new LogsWindow(container.Id, container.Name)
+            // Get the LogsViewModel factory from DI
+            var logsViewModelFactory = ServiceLocator.GetService<Func<string, string, LogsViewModel>>();
+            var logsViewModel = logsViewModelFactory(container.Id, container.Name);
+            
+            var logsWindow = new LogsWindow(logsViewModel)
             {
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };

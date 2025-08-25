@@ -15,7 +15,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
 {
     private readonly string _containerId;
     private readonly CancellationTokenSource _cancellationTokenSource;
-    private readonly IDockerService _dockerService;
+    private readonly DockerClient _dockerClient;
     private readonly StringBuilder _logsBuilder;
 
     [ObservableProperty]
@@ -35,15 +35,13 @@ public partial class LogsViewModel : ObservableObject, IDisposable
 
     public string ContainerId => _containerId.Length > 12 ? _containerId.Substring(0, 12) : _containerId;
 
-    public LogsViewModel(string containerId, string containerName)
+    public LogsViewModel(string containerId, string containerName, DockerClient dockerClient)
     {
         _containerId = containerId;
         ContainerName = containerName;
+        _dockerClient = dockerClient;
         _cancellationTokenSource = new CancellationTokenSource();
         _logsBuilder = new StringBuilder();
-        
-        var dockerClient = new DockerClientConfiguration().CreateClient();
-        _dockerService = new DockerService(dockerClient);
         
         _ = StartStreamingLogs();
     }
@@ -63,8 +61,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
                 Tail = "100"
             };
 
-            var dockerClient = new DockerClientConfiguration().CreateClient();
-            var stream = await dockerClient.Containers.GetContainerLogsAsync(
+            var stream = await _dockerClient.Containers.GetContainerLogsAsync(
                 _containerId,
                 false,
                 parameters,

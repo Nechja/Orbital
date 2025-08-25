@@ -12,7 +12,7 @@ namespace OrbitalDocking.ViewModels;
 public partial class ContainerViewModel : ObservableObject, IDisposable
 {
     private ContainerInfo _container;
-    private readonly DockerClient _dockerClient;
+    private readonly DockerClient? _dockerClient;
     private CancellationTokenSource? _statsTokenSource;
 
     [ObservableProperty]
@@ -30,10 +30,10 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _diskIO = "--";
 
-    public ContainerViewModel(ContainerInfo container)
+    public ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null)
     {
         _container = container;
-        _dockerClient = new DockerClientConfiguration().CreateClient();
+        _dockerClient = dockerClient;
     }
 
     public string Id => _container.Id;
@@ -105,6 +105,15 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
 
     private async Task MonitorStats(CancellationToken cancellationToken)
     {
+        if (_dockerClient == null)
+        {
+            CpuUsage = "N/A";
+            MemoryUsage = "N/A";
+            NetworkIO = "N/A";
+            DiskIO = "N/A";
+            return;
+        }
+        
         while (!cancellationToken.IsCancellationRequested)
         {
             try

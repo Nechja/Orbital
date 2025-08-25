@@ -425,13 +425,11 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 var imageList = result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag).ToList();
                 
-                // Update existing images or add new ones
                 foreach (var image in imageList)
                 {
                     var existingVm = Images.FirstOrDefault(i => i.Id == image.Id);
                     if (existingVm == null)
                     {
-                        // Find the correct position to insert to maintain order
                         var index = 0;
                         while (index < Images.Count)
                         {
@@ -446,7 +444,6 @@ public partial class MainWindowViewModel : ViewModelBase
                     }
                 }
                 
-                // Remove images that no longer exist
                 var toRemove = Images.Where(i => !imageList.Any(ni => ni.Id == i.Id)).ToList();
                 foreach (var image in toRemove)
                 {
@@ -473,13 +470,12 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 var volumeList = result.Value.OrderBy(v => v.Name).ToList();
                 
-                // Update existing volumes or add new ones
+ volumes or add new ones
                 foreach (var volume in volumeList)
                 {
                     var existingVm = Volumes.FirstOrDefault(v => v.Name == volume.Name);
                     if (existingVm == null)
                     {
-                        // Find the correct position to insert to maintain order
                         var index = 0;
                         while (index < Volumes.Count && string.Compare(Volumes[index].Name, volume.Name, StringComparison.OrdinalIgnoreCase) < 0)
                         {
@@ -489,7 +485,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     }
                 }
                 
-                // Remove volumes that no longer exist
+ volumes that no longer exist
                 var toRemove = Volumes.Where(v => !volumeList.Any(nv => nv.Name == v.Name)).ToList();
                 foreach (var volume in toRemove)
                 {
@@ -529,13 +525,12 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 var networkList = result.Value.OrderBy(n => n.Name).ToList();
                 
-                // Update existing networks or add new ones
+ networks or add new ones
                 foreach (var network in networkList)
                 {
                     var existingVm = Networks.FirstOrDefault(n => n.Id == network.Id);
                     if (existingVm == null)
                     {
-                        // Find the correct position to insert to maintain order
                         var index = 0;
                         while (index < Networks.Count && string.Compare(Networks[index].Name, network.Name, StringComparison.OrdinalIgnoreCase) < 0)
                         {
@@ -545,7 +540,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     }
                 }
                 
-                // Remove networks that no longer exist
+ networks that no longer exist
                 var toRemove = Networks.Where(n => !networkList.Any(nn => nn.Id == n.Id)).ToList();
                 foreach (var network in toRemove)
                 {

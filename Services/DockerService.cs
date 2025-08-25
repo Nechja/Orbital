@@ -71,7 +71,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
-            return Result.Success; // Already running is considered success
+            return Result.Success;
         }
         catch (Exception)
         {
@@ -97,7 +97,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
-            return Result.Success; // Already stopped is considered success
+            return Result.Success;
         }
         catch (Exception)
         {

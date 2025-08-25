@@ -49,6 +49,12 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty]
     private ObservableCollection<ContainerViewModel> _containers = new();
+    
+    [ObservableProperty]
+    private ObservableCollection<StackViewModel> _stacks = new();
+    
+    [ObservableProperty]
+    private ObservableCollection<ContainerViewModel> _standaloneContainers = new();
 
     [ObservableProperty]
     private ContainerViewModel? _selectedContainer;
@@ -267,6 +273,62 @@ public partial class MainWindowViewModel : ViewModelBase
             : $"Removed {SelectedContainer.Name}";
         await RefreshContainersAsync();
     }
+    
+    [RelayCommand]
+    private async Task StartStackAsync(StackViewModel? stack)
+    {
+        if (stack == null) return;
+        
+        StatusMessage = $"Starting stack {stack.Name}...";
+        foreach (var container in stack.Containers.Where(c => !c.IsRunning))
+        {
+            await _dockerService.StartContainerAsync(container.Id);
+        }
+        StatusMessage = $"Started stack {stack.Name}";
+        await RefreshContainersAsync();
+    }
+    
+    [RelayCommand]
+    private async Task StopStackAsync(StackViewModel? stack)
+    {
+        if (stack == null) return;
+        
+        StatusMessage = $"Stopping stack {stack.Name}...";
+        foreach (var container in stack.Containers.Where(c => c.IsRunning))
+        {
+            await _dockerService.StopContainerAsync(container.Id);
+        }
+        StatusMessage = $"Stopped stack {stack.Name}";
+        await RefreshContainersAsync();
+    }
+    
+    [RelayCommand]
+    private async Task RestartStackAsync(StackViewModel? stack)
+    {
+        if (stack == null) return;
+        
+        StatusMessage = $"Restarting stack {stack.Name}...";
+        foreach (var container in stack.Containers)
+        {
+            await _dockerService.RestartContainerAsync(container.Id);
+        }
+        StatusMessage = $"Restarted stack {stack.Name}";
+        await RefreshContainersAsync();
+    }
+    
+    [RelayCommand]
+    private async Task RemoveStackAsync(StackViewModel? stack)
+    {
+        if (stack == null) return;
+        
+        StatusMessage = $"Removing stack {stack.Name}...";
+        foreach (var container in stack.Containers)
+        {
+            await _dockerService.RemoveContainerAsync(container.Id, force: true);
+        }
+        StatusMessage = $"Removed stack {stack.Name}";
+        await RefreshContainersAsync();
+    }
 
     [RelayCommand]
     private void ShowContainerLogs(ContainerViewModel? container)
@@ -423,32 +485,12 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var imageList = result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag).ToList();
-                
-                foreach (var image in imageList)
+                Images.Clear();
+                foreach (var image in result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag))
                 {
-                    var existingVm = Images.FirstOrDefault(i => i.Id == image.Id);
-                    if (existingVm == null)
-                    {
-                        var index = 0;
-                        while (index < Images.Count)
-                        {
-                            var comparison = string.Compare(Images[index].Repository, image.Repository, StringComparison.OrdinalIgnoreCase);
-                            if (comparison > 0 || (comparison == 0 && string.Compare(Images[index].Tag, image.Tag, StringComparison.OrdinalIgnoreCase) > 0))
-                            {
-                                break;
-                            }
-                            index++;
-                        }
-                        Images.Insert(index, new ImageViewModel(image));
-                    }
+                    Images.Add(new ImageViewModel(image));
                 }
-                
-                var toRemove = Images.Where(i => !imageList.Any(ni => ni.Id == i.Id)).ToList();
-                foreach (var image in toRemove)
-                {
-                    Images.Remove(image);
-                }
+                OnPropertyChanged(nameof(FilteredImages));
             });
         }
         
@@ -468,26 +510,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var volumeList = result.Value.OrderBy(v => v.Name).ToList();
-                
-                foreach (var volume in volumeList)
+                Volumes.Clear();
+                foreach (var volume in result.Value.OrderBy(v => v.Name))
                 {
-                    var existingVm = Volumes.FirstOrDefault(v => v.Name == volume.Name);
-                    if (existingVm == null)
-                    {
-                        var index = 0;
-                        while (index < Volumes.Count && string.Compare(Volumes[index].Name, volume.Name, StringComparison.OrdinalIgnoreCase) < 0)
-                        {
-                            index++;
-                        }
-                        Volumes.Insert(index, new VolumeViewModel(volume));
-                    }
-                }
-                
-                var toRemove = Volumes.Where(v => !volumeList.Any(nv => nv.Name == v.Name)).ToList();
-                foreach (var volume in toRemove)
-                {
-                    Volumes.Remove(volume);
+                    Volumes.Add(new VolumeViewModel(volume));
                 }
             });
         }
@@ -521,26 +547,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var networkList = result.Value.OrderBy(n => n.Name).ToList();
-                
-                foreach (var network in networkList)
+                Networks.Clear();
+                foreach (var network in result.Value.OrderBy(n => n.Name))
                 {
-                    var existingVm = Networks.FirstOrDefault(n => n.Id == network.Id);
-                    if (existingVm == null)
-                    {
-                        var index = 0;
-                        while (index < Networks.Count && string.Compare(Networks[index].Name, network.Name, StringComparison.OrdinalIgnoreCase) < 0)
-                        {
-                            index++;
-                        }
-                        Networks.Insert(index, new NetworkViewModel(network));
-                    }
-                }
-                
-                var toRemove = Networks.Where(n => !networkList.Any(nn => nn.Id == n.Id)).ToList();
-                foreach (var network in toRemove)
-                {
-                    Networks.Remove(network);
+                    Networks.Add(new NetworkViewModel(network));
                 }
             });
         }
@@ -590,10 +600,40 @@ public partial class MainWindowViewModel : ViewModelBase
             Containers.Remove(container);
             container.Dispose();
         }
+        
+        GroupContainersByStack();
 
         OnPropertyChanged(nameof(FilteredContainers));
         OnPropertyChanged(nameof(RunningContainersCount));
         OnPropertyChanged(nameof(StoppedContainersCount));
+    }
+    
+    private void GroupContainersByStack()
+    {
+        var stackGroups = Containers
+            .Where(c => c.IsPartOfStack)
+            .GroupBy(c => c.StackName)
+            .ToList();
+        
+        Stacks.Clear();
+        foreach (var group in stackGroups.OrderBy(g => g.Key))
+        {
+            var stack = Stacks.FirstOrDefault(s => s.Name == group.Key) ?? new StackViewModel(group.Key!);
+            if (!Stacks.Contains(stack))
+                Stacks.Add(stack);
+            
+            stack.Containers.Clear();
+            foreach (var container in group.OrderBy(c => c.ServiceName).ThenBy(c => c.Name))
+            {
+                stack.Containers.Add(container);
+            }
+        }
+        
+        StandaloneContainers.Clear();
+        foreach (var container in Containers.Where(c => !c.IsPartOfStack).OrderBy(c => c.Name))
+        {
+            StandaloneContainers.Add(container);
+        }
     }
 
     private void OnContainerEvent(object? sender, ContainerEventArgs e)

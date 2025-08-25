@@ -65,6 +65,19 @@ public record ComposeProject(
     List<string> Services,
     Dictionary<string, ContainerInfo> Containers);
 
+public record StackInfo(
+    string Name,
+    List<ContainerInfo> Containers,
+    int RunningCount,
+    int StoppedCount,
+    int PausedCount)
+{
+    public bool AllRunning => RunningCount == Containers.Count && RunningCount > 0;
+    public bool AllStopped => StoppedCount == Containers.Count && StoppedCount > 0;
+    public bool Mixed => !AllRunning && !AllStopped;
+    public string CollectiveState => AllRunning ? "Running" : AllStopped ? "Stopped" : "Mixed";
+}
+
 public record DockerSystemInfo(
     string ServerVersion,
     string ApiVersion,

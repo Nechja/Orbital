@@ -207,15 +207,27 @@
                                             <Grid Grid.Column="0" ColumnDefinitions="Auto,Auto">
                                                 <Border Grid.Column="0" 
                                                         Width="3" Height="40"
-                                                        Background="{Binding StateColor}"
+                                                        Background="{Binding StackColor}"
                                                         CornerRadius="2"
                                                         Margin="0,0,20,0"/>
                                                 
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="300">
-                                                    <TextBlock Text="{Binding Name}" 
-                                                               FontSize="16"
-                                                               Foreground="#FFFFFF"
-                                                               FontWeight="Medium"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Name}" 
+                                                                   FontSize="16"
+                                                                   Foreground="#FFFFFF"
+                                                                   FontWeight="Medium"/>
+                                                        <Border Background="{Binding StackColor}"
+                                                                CornerRadius="3"
+                                                                Padding="6,2"
+                                                                VerticalAlignment="Center"
+                                                                IsVisible="{Binding IsPartOfStack}">
+                                                            <TextBlock Text="{Binding StackName}"
+                                                                       FontSize="10"
+                                                                       Foreground="#000000"
+                                                                       FontWeight="SemiBold"/>
+                                                        </Border>
+                                                    </StackPanel>
                                                     <TextBlock Text="{Binding Image}" 
                                                                FontSize="13"
                                                                Foreground="#6666AA"

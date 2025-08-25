@@ -24,6 +24,24 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public Window? MainWindow { get; set; }
     
+    public MainWindowViewModel(
+        IDockerService dockerService, 
+        IThemeService themeService, 
+        DockerClient dockerClient, 
+        IDialogService dialogService)
+    {
+        _dockerService = dockerService;
+        _themeService = themeService;
+        _dockerClient = dockerClient;
+        _dialogService = dialogService;
+        
+        _refreshTimer = new Timer(async _ => await RefreshContainersAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+        _imageRefreshTimer = new Timer(async _ => await RefreshImagesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
+        
+        _dockerService.ContainerEvent += OnContainerEvent;
+        _ = GetDockerVersionAsync();
+    }
+    
     [ObservableProperty]
     private ObservableCollection<ContainerViewModel> _containers = new();
 
@@ -69,19 +87,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public int RunningContainersCount => Containers.Count(c => c.IsRunning);
     public int StoppedContainersCount => Containers.Count(c => c.IsStopped);
 
-    public MainWindowViewModel(IDockerService dockerService, IThemeService themeService, DockerClient dockerClient, IDialogService dialogService)
-    {
-        _dockerService = dockerService;
-        _themeService = themeService;
-        _dockerClient = dockerClient;
-        _dialogService = dialogService;
-        _refreshTimer = new Timer(async _ => await RefreshContainersAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
-        _imageRefreshTimer = new Timer(async _ => await RefreshImagesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
-        
-        _dockerService.ContainerEvent += OnContainerEvent;
-        
-        _ = GetDockerVersionAsync();
-    }
 
     private async Task GetDockerVersionAsync()
     {

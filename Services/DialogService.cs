@@ -6,18 +6,11 @@ using OrbitalDocking.Views;
 
 namespace OrbitalDocking.Services;
 
-public class DialogService : IDialogService
+public class DialogService(Func<string, string, LogsViewModel> logsViewModelFactory) : IDialogService
 {
-    private readonly Func<string, string, LogsViewModel> _logsViewModelFactory;
-    
-    public DialogService(Func<string, string, LogsViewModel> logsViewModelFactory)
-    {
-        _logsViewModelFactory = logsViewModelFactory;
-    }
-    
     public void ShowLogsWindow(string containerId, string containerName, Window owner)
     {
-        var logsViewModel = _logsViewModelFactory(containerId, containerName);
+        var logsViewModel = logsViewModelFactory(containerId, containerName);
         var logsWindow = new LogsWindow(logsViewModel)
         {
             WindowStartupLocation = WindowStartupLocation.CenterOwner

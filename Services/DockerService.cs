@@ -10,7 +10,7 @@ using OrbitalDocking.Models;
 
 namespace OrbitalDocking.Services;
 
-public class DockerService(DockerClient dockerClient) : IDockerService, IDisposable
+public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper) : IDockerService, IDisposable
 {
     public event EventHandler<ContainerEventArgs>? ContainerEvent;
 
@@ -20,7 +20,7 @@ public class DockerService(DockerClient dockerClient) : IDockerService, IDisposa
             new ContainersListParameters { All = true },
             cancellationToken);
 
-        return containers.Select(MapToContainerInfo);
+        return containers.Select(dockerMapper.MapToContainerInfo);
     }
 
     public async Task<ContainerInfo?> GetContainerAsync(string containerId, CancellationToken cancellationToken = default)
@@ -28,7 +28,7 @@ public class DockerService(DockerClient dockerClient) : IDockerService, IDisposa
         try
         {
             var container = await dockerClient.Containers.InspectContainerAsync(containerId, cancellationToken);
-            return MapToContainerInfo(container);
+            return dockerMapper.MapToContainerInfo(container);
         }
         catch (DockerContainerNotFoundException)
         {
@@ -208,7 +208,7 @@ public class DockerService(DockerClient dockerClient) : IDockerService, IDisposa
             new ImagesListParameters { All = true },
             cancellationToken);
 
-        return images.Select(MapToImageInfo);
+        return images.Select(dockerMapper.MapToImageInfo);
     }
 
     public async Task<bool> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
@@ -344,88 +344,6 @@ public class DockerService(DockerClient dockerClient) : IDockerService, IDisposa
         }
     }
 
-    private static ContainerInfo MapToContainerInfo(ContainerListResponse container)
-    {
-        return new ContainerInfo(
-            Id: container.ID,
-            Name: container.Names.FirstOrDefault()?.TrimStart('/') ?? string.Empty,
-            Image: container.Image,
-            State: ParseContainerState(container.State),
-            Created: container.Created,
-            Status: container.Status,
-            Labels: container.Labels?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>(),
-            Ports: container.Ports?.Select(p => new PortMapping(
-                p.PrivatePort.ToString(),
-                p.PublicPort.ToString(),
-                p.Type,
-                p.IP ?? string.Empty)).ToList() ?? new List<PortMapping>());
-    }
-
-    private static ContainerInfo MapToContainerInfo(ContainerInspectResponse container)
-    {
-        return new ContainerInfo(
-            Id: container.ID,
-            Name: container.Name.TrimStart('/'),
-            Image: container.Image,
-            State: ParseContainerState(container.State.Status),
-            Created: container.Created,
-            Status: container.State.Status,
-            Labels: container.Config.Labels?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>(),
-            Ports: new List<PortMapping>());
-    }
-
-    private static ImageInfo MapToImageInfo(ImagesListResponse image)
-    {
-        return new ImageInfo(
-            Id: image.ID,
-            Repository: image.RepoTags?.FirstOrDefault()?.Split(':')[0] ?? "<none>",
-            Tag: image.RepoTags?.FirstOrDefault()?.Split(':').LastOrDefault() ?? "<none>",
-            Size: image.Size,
-            Created: image.Created,
-            Architecture: string.Empty,
-            OS: string.Empty,
-            RepoTags: image.RepoTags?.ToList() ?? new List<string>(),
-            Labels: image.Labels?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>());
-    }
-
-    private static VolumeInfo MapToVolumeInfo(VolumeResponse volume)
-    {
-        return new VolumeInfo(
-            Name: volume.Name,
-            Driver: volume.Driver,
-            MountPoint: volume.Mountpoint,
-            Created: DateTime.TryParse(volume.CreatedAt, out var created) ? created : DateTime.MinValue,
-            Labels: volume.Labels?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>(),
-            Options: volume.Options?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>());
-    }
-
-    private static NetworkInfo MapToNetworkInfo(NetworkResponse network)
-    {
-        return new NetworkInfo(
-            Id: network.ID,
-            Name: network.Name,
-            Driver: network.Driver,
-            Scope: network.Scope,
-            Internal: network.Internal,
-            Attachable: network.Attachable,
-            Created: network.Created,
-            Options: network.Options?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>());
-    }
-
-    private static Models.ContainerState ParseContainerState(string state)
-    {
-        return state?.ToLowerInvariant() switch
-        {
-            "running" => Models.ContainerState.Running,
-            "paused" => Models.ContainerState.Paused,
-            "exited" => Models.ContainerState.Exited,
-            "created" => Models.ContainerState.Created,
-            "restarting" => Models.ContainerState.Restarting,
-            "dead" => Models.ContainerState.Dead,
-            "removing" => Models.ContainerState.Removing,
-            _ => Models.ContainerState.Exited
-        };
-    }
 
     private void OnContainerEvent(string containerId, string action)
     {

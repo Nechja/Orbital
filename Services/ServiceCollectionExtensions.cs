@@ -10,7 +10,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddOrbitalDockingServices(this IServiceCollection services)
     {
         // Docker services
-        services.AddSingleton<DockerClient>(_ => DockerClientFactory.CreateClient());
+        services.AddSingleton<IDockerClientFactory, DockerClientFactory>();
+        services.AddSingleton<DockerClient>(provider => 
+            provider.GetRequiredService<IDockerClientFactory>().CreateClient());
+        services.AddSingleton<IDockerMapper, DockerMapper>();
         services.AddSingleton<IDockerService, DockerService>();
         
         // Other services

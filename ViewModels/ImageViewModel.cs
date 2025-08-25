@@ -22,7 +22,7 @@ public partial class ImageViewModel : ObservableObject
     public string SizeFormatted => FormatSize(_image.Size);
     public string CreatedRelative => GetRelativeTime(_image.Created);
 
-    private static string FormatSize(long bytes)
+    private string FormatSize(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB", "TB" };
         int order = 0;

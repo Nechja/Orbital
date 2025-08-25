@@ -9,10 +9,9 @@ using OrbitalDocking.Models;
 
 namespace OrbitalDocking.ViewModels;
 
-public partial class ContainerViewModel : ObservableObject, IDisposable
+public partial class ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null) : ObservableObject, IDisposable
 {
-    private ContainerInfo _container;
-    private readonly DockerClient? _dockerClient;
+    private ContainerInfo _container = container;
     private CancellationTokenSource? _statsTokenSource;
 
     [ObservableProperty]
@@ -29,12 +28,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private string _diskIO = "--";
-
-    public ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null)
-    {
-        _container = container;
-        _dockerClient = dockerClient;
-    }
 
     public string Id => _container.Id;
     public string ShortId => _container.Id.Length > 12 ? _container.Id.Substring(0, 12) : _container.Id;
@@ -105,7 +98,7 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
 
     private async Task MonitorStats(CancellationToken cancellationToken)
     {
-        if (_dockerClient == null)
+        if (dockerClient == null)
         {
             CpuUsage = "N/A";
             MemoryUsage = "N/A";
@@ -180,7 +173,7 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
                     }
                 });
                 
-                await _dockerClient.Containers.GetContainerStatsAsync(
+                await dockerClient.Containers.GetContainerStatsAsync(
                     Id,
                     parameters,
                     progress,
@@ -236,6 +229,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         StopStatsMonitoring();
-        _dockerClient?.Dispose();
+        dockerClient?.Dispose();
     }
 }

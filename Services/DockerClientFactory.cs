@@ -4,16 +4,16 @@ using Docker.DotNet;
 
 namespace OrbitalDocking.Services;
 
-public static class DockerClientFactory
+public class DockerClientFactory : IDockerClientFactory
 {
-    public static DockerClient CreateClient()
+    public DockerClient CreateClient()
     {
         var dockerEndpoint = GetDockerEndpoint();
         return new DockerClientConfiguration(new Uri(dockerEndpoint))
             .CreateClient();
     }
 
-    private static string GetDockerEndpoint()
+    private string GetDockerEndpoint()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {

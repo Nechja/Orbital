@@ -14,12 +14,12 @@ namespace OrbitalDocking.ViewModels;
 public partial class LogsViewModel : ObservableObject, IDisposable
 {
     private readonly string _containerId;
-    private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly DockerClient _dockerClient;
-    private readonly StringBuilder _logsBuilder;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly StringBuilder _logsBuilder = new();
 
     [ObservableProperty]
-    private string _containerName = string.Empty;
+    private string _containerName;
 
     [ObservableProperty]
     private string _logsContent = string.Empty;
@@ -34,15 +34,12 @@ public partial class LogsViewModel : ObservableObject, IDisposable
     private string _statusMessage = "Connecting to container...";
 
     public string ContainerId => _containerId.Length > 12 ? _containerId.Substring(0, 12) : _containerId;
-
+    
     public LogsViewModel(string containerId, string containerName, DockerClient dockerClient)
     {
         _containerId = containerId;
-        ContainerName = containerName;
+        _containerName = containerName;
         _dockerClient = dockerClient;
-        _cancellationTokenSource = new CancellationTokenSource();
-        _logsBuilder = new StringBuilder();
-        
         _ = StartStreamingLogs();
     }
 

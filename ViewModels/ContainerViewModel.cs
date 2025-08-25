@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 
 namespace OrbitalDocking.ViewModels;
@@ -36,7 +37,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     public Models.ContainerState State => _container.State;
     public string Status => _container.Status;
     public DateTime Created => _container.Created;
-    public string CreatedRelative => GetRelativeTime(Created);
+    public string CreatedRelative => Created.ToRelativeTime(true);
     
     public string? StackName => _container.Labels?.ContainsKey("com.docker.compose.project") == true 
         ? _container.Labels["com.docker.compose.project"] 
@@ -48,7 +49,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     
     public bool IsPartOfStack => !string.IsNullOrEmpty(StackName);
     
-    public string StackColor => GetStackColor(StackName);
+    public string StackColor => StackName.GetStackColor(StateColor);
 
     public bool IsRunning => State == Models.ContainerState.Running;
     public bool IsPaused => State == Models.ContainerState.Paused;
@@ -222,43 +223,6 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
         return $"{size:F0}{sizes[order]}";
     }
 
-    private string GetRelativeTime(DateTime dateTime)
-    {
-        var timeSpan = DateTime.UtcNow - dateTime.ToUniversalTime();
-        
-        if (timeSpan.TotalMinutes < 1)
-            return "just now";
-        if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes} minutes ago";
-        if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours} hours ago";
-        if (timeSpan.TotalDays < 30)
-            return $"{(int)timeSpan.TotalDays} days ago";
-        
-        return dateTime.ToString("MMM dd, yyyy");
-    }
-    
-    private string GetStackColor(string? stackName)
-    {
-        if (string.IsNullOrEmpty(stackName))
-            return StateColor;
-        
-        var colors = new[]
-        {
-            "#4ECDC4", // Teal
-            "#95E1D3", // Light teal
-            "#FFB347", // Orange
-            "#87CEEB", // Sky blue
-            "#DDA0DD", // Plum
-            "#98D8C8", // Mint
-            "#FFA07A", // Light salmon
-            "#B19CD9"  // Light purple
-        };
-        
-        var hash = stackName.GetHashCode();
-        var index = Math.Abs(hash) % colors.Length;
-        return colors[index];
-    }
     
     public void Dispose()
     {

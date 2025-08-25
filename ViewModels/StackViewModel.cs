@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 
 namespace OrbitalDocking.ViewModels;
@@ -20,7 +21,7 @@ public partial class StackViewModel : ObservableObject
     public StackViewModel(string name)
     {
         Name = name;
-        Color = GetStackColor(name);
+        Color = name.GetStackColor();
     }
     
     public int ContainerCount => Containers.Count;
@@ -44,22 +45,4 @@ public partial class StackViewModel : ObservableObject
         IsExpanded = !IsExpanded;
     }
     
-    private string GetStackColor(string stackName)
-    {
-        var colors = new[]
-        {
-            "#4ECDC4", // Teal
-            "#95E1D3", // Light teal
-            "#FFB347", // Orange
-            "#87CEEB", // Sky blue
-            "#DDA0DD", // Plum
-            "#98D8C8", // Mint
-            "#FFA07A", // Light salmon
-            "#B19CD9"  // Light purple
-        };
-        
-        var hash = stackName.GetHashCode();
-        var index = System.Math.Abs(hash) % colors.Length;
-        return colors[index];
-    }
 }

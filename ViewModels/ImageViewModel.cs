@@ -1,5 +1,6 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
+using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 
 namespace OrbitalDocking.ViewModels;
@@ -20,7 +21,7 @@ public partial class ImageViewModel : ObservableObject
     public long Size => _image.Size;
     public DateTime Created => _image.Created;
     public string SizeFormatted => FormatSize(_image.Size);
-    public string CreatedRelative => GetRelativeTime(_image.Created);
+    public string CreatedRelative => _image.Created.ToRelativeTime();
 
     private string FormatSize(long bytes)
     {
@@ -37,21 +38,4 @@ public partial class ImageViewModel : ObservableObject
         return $"{size:0.##} {sizes[order]}";
     }
 
-    private string GetRelativeTime(DateTime dateTime)
-    {
-        var timeSpan = DateTime.UtcNow - dateTime.ToUniversalTime();
-        
-        if (timeSpan.TotalMinutes < 1)
-            return "just now";
-        if (timeSpan.TotalMinutes < 60)
-            return $"{(int)timeSpan.TotalMinutes} minutes ago";
-        if (timeSpan.TotalHours < 24)
-            return $"{(int)timeSpan.TotalHours} hours ago";
-        if (timeSpan.TotalDays < 30)
-            return $"{(int)timeSpan.TotalDays} days ago";
-        if (timeSpan.TotalDays < 365)
-            return $"{(int)(timeSpan.TotalDays / 30)} months ago";
-        
-        return $"{(int)(timeSpan.TotalDays / 365)} years ago";
-    }
 }

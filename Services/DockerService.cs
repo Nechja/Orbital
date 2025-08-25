@@ -335,6 +335,36 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
             return DockerErrors.Prune.VolumesFailed();
         }
     }
+    
+    public async Task<ErrorOr<Success>> PruneNetworksAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await dockerClient.Networks.PruneNetworksAsync(cancellationToken: cancellationToken);
+            return Result.Success;
+        }
+        catch (Exception)
+        {
+            return DockerErrors.Prune.NetworksFailed();
+        }
+    }
+    
+    public async Task<ErrorOr<Success>> PruneSystemAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // System prune is not directly available, so we prune each component
+            await dockerClient.Containers.PruneContainersAsync(cancellationToken: cancellationToken);
+            await dockerClient.Images.PruneImagesAsync(cancellationToken: cancellationToken);
+            await dockerClient.Volumes.PruneAsync(cancellationToken: cancellationToken);
+            await dockerClient.Networks.PruneNetworksAsync(cancellationToken: cancellationToken);
+            return Result.Success;
+        }
+        catch (Exception)
+        {
+            return DockerErrors.Prune.SystemFailed();
+        }
+    }
 
 
     public async Task<ErrorOr<IEnumerable<VolumeInfo>>> GetVolumesAsync(CancellationToken cancellationToken = default)
@@ -392,6 +422,82 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         catch (Exception ex)
         {
             return DockerErrors.Volume.CreateFailed(name, ex.Message);
+        }
+    }
+    
+    public async Task<ErrorOr<IEnumerable<NetworkInfo>>> GetNetworksAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var networks = await dockerClient.Networks.ListNetworksAsync(cancellationToken: cancellationToken);
+            return networks.Select(dockerMapper.MapToNetworkInfo).ToList();
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Docker.UnexpectedError(ex.Message);
+        }
+    }
+    
+    public async Task<ErrorOr<Success>> RemoveNetworkAsync(string networkId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await dockerClient.Networks.DeleteNetworkAsync(networkId, cancellationToken);
+            return Result.Success;
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return DockerErrors.Network.NotFound(networkId);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            return DockerErrors.Network.BuiltIn(networkId);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            return DockerErrors.Network.InUse(networkId);
+        }
+        catch (Exception)
+        {
+            return DockerErrors.Network.RemoveFailed(networkId);
+        }
+    }
+    
+    public async Task<ErrorOr<NetworkInfo>> CreateNetworkAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var parameters = new NetworksCreateParameters
+            {
+                Name = name,
+                Driver = driver ?? "bridge",
+                Options = options
+            };
+            
+            var response = await dockerClient.Networks.CreateNetworkAsync(parameters, cancellationToken);
+            var networks = await dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    ["id"] = new Dictionary<string, bool> { [response.ID] = true }
+                }
+            }, cancellationToken);
+            
+            var network = networks.FirstOrDefault();
+            if (network == null)
+            {
+                return DockerErrors.Network.CreateFailed(name, "Network created but not found");
+            }
+            
+            return dockerMapper.MapToNetworkInfo(network);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            return DockerErrors.Network.CreateFailed(name, "Network already exists");
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Network.CreateFailed(name, ex.Message);
         }
     }
     

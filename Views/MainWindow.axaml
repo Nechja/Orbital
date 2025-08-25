@@ -124,6 +124,26 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
+                    
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Cursor="Hand"
+                            Command="{Binding ShowNetworksViewCommand}"
+                            VerticalAlignment="Center">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock FontSize="14" Foreground="{Binding NetworksTextColor}" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} NETWORKS">
+                                    <Binding Path="Networks.Count"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Button>
                 </StackPanel>
                 
                 <!-- Empty middle column for spacing -->
@@ -533,6 +553,102 @@
                                             <Button.Styles>
                                                 <Style Selector="Button:pointerover">
                                                     <Setter Property="Opacity" Value="0.8"/>
+                                                </Style>
+                                            </Button.Styles>
+                                            <TextBlock Text="REMOVE" FontWeight="Medium"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <!-- Networks list -->
+            <ScrollViewer Grid.Row="1" IsVisible="{Binding ShowNetworks}">
+                <ItemsControl ItemsSource="{Binding FilteredNetworks}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="16"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#0A0A1F"
+                                    BorderBrush="#1A1A3F"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                <Grid Margin="20">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <!-- Network name and details -->
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="{Binding ShortName}"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#FFFFFF"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="350"
+                                                   ToolTip.Tip="{Binding Name}"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="15">
+                                            <TextBlock FontSize="11" Foreground="#666688">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="ID: {0}">
+                                                        <Binding Path="ShortId"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Driver}"
+                                                       FontSize="11"
+                                                       Foreground="#8888AA"/>
+                                            <TextBlock Text="{Binding Scope}"
+                                                       FontSize="11"
+                                                       Foreground="#8888AA"/>
+                                            <TextBlock Text="Internal"
+                                                       FontSize="11"
+                                                       Foreground="#4ECDC4"
+                                                       IsVisible="{Binding Internal}"/>
+                                            <TextBlock Text="Attachable"
+                                                       FontSize="11"
+                                                       Foreground="#95E1D3"
+                                                       IsVisible="{Binding Attachable}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    
+                                    <!-- Created time -->
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding CreatedRelative}"
+                                               FontSize="11"
+                                               Foreground="#666688"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"/>
+                                    
+                                    <!-- Actions -->
+                                    <StackPanel Grid.Column="2" 
+                                                Orientation="Horizontal" 
+                                                Spacing="8"
+                                                VerticalAlignment="Center">
+                                        <Button Background="#FF6B6B"
+                                                Foreground="White"
+                                                FontSize="11"
+                                                Padding="12,6"
+                                                BorderThickness="0"
+                                                CornerRadius="4"
+                                                Cursor="Hand"
+                                                IsEnabled="{Binding IsRemovable}"
+                                                Command="{Binding $parent[ItemsControl].DataContext.RemoveNetworkCommand}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Styles>
+                                                <Style Selector="Button:pointerover">
+                                                    <Setter Property="Opacity" Value="0.8"/>
+                                                </Style>
+                                                <Style Selector="Button:disabled">
+                                                    <Setter Property="Opacity" Value="0.3"/>
                                                 </Style>
                                             </Button.Styles>
                                             <TextBlock Text="REMOVE" FontWeight="Medium"/>

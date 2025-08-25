@@ -23,6 +23,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly Timer _refreshTimer;
     private readonly Timer _imageRefreshTimer;
     private readonly Timer _volumeRefreshTimer;
+    private readonly Timer _networkRefreshTimer;
 
     public Window? MainWindow { get; set; }
     
@@ -40,6 +41,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _refreshTimer = new Timer(async _ => await RefreshContainersAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
         _imageRefreshTimer = new Timer(async _ => await RefreshImagesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
         _volumeRefreshTimer = new Timer(async _ => await RefreshVolumesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
+        _networkRefreshTimer = new Timer(async _ => await RefreshNetworksAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
         
         _dockerService.ContainerEvent += OnContainerEvent;
         _ = GetDockerVersionAsync();
@@ -80,10 +82,14 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty]
     private bool _showVolumes = false;
+    
+    [ObservableProperty]
+    private bool _showNetworks = false;
 
     public string ContainersTextColor => ShowContainers ? "#FFFFFF" : "#8888AA";
     public string ImagesTextColor => ShowImages ? "#FFFFFF" : "#8888AA";
     public string VolumesTextColor => ShowVolumes ? "#FFFFFF" : "#8888AA";
+    public string NetworksTextColor => ShowNetworks ? "#FFFFFF" : "#8888AA";
 
     [ObservableProperty]
     private string _dockerVersion = "Connecting...";
@@ -163,12 +169,30 @@ public partial class MainWindowViewModel : ViewModelBase
             return new ObservableCollection<VolumeViewModel>(filtered);
         }
     }
+    
+    public ObservableCollection<NetworkViewModel> FilteredNetworks
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+                return Networks;
+
+            var filtered = Networks.Where(n =>
+                n.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                n.Driver.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                n.Id.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            return new ObservableCollection<NetworkViewModel>(filtered);
+        }
+    }
 
     partial void OnSearchTextChanged(string value)
     {
         OnPropertyChanged(nameof(FilteredContainers));
         OnPropertyChanged(nameof(FilteredImages));
         OnPropertyChanged(nameof(FilteredVolumes));
+        OnPropertyChanged(nameof(FilteredNetworks));
     }
 
     [RelayCommand]
@@ -304,6 +328,31 @@ public partial class MainWindowViewModel : ViewModelBase
             : "Volumes pruned";
         await RefreshVolumesAsync();
     }
+    
+    [RelayCommand]
+    private async Task PruneNetworksAsync()
+    {
+        StatusMessage = "Pruning networks...";
+        var result = await _dockerService.PruneNetworksAsync();
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : "Networks pruned";
+        await RefreshNetworksAsync();
+    }
+    
+    [RelayCommand]
+    private async Task PruneSystemAsync()
+    {
+        StatusMessage = "Pruning system...";
+        var result = await _dockerService.PruneSystemAsync();
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : "System pruned";
+        await RefreshContainersAsync();
+        await RefreshImagesAsync();
+        await RefreshVolumesAsync();
+        await RefreshNetworksAsync();
+    }
 
     [RelayCommand]
     private void ShowContainersView()
@@ -311,10 +360,12 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowContainers = true;
         ShowImages = false;
         ShowVolumes = false;
+        ShowNetworks = false;
         OnPropertyChanged(nameof(FilteredContainers));
         OnPropertyChanged(nameof(ContainersTextColor));
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
+        OnPropertyChanged(nameof(NetworksTextColor));
     }
 
     [RelayCommand]
@@ -323,10 +374,12 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowContainers = false;
         ShowImages = true;
         ShowVolumes = false;
+        ShowNetworks = false;
         _ = RefreshImagesAsync();
         OnPropertyChanged(nameof(ContainersTextColor));
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
+        OnPropertyChanged(nameof(NetworksTextColor));
     }
     
     [RelayCommand]
@@ -335,10 +388,26 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowContainers = false;
         ShowImages = false;
         ShowVolumes = true;
+        ShowNetworks = false;
         _ = RefreshVolumesAsync();
         OnPropertyChanged(nameof(ContainersTextColor));
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
+        OnPropertyChanged(nameof(NetworksTextColor));
+    }
+    
+    [RelayCommand]
+    private void ShowNetworksView()
+    {
+        ShowContainers = false;
+        ShowImages = false;
+        ShowVolumes = false;
+        ShowNetworks = true;
+        _ = RefreshNetworksAsync();
+        OnPropertyChanged(nameof(ContainersTextColor));
+        OnPropertyChanged(nameof(ImagesTextColor));
+        OnPropertyChanged(nameof(VolumesTextColor));
+        OnPropertyChanged(nameof(NetworksTextColor));
     }
 
     private async Task RefreshImagesAsync()
@@ -354,10 +423,34 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Images.Clear();
-                foreach (var image in result.Value)
+                var imageList = result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag).ToList();
+                
+                // Update existing images or add new ones
+                foreach (var image in imageList)
                 {
-                    Images.Add(new ImageViewModel(image));
+                    var existingVm = Images.FirstOrDefault(i => i.Id == image.Id);
+                    if (existingVm == null)
+                    {
+                        // Find the correct position to insert to maintain order
+                        var index = 0;
+                        while (index < Images.Count)
+                        {
+                            var comparison = string.Compare(Images[index].Repository, image.Repository, StringComparison.OrdinalIgnoreCase);
+                            if (comparison > 0 || (comparison == 0 && string.Compare(Images[index].Tag, image.Tag, StringComparison.OrdinalIgnoreCase) > 0))
+                            {
+                                break;
+                            }
+                            index++;
+                        }
+                        Images.Insert(index, new ImageViewModel(image));
+                    }
+                }
+                
+                // Remove images that no longer exist
+                var toRemove = Images.Where(i => !imageList.Any(ni => ni.Id == i.Id)).ToList();
+                foreach (var image in toRemove)
+                {
+                    Images.Remove(image);
                 }
             });
         }
@@ -378,10 +471,29 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Volumes.Clear();
-                foreach (var volume in result.Value)
+                var volumeList = result.Value.OrderBy(v => v.Name).ToList();
+                
+                // Update existing volumes or add new ones
+                foreach (var volume in volumeList)
                 {
-                    Volumes.Add(new VolumeViewModel(volume));
+                    var existingVm = Volumes.FirstOrDefault(v => v.Name == volume.Name);
+                    if (existingVm == null)
+                    {
+                        // Find the correct position to insert to maintain order
+                        var index = 0;
+                        while (index < Volumes.Count && string.Compare(Volumes[index].Name, volume.Name, StringComparison.OrdinalIgnoreCase) < 0)
+                        {
+                            index++;
+                        }
+                        Volumes.Insert(index, new VolumeViewModel(volume));
+                    }
+                }
+                
+                // Remove volumes that no longer exist
+                var toRemove = Volumes.Where(v => !volumeList.Any(nv => nv.Name == v.Name)).ToList();
+                foreach (var volume in toRemove)
+                {
+                    Volumes.Remove(volume);
                 }
             });
         }
@@ -404,8 +516,64 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshNetworksAsync()
     {
-        // Network management not implemented yet
-        await Task.CompletedTask;
+        IsLoading = true;
+        var result = await _dockerService.GetNetworksAsync();
+        
+        if (result.IsError)
+        {
+            StatusMessage = $"Error: {result.FirstError.Description}";
+        }
+        else
+        {
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var networkList = result.Value.OrderBy(n => n.Name).ToList();
+                
+                // Update existing networks or add new ones
+                foreach (var network in networkList)
+                {
+                    var existingVm = Networks.FirstOrDefault(n => n.Id == network.Id);
+                    if (existingVm == null)
+                    {
+                        // Find the correct position to insert to maintain order
+                        var index = 0;
+                        while (index < Networks.Count && string.Compare(Networks[index].Name, network.Name, StringComparison.OrdinalIgnoreCase) < 0)
+                        {
+                            index++;
+                        }
+                        Networks.Insert(index, new NetworkViewModel(network));
+                    }
+                }
+                
+                // Remove networks that no longer exist
+                var toRemove = Networks.Where(n => !networkList.Any(nn => nn.Id == n.Id)).ToList();
+                foreach (var network in toRemove)
+                {
+                    Networks.Remove(network);
+                }
+            });
+        }
+        
+        IsLoading = false;
+    }
+    
+    [RelayCommand]
+    private async Task RemoveNetworkAsync(NetworkViewModel? networkVm)
+    {
+        if (networkVm == null) return;
+        
+        if (networkVm.IsBuiltIn)
+        {
+            StatusMessage = $"Cannot remove built-in network {networkVm.Name}";
+            return;
+        }
+        
+        StatusMessage = $"Removing network {networkVm.Name}...";
+        var result = await _dockerService.RemoveNetworkAsync(networkVm.Id);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Removed network {networkVm.Name}";
+        await RefreshNetworksAsync();
     }
 
     private void UpdateContainerList(IEnumerable<ContainerInfo> containers)
@@ -447,6 +615,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _refreshTimer?.Dispose();
         _imageRefreshTimer?.Dispose();
         _volumeRefreshTimer?.Dispose();
+        _networkRefreshTimer?.Dispose();
         _dockerService.ContainerEvent -= OnContainerEvent;
         
         foreach (var container in Containers)

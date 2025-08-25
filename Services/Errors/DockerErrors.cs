@@ -70,6 +70,24 @@ public static class DockerErrors
             Error.Failure("Volume.CreateFailed", $"Failed to create volume '{volumeName}': {reason}");
     }
     
+    public static class Network
+    {
+        public static Error NotFound(string networkName) => 
+            Error.NotFound("Network.NotFound", $"Network '{networkName}' was not found");
+            
+        public static Error InUse(string networkName) => 
+            Error.Conflict("Network.InUse", $"Network '{networkName}' has active endpoints");
+            
+        public static Error RemoveFailed(string networkName) => 
+            Error.Failure("Network.RemoveFailed", $"Failed to remove network '{networkName}'");
+            
+        public static Error CreateFailed(string networkName, string reason) => 
+            Error.Failure("Network.CreateFailed", $"Failed to create network '{networkName}': {reason}");
+            
+        public static Error BuiltIn(string networkName) => 
+            Error.Conflict("Network.BuiltIn", $"Cannot remove built-in network '{networkName}'");
+    }
+    
     public static class Prune
     {
         public static Error ContainersFailed() => 
@@ -80,5 +98,11 @@ public static class DockerErrors
             
         public static Error VolumesFailed() => 
             Error.Failure("Prune.VolumesFailed", "Failed to prune volumes");
+            
+        public static Error NetworksFailed() => 
+            Error.Failure("Prune.NetworksFailed", "Failed to prune networks");
+            
+        public static Error SystemFailed() => 
+            Error.Failure("Prune.SystemFailed", "Failed to prune system");
     }
 }

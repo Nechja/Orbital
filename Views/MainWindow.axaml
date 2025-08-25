@@ -344,7 +344,8 @@
                                                         Foreground="#8888AA"
                                                         Padding="12,6"
                                                         CornerRadius="4"
-                                                        Click="OnViewLogsClick"/>
+                                                        Command="{Binding $parent[Window].DataContext.ShowContainerLogsCommand}"
+                                                        CommandParameter="{Binding}"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

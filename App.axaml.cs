@@ -32,9 +32,6 @@ public partial class App : Application
             services.AddOrbitalDockingServices();
             _serviceProvider = services.BuildServiceProvider();
             
-            // Set the service provider for use throughout the app
-            ServiceLocator.SetServiceProvider(_serviceProvider);
-            
             // Resolve MainWindowViewModel from DI
             var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
             

@@ -1,7 +1,5 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using OrbitalDocking.Services;
 using OrbitalDocking.ViewModels;
 
 namespace OrbitalDocking.Views;
@@ -11,6 +9,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        
+        // Set the MainWindow reference when DataContext is set
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.MainWindow = this;
+            }
+        };
     }
 
     private void OnContainerClick(object? sender, RoutedEventArgs e)
@@ -77,22 +84,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnViewLogsClick(object? sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        if (sender is Button button && button.DataContext is ContainerViewModel container)
-        {
-            // Get the LogsViewModel factory from DI
-            var logsViewModelFactory = ServiceLocator.GetService<Func<string, string, LogsViewModel>>();
-            var logsViewModel = logsViewModelFactory(container.Id, container.Name);
-            
-            var logsWindow = new LogsWindow(logsViewModel)
-            {
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
-            logsWindow.Show(this);
-        }
-    }
 
     private async void OnImageRemoveClick(object? sender, RoutedEventArgs e)
     {

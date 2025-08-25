@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
@@ -17,9 +18,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IDockerService _dockerService;
     private readonly IThemeService _themeService;
     private readonly DockerClient _dockerClient;
+    private readonly IDialogService _dialogService;
     private readonly Timer _refreshTimer;
     private readonly Timer _imageRefreshTimer;
 
+    public Window? MainWindow { get; set; }
+    
     [ObservableProperty]
     private ObservableCollection<ContainerViewModel> _containers = new();
 
@@ -65,11 +69,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public int RunningContainersCount => Containers.Count(c => c.IsRunning);
     public int StoppedContainersCount => Containers.Count(c => c.IsStopped);
 
-    public MainWindowViewModel(IDockerService dockerService, IThemeService themeService, DockerClient dockerClient)
+    public MainWindowViewModel(IDockerService dockerService, IThemeService themeService, DockerClient dockerClient, IDialogService dialogService)
     {
         _dockerService = dockerService;
         _themeService = themeService;
         _dockerClient = dockerClient;
+        _dialogService = dialogService;
         _refreshTimer = new Timer(async _ => await RefreshContainersAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
         _imageRefreshTimer = new Timer(async _ => await RefreshImagesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
         
@@ -211,6 +216,14 @@ public partial class MainWindowViewModel : ViewModelBase
         await RefreshContainersAsync();
     }
 
+    [RelayCommand]
+    private void ShowContainerLogs(ContainerViewModel? container)
+    {
+        if (container == null || MainWindow == null) return;
+        
+        _dialogService.ShowLogsWindow(container.Id, container.Name, MainWindow);
+    }
+    
     [RelayCommand]
     private async Task ToggleThemeAsync()
     {

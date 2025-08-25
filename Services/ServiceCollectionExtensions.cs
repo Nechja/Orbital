@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
         
         // Other services
         services.AddSingleton<IThemeService, ThemeService>();
+        services.AddSingleton<IDialogService, DialogService>();
         
         // ViewModels
         services.AddTransient<MainWindowViewModel>();

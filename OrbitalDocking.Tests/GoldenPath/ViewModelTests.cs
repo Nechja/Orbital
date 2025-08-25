@@ -16,12 +16,14 @@ public class ViewModelTests
 {
     private readonly Mock<IDockerService> _dockerServiceMock;
     private readonly Mock<IThemeService> _themeServiceMock;
+    private readonly Mock<IDialogService> _dialogServiceMock;
     private readonly DockerClient? _dockerClient = null;
 
     public ViewModelTests()
     {
         _dockerServiceMock = new Mock<IDockerService>();
         _themeServiceMock = new Mock<IThemeService>();
+        _dialogServiceMock = new Mock<IDialogService>();
     }
 
     [Fact]
@@ -55,7 +57,7 @@ public class ViewModelTests
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(containers);
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
         
         // Wait for the timer to trigger
         await Task.Delay(100);
@@ -73,7 +75,7 @@ public class ViewModelTests
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<ContainerInfo>());
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
 
         // Manually add containers for testing
         vm.Containers.Add(new ContainerViewModel(new ContainerInfo(
@@ -119,7 +121,7 @@ public class ViewModelTests
             .Setup(x => x.GetImagesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<ImageInfo>());
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
 
         vm.ShowContainers.Should().BeTrue();
         vm.ShowImages.Should().BeFalse();
@@ -157,7 +159,7 @@ public class ViewModelTests
             .Setup(x => x.GetSystemInfoAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(systemInfo);
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
         
         await Task.Delay(100); // Let constructor task complete
 

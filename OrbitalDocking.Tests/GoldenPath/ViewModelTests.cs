@@ -2,6 +2,7 @@ using Xunit;
 using FluentAssertions;
 using Moq;
 using Docker.DotNet;
+using ErrorOr;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services;
 using OrbitalDocking.ViewModels;
@@ -55,7 +56,7 @@ public class ViewModelTests
 
         _dockerServiceMock
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(containers);
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ContainerInfo>>(containers));
 
         var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
         
@@ -73,7 +74,7 @@ public class ViewModelTests
     {
         _dockerServiceMock
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<ContainerInfo>());
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ContainerInfo>>(new List<ContainerInfo>()));
 
         var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
 
@@ -115,11 +116,11 @@ public class ViewModelTests
     {
         _dockerServiceMock
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<ContainerInfo>());
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ContainerInfo>>(new List<ContainerInfo>()));
         
         _dockerServiceMock
             .Setup(x => x.GetImagesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<ImageInfo>());
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ImageInfo>>(new List<ImageInfo>()));
 
         var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
 
@@ -157,7 +158,7 @@ public class ViewModelTests
 
         _dockerServiceMock
             .Setup(x => x.GetSystemInfoAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(systemInfo);
+            .ReturnsAsync(ErrorOrFactory.From(systemInfo));
 
         var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
         

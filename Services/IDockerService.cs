@@ -2,29 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ErrorOr;
 using OrbitalDocking.Models;
 
 namespace OrbitalDocking.Services;
 
 public interface IDockerService
 {
-    Task<IEnumerable<ContainerInfo>> GetContainersAsync(CancellationToken cancellationToken = default);
-    Task<ContainerInfo?> GetContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<bool> StartContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<bool> StopContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<bool> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<bool> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default);
-    Task<bool> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<bool> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<IEnumerable<ContainerInfo>>> GetContainersAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<ContainerInfo>> GetContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> StartContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> StopContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
     
-    Task<IEnumerable<ImageInfo>> GetImagesAsync(CancellationToken cancellationToken = default);
-    Task<bool> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default);
-    Task<bool> RemoveImageAsync(string imageId, bool force = false, CancellationToken cancellationToken = default);
+    Task<ErrorOr<IEnumerable<ImageInfo>>> GetImagesAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> RemoveImageAsync(string imageId, bool force = false, CancellationToken cancellationToken = default);
     
-    Task<DockerSystemInfo?> GetSystemInfoAsync(CancellationToken cancellationToken = default);
-    Task<bool> PruneContainersAsync(CancellationToken cancellationToken = default);
-    Task<bool> PruneImagesAsync(CancellationToken cancellationToken = default);
-    Task<bool> PruneVolumesAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<DockerSystemInfo>> GetSystemInfoAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> PruneContainersAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> PruneImagesAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> PruneVolumesAsync(CancellationToken cancellationToken = default);
     
     event EventHandler<ContainerEventArgs>? ContainerEvent;
 }

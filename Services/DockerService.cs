@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using ErrorOr;
 using OrbitalDocking.Models;
+using OrbitalDocking.Services.Errors;
 
 namespace OrbitalDocking.Services;
 
@@ -14,16 +16,27 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
 {
     public event EventHandler<ContainerEventArgs>? ContainerEvent;
 
-    public async Task<IEnumerable<ContainerInfo>> GetContainersAsync(CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<IEnumerable<ContainerInfo>>> GetContainersAsync(CancellationToken cancellationToken = default)
     {
-        var containers = await dockerClient.Containers.ListContainersAsync(
-            new ContainersListParameters { All = true },
-            cancellationToken);
+        try
+        {
+            var containers = await dockerClient.Containers.ListContainersAsync(
+                new ContainersListParameters { All = true },
+                cancellationToken);
 
-        return containers.Select(dockerMapper.MapToContainerInfo);
+            return containers.Select(dockerMapper.MapToContainerInfo).ToList();
+        }
+        catch (TimeoutException)
+        {
+            return DockerErrors.Docker.DaemonNotResponding();
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Docker.UnexpectedError(ex.Message);
+        }
     }
 
-    public async Task<ContainerInfo?> GetContainerAsync(string containerId, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<ContainerInfo>> GetContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -32,74 +45,67 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
         catch (DockerContainerNotFoundException)
         {
-            return null;
+            return DockerErrors.Container.NotFound(containerId);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error getting container {containerId}: {ex.Message}");
-            return null;
+            return DockerErrors.Docker.UnexpectedError(ex.Message);
         }
     }
 
-    public async Task<bool> StartContainerAsync(string containerId, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> StartContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var started = await dockerClient.Containers.StartContainerAsync(
+            await dockerClient.Containers.StartContainerAsync(
                 containerId,
                 new ContainerStartParameters(),
                 cancellationToken);
             
             OnContainerEvent(containerId, "start");
-            return started;
+            return Result.Success;
         }
         catch (DockerContainerNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
-            return false;
+            return DockerErrors.Container.NotFound(containerId);
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} already running");
-            return true;
+            return Result.Success; // Already running is considered success
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error starting container {containerId}: {ex.Message}");
-            return false;
+            return DockerErrors.Container.OperationFailed(containerId, "start");
         }
     }
 
-    public async Task<bool> StopContainerAsync(string containerId, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> StopContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var stopped = await dockerClient.Containers.StopContainerAsync(
+            await dockerClient.Containers.StopContainerAsync(
                 containerId,
                 new ContainerStopParameters { WaitBeforeKillSeconds = 10 },
                 cancellationToken);
             
             OnContainerEvent(containerId, "stop");
-            return stopped;
+            return Result.Success;
         }
         catch (DockerContainerNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
-            return false;
+            return DockerErrors.Container.NotFound(containerId);
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} already stopped");
-            return true;
+            return Result.Success; // Already stopped is considered success
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error stopping container {containerId}: {ex.Message}");
-            return false;
+            return DockerErrors.Container.OperationFailed(containerId, "stop");
         }
     }
 
-    public async Task<bool> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -109,21 +115,19 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 cancellationToken);
             
             OnContainerEvent(containerId, "restart");
-            return true;
+            return Result.Success;
         }
         catch (DockerContainerNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
-            return false;
+            return DockerErrors.Container.NotFound(containerId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error restarting container {containerId}: {ex.Message}");
-            return false;
+            return DockerErrors.Container.OperationFailed(containerId, "restart");
         }
     }
 
-    public async Task<bool> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -133,85 +137,83 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 cancellationToken);
             
             OnContainerEvent(containerId, "remove");
-            return true;
+            return Result.Success;
         }
         catch (DockerContainerNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
-            return false;
+            return DockerErrors.Container.NotFound(containerId);
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} is running and cannot be removed");
-            return false;
+            return DockerErrors.Container.InUse(containerId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error removing container {containerId}: {ex.Message}");
-            return false;
+            return DockerErrors.Container.OperationFailed(containerId, "remove");
         }
     }
 
-    public async Task<bool> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try
         {
             await dockerClient.Containers.PauseContainerAsync(containerId, cancellationToken);
             OnContainerEvent(containerId, "pause");
-            return true;
+            return Result.Success;
         }
         catch (DockerContainerNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
-            return false;
+            return DockerErrors.Container.NotFound(containerId);
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} is not running");
-            return false;
+            return DockerErrors.Container.NotRunning(containerId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error pausing container {containerId}: {ex.Message}");
-            return false;
+            return DockerErrors.Container.OperationFailed(containerId, "pause");
         }
     }
 
-    public async Task<bool> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try
         {
             await dockerClient.Containers.UnpauseContainerAsync(containerId, cancellationToken);
             OnContainerEvent(containerId, "unpause");
-            return true;
+            return Result.Success;
         }
         catch (DockerContainerNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} not found");
-            return false;
+            return DockerErrors.Container.NotFound(containerId);
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
         {
-            System.Diagnostics.Debug.WriteLine($"Container {containerId} is not paused");
-            return false;
+            return DockerErrors.Container.NotPaused(containerId);
+        }
+        catch (Exception)
+        {
+            return DockerErrors.Container.OperationFailed(containerId, "unpause");
+        }
+    }
+
+    public async Task<ErrorOr<IEnumerable<ImageInfo>>> GetImagesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var images = await dockerClient.Images.ListImagesAsync(
+                new ImagesListParameters { All = true },
+                cancellationToken);
+
+            return images.Select(dockerMapper.MapToImageInfo).ToList();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error unpausing container {containerId}: {ex.Message}");
-            return false;
+            return DockerErrors.Docker.UnexpectedError(ex.Message);
         }
     }
 
-    public async Task<IEnumerable<ImageInfo>> GetImagesAsync(CancellationToken cancellationToken = default)
-    {
-        var images = await dockerClient.Images.ListImagesAsync(
-            new ImagesListParameters { All = true },
-            cancellationToken);
-
-        return images.Select(dockerMapper.MapToImageInfo);
-    }
-
-    public async Task<bool> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -227,23 +229,21 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 progressHandler,
                 cancellationToken);
 
-            return true;
+            return Result.Success;
         }
         catch (DockerApiException ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error pulling image {imageName}: {ex.Message}");
             progress?.Report($"Failed to pull image: {ex.Message}");
-            return false;
+            return DockerErrors.Image.PullFailed(imageName, "Failed to pull image");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Unexpected error pulling image {imageName}: {ex.Message}");
             progress?.Report("Failed to pull image");
-            return false;
+            return DockerErrors.Image.PullFailed(imageName, "Failed to pull image");
         }
     }
 
-    public async Task<bool> RemoveImageAsync(string imageId, bool force = false, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> RemoveImageAsync(string imageId, bool force = false, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -251,28 +251,25 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 imageId,
                 new ImageDeleteParameters { Force = force },
                 cancellationToken);
-            return true;
+            return Result.Success;
         }
         catch (DockerImageNotFoundException)
         {
-            System.Diagnostics.Debug.WriteLine($"Image {imageId} not found");
-            return false;
+            return DockerErrors.Image.NotFound(imageId);
         }
         catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
         {
-            System.Diagnostics.Debug.WriteLine($"Image {imageId} is in use by a container");
-            return false;
+            return DockerErrors.Image.InUse(imageId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error removing image {imageId}: {ex.Message}");
-            return false;
+            return DockerErrors.Image.RemoveFailed(imageId);
         }
     }
 
 
 
-    public async Task<DockerSystemInfo?> GetSystemInfoAsync(CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<DockerSystemInfo>> GetSystemInfoAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -292,55 +289,50 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
         catch (TimeoutException)
         {
-            System.Diagnostics.Debug.WriteLine("Docker daemon not responding");
-            return null;
+            return DockerErrors.Docker.DaemonNotResponding();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error getting Docker system info: {ex.Message}");
-            return null;
+            return DockerErrors.Docker.ConnectionFailed(ex.Message);
         }
     }
 
-    public async Task<bool> PruneContainersAsync(CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> PruneContainersAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             await dockerClient.Containers.PruneContainersAsync(cancellationToken: cancellationToken);
-            return true;
+            return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error pruning containers: {ex.Message}");
-            return false;
+            return DockerErrors.Prune.ContainersFailed();
         }
     }
 
-    public async Task<bool> PruneImagesAsync(CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> PruneImagesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             await dockerClient.Images.PruneImagesAsync(cancellationToken: cancellationToken);
-            return true;
+            return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error pruning images: {ex.Message}");
-            return false;
+            return DockerErrors.Prune.ImagesFailed();
         }
     }
 
-    public async Task<bool> PruneVolumesAsync(CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<Success>> PruneVolumesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             await dockerClient.Volumes.PruneAsync(cancellationToken: cancellationToken);
-            return true;
+            return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error pruning volumes: {ex.Message}");
-            return false;
+            return DockerErrors.Prune.VolumesFailed();
         }
     }
 

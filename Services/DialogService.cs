@@ -20,7 +20,7 @@ public class DialogService(Func<string, string, LogsViewModel> logsViewModelFact
     
     public async Task<bool> ShowConfirmationAsync(string title, string message, Window owner)
     {
-        // For now, return true. We'll implement proper dialog later
+        // TODO return true, implement proper dialog later
         await Task.CompletedTask;
         return true;
     }

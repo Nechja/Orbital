@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
+using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services;
 
@@ -90,27 +91,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task GetDockerVersionAsync()
     {
-        try
+        var result = await _dockerService.GetSystemInfoAsync();
+        
+        if (result.IsError)
         {
-            var systemInfo = await _dockerService.GetSystemInfoAsync();
-            if (systemInfo != null)
-            {
-                DockerVersion = $"v{systemInfo.ServerVersion}";
-                DockerStatusColor = "#4ECDC4";
-                StatusMessage = "Connected to Docker";
-            }
-            else
-            {
-                DockerVersion = "Disconnected";
-                DockerStatusColor = "#FF6B6B";
-                StatusMessage = "Docker daemon not responding";
-            }
-        }
-        catch (Exception)
-        {
-            DockerVersion = "Error";
+            DockerVersion = "Disconnected";
             DockerStatusColor = "#FF6B6B";
-            StatusMessage = "Failed to connect to Docker";
+            StatusMessage = result.FirstError.Description;
+        }
+        else
+        {
+            var systemInfo = result.Value;
+            DockerVersion = $"v{systemInfo.ServerVersion}";
+            DockerStatusColor = "#4ECDC4";
+            StatusMessage = "Connected to Docker";
         }
     }
 
@@ -157,24 +151,22 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshContainersAsync()
     {
-        try
+        IsLoading = true;
+        var result = await _dockerService.GetContainersAsync();
+        
+        if (result.IsError)
         {
-            IsLoading = true;
-            var containers = await _dockerService.GetContainersAsync();
-            
+            StatusMessage = $"Error: {result.FirstError.Description}";
+        }
+        else
+        {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                UpdateContainerList(containers);
+                UpdateContainerList(result.Value);
             });
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        
+        IsLoading = false;
     }
 
     [RelayCommand]
@@ -183,8 +175,10 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedContainer == null) return;
 
         StatusMessage = $"Starting {SelectedContainer.Name}...";
-        var success = await _dockerService.StartContainerAsync(SelectedContainer.Id);
-        StatusMessage = success ? $"Started {SelectedContainer.Name}" : $"Failed to start {SelectedContainer.Name}";
+        var result = await _dockerService.StartContainerAsync(SelectedContainer.Id);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Started {SelectedContainer.Name}";
         await RefreshContainersAsync();
     }
 
@@ -194,8 +188,10 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedContainer == null) return;
 
         StatusMessage = $"Stopping {SelectedContainer.Name}...";
-        var success = await _dockerService.StopContainerAsync(SelectedContainer.Id);
-        StatusMessage = success ? $"Stopped {SelectedContainer.Name}" : $"Failed to stop {SelectedContainer.Name}";
+        var result = await _dockerService.StopContainerAsync(SelectedContainer.Id);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Stopped {SelectedContainer.Name}";
         await RefreshContainersAsync();
     }
 
@@ -205,8 +201,10 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedContainer == null) return;
 
         StatusMessage = $"Restarting {SelectedContainer.Name}...";
-        var success = await _dockerService.RestartContainerAsync(SelectedContainer.Id);
-        StatusMessage = success ? $"Restarted {SelectedContainer.Name}" : $"Failed to restart {SelectedContainer.Name}";
+        var result = await _dockerService.RestartContainerAsync(SelectedContainer.Id);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Restarted {SelectedContainer.Name}";
         await RefreshContainersAsync();
     }
 
@@ -216,8 +214,10 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedContainer == null) return;
 
         StatusMessage = $"Removing {SelectedContainer.Name}...";
-        var success = await _dockerService.RemoveContainerAsync(SelectedContainer.Id, force: true);
-        StatusMessage = success ? $"Removed {SelectedContainer.Name}" : $"Failed to remove {SelectedContainer.Name}";
+        var result = await _dockerService.RemoveContainerAsync(SelectedContainer.Id, force: true);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Removed {SelectedContainer.Name}";
         await RefreshContainersAsync();
     }
 
@@ -239,8 +239,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task PruneContainersAsync()
     {
         StatusMessage = "Pruning containers...";
-        var success = await _dockerService.PruneContainersAsync();
-        StatusMessage = success ? "Containers pruned" : "Failed to prune containers";
+        var result = await _dockerService.PruneContainersAsync();
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : "Containers pruned";
         await RefreshContainersAsync();
     }
 
@@ -248,8 +250,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task PruneImagesAsync()
     {
         StatusMessage = "Pruning images...";
-        var success = await _dockerService.PruneImagesAsync();
-        StatusMessage = success ? "Images pruned" : "Failed to prune images";
+        var result = await _dockerService.PruneImagesAsync();
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : "Images pruned";
         await RefreshImagesAsync();
     }
 
@@ -260,8 +264,10 @@ public partial class MainWindowViewModel : ViewModelBase
         
         StatusMessage = $"Removing {imageVm.Repository}:{imageVm.Tag}...";
         var fullImageId = imageVm.FullId ?? imageVm.Id;
-        var success = await _dockerService.RemoveImageAsync(fullImageId, force: true);
-        StatusMessage = success ? $"Removed {imageVm.Repository}:{imageVm.Tag}" : $"Failed to remove {imageVm.Repository}:{imageVm.Tag}";
+        var result = await _dockerService.RemoveImageAsync(fullImageId, force: true);
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : $"Removed {imageVm.Repository}:{imageVm.Tag}";
         await RefreshImagesAsync();
     }
 
@@ -269,8 +275,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task PruneVolumesAsync()
     {
         StatusMessage = "Pruning volumes...";
-        var success = await _dockerService.PruneVolumesAsync();
-        StatusMessage = success ? "Volumes pruned" : "Failed to prune volumes";
+        var result = await _dockerService.PruneVolumesAsync();
+        StatusMessage = result.IsError 
+            ? result.ToStatusMessage()
+            : "Volumes pruned";
         await RefreshVolumesAsync();
     }
 
@@ -296,28 +304,26 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshImagesAsync()
     {
-        try
+        IsLoading = true;
+        var result = await _dockerService.GetImagesAsync();
+        
+        if (result.IsError)
         {
-            IsLoading = true;
-            var images = await _dockerService.GetImagesAsync();
-            
+            StatusMessage = $"Error: {result.FirstError.Description}";
+        }
+        else
+        {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 Images.Clear();
-                foreach (var image in images)
+                foreach (var image in result.Value)
                 {
                     Images.Add(new ImageViewModel(image));
                 }
             });
         }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        
+        IsLoading = false;
     }
 
     private async Task RefreshVolumesAsync()

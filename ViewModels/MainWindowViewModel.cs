@@ -470,7 +470,6 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 var volumeList = result.Value.OrderBy(v => v.Name).ToList();
                 
- volumes or add new ones
                 foreach (var volume in volumeList)
                 {
                     var existingVm = Volumes.FirstOrDefault(v => v.Name == volume.Name);
@@ -485,7 +484,6 @@ public partial class MainWindowViewModel : ViewModelBase
                     }
                 }
                 
- volumes that no longer exist
                 var toRemove = Volumes.Where(v => !volumeList.Any(nv => nv.Name == v.Name)).ToList();
                 foreach (var volume in toRemove)
                 {
@@ -525,7 +523,6 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 var networkList = result.Value.OrderBy(n => n.Name).ToList();
                 
- networks or add new ones
                 foreach (var network in networkList)
                 {
                     var existingVm = Networks.FirstOrDefault(n => n.Id == network.Id);
@@ -540,7 +537,6 @@ public partial class MainWindowViewModel : ViewModelBase
                     }
                 }
                 
- networks that no longer exist
                 var toRemove = Networks.Where(n => !networkList.Any(nn => nn.Id == n.Id)).ToList();
                 foreach (var network in toRemove)
                 {

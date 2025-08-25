@@ -17,6 +17,7 @@ public partial class ImageViewModel : ObservableObject
     public string FullId => _image.Id;
     public string Id => _image.Id.Length > 19 ? _image.Id.Substring(7, 12) : _image.Id;
     public string Repository => string.IsNullOrEmpty(_image.Repository) || _image.Repository == "<none>" ? "unnamed" : _image.Repository;
+    public string ShortRepository => Repository.Length > 36 ? Repository.Substring(0, 33) + "..." : Repository;
     public string Tag => string.IsNullOrEmpty(_image.Tag) || _image.Tag == "<none>" ? "latest" : _image.Tag;
     public long Size => _image.Size;
     public DateTime Created => _image.Created;

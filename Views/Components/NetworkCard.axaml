@@ -25,7 +25,8 @@
                         MinWidth="300">
                 <TextBlock Text="{Binding ShortName}" 
                            FontSize="14" 
-                           Foreground="#FFFFFF"/>
+                           Foreground="#FFFFFF"
+                           ToolTip.Tip="{Binding Name}"/>
                 <TextBlock Text="{Binding Driver}" 
                            FontSize="12" 
                            Foreground="#8888AA"/>

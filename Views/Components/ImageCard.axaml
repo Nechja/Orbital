@@ -14,10 +14,11 @@
             Padding="20"
             Margin="0,4">
         <Grid ColumnDefinitions="Auto,*,Auto">
-            <StackPanel Grid.Column="0" Spacing="8">
-                <TextBlock Text="{Binding Repository}" 
+            <StackPanel Grid.Column="0" Spacing="8" MinWidth="300">
+                <TextBlock Text="{Binding ShortRepository}" 
                            FontSize="14" 
-                           Foreground="#FFFFFF"/>
+                           Foreground="#FFFFFF"
+                           ToolTip.Tip="{Binding Repository}"/>
                 <TextBlock Text="{Binding Tag}" 
                            FontSize="12" 
                            Foreground="#8888AA"/>

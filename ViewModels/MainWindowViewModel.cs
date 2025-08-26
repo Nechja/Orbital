@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
@@ -364,6 +366,32 @@ public partial class MainWindowViewModel : ViewModelBase
             ? result.ToStatusMessage()
             : "Images pruned";
         await RefreshImagesAsync();
+    }
+
+    [RelayCommand]
+    private async Task RunImageAsync(ImageViewModel? imageVm)
+    {
+        if (imageVm == null) return;
+        
+        // Create and show the dialog
+        var dialog = new Views.Dialogs.CreateContainerDialog();
+        var dialogViewModel = new ViewModels.Dialogs.CreateContainerDialogViewModel(
+            _dockerService,
+            _dialogService,
+            imageVm.Repository,
+            imageVm.Tag);
+        
+        dialog.DataContext = dialogViewModel;
+        
+        // Show dialog and wait for result
+        var desktop = Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        await dialog.ShowDialog(desktop?.MainWindow ?? throw new InvalidOperationException("No main window"));
+        
+        if (dialogViewModel.DialogResult == true)
+        {
+            StatusMessage = $"Container created and started from {imageVm.Repository}:{imageVm.Tag}";
+            await RefreshContainersAsync();
+        }
     }
 
     [RelayCommand]

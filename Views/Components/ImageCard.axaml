@@ -42,6 +42,14 @@
                         Orientation="Horizontal" 
                         Spacing="8"
                         VerticalAlignment="Center">
+                <Button Content="RUN"
+                        FontSize="11"
+                        Padding="10,6"
+                        Background="#4ECDC4"
+                        Foreground="#000000"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        Name="RunButton"/>
                 <Button Content="REMOVE"
                         FontSize="11"
                         Padding="10,6"
@@ -53,7 +61,7 @@
                 <Button Content="PULL"
                         FontSize="11"
                         Padding="10,6"
-                        Background="#4ECDC4"
+                        Background="#95E1D3"
                         Foreground="#000000"
                         BorderThickness="0"
                         CornerRadius="4"

@@ -9,6 +9,9 @@ public static class DockerErrors
         public static Error NotFound(string containerId) => 
             Error.NotFound("Container.NotFound", $"Container '{containerId}' was not found");
             
+        public static Error AlreadyExists(string containerName) => 
+            Error.Conflict("Container.AlreadyExists", $"Container with name '{containerName}' already exists");
+            
         public static Error AlreadyRunning(string containerId) => 
             Error.Conflict("Container.AlreadyRunning", $"Container '{containerId}' is already running");
             

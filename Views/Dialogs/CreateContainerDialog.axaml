@@ -1,0 +1,218 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:OrbitalDocking.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="OrbitalDocking.Views.Dialogs.CreateContainerDialog"
+        x:DataType="vm:CreateContainerDialogViewModel"
+        Title="Create Container"
+        Width="550"
+        Height="450"
+        WindowStartupLocation="CenterOwner"
+        Background="#0A0A1F">
+    
+    <Border Background="#0A0A1F" Padding="20">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- Header with image info -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                <TextBlock Text="{Binding ImageFullName}" 
+                           FontSize="16" 
+                           FontWeight="SemiBold" 
+                           Foreground="#4ECDC4"/>
+            </StackPanel>
+            
+            <!-- Main content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="20">
+                    <!-- Container Name -->
+                    <StackPanel>
+                        <TextBlock Text="Container Name" 
+                                   FontSize="12" 
+                                   Foreground="#8888AA"
+                                   Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding ContainerName}"
+                                 Background="#1A1A3F"
+                                 BorderBrush="#2A2A4F"
+                                 Foreground="#FFFFFF"
+                                 Padding="8"
+                                 Watermark="my-container"/>
+                        <TextBlock Text="{Binding NameValidationError}"
+                                   FontSize="10"
+                                   Foreground="#FF6B6B"
+                                   Margin="0,4,0,0"
+                                   IsVisible="{Binding HasNameError}"/>
+                    </StackPanel>
+                    
+                    <!-- Port Mappings -->
+                    <StackPanel>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="Port Mappings" 
+                                       FontSize="12" 
+                                       Foreground="#8888AA"
+                                       VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    Content="+ Add"
+                                    FontSize="10"
+                                    Padding="6,3"
+                                    Background="Transparent"
+                                    Foreground="#4ECDC4"
+                                    BorderBrush="#2A2A4F"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Command="{Binding AddPortCommand}"/>
+                        </Grid>
+                        
+                        <ItemsControl ItemsSource="{Binding PortMappings}" Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="100,Auto,100,Auto,50,Auto" Margin="0,3">
+                                        <TextBox Grid.Column="0"
+                                                 Text="{Binding HostPort}"
+                                                 Watermark="Host"
+                                                 Background="#1A1A3F"
+                                                 BorderBrush="#2A2A4F"
+                                                 Foreground="#FFFFFF"
+                                                 Padding="6,4"
+                                                 FontSize="11"/>
+                                        <TextBlock Grid.Column="1" 
+                                                   Text=":" 
+                                                   Margin="6,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="#666688"/>
+                                        <TextBox Grid.Column="2"
+                                                 Text="{Binding ContainerPort}"
+                                                 Watermark="Container"
+                                                 Background="#1A1A3F"
+                                                 BorderBrush="#2A2A4F"
+                                                 Foreground="#FFFFFF"
+                                                 Padding="6,4"
+                                                 FontSize="11"/>
+                                        <TextBlock Grid.Column="3" 
+                                                   Text="/" 
+                                                   Margin="6,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="#666688"/>
+                                        <ComboBox Grid.Column="4"
+                                                  SelectedItem="{Binding Protocol}"
+                                                  Background="#1A1A3F"
+                                                  BorderBrush="#2A2A4F"
+                                                  Foreground="#FFFFFF"
+                                                  FontSize="11"
+                                                  Padding="4,2">
+                                            <ComboBoxItem>tcp</ComboBoxItem>
+                                            <ComboBoxItem>udp</ComboBoxItem>
+                                        </ComboBox>
+                                        <Button Grid.Column="5"
+                                                Content="×"
+                                                FontSize="14"
+                                                Margin="6,0,0,0"
+                                                Width="20"
+                                                Height="20"
+                                                Background="Transparent"
+                                                Foreground="#FF6B6B"
+                                                BorderThickness="0"
+                                                Command="{Binding $parent[Window].DataContext.RemovePortCommand}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                    
+                    <!-- Environment Variables -->
+                    <StackPanel>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="Environment Variables" 
+                                       FontSize="12" 
+                                       Foreground="#8888AA"
+                                       VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    Content="+ Add"
+                                    FontSize="10"
+                                    Padding="6,3"
+                                    Background="Transparent"
+                                    Foreground="#4ECDC4"
+                                    BorderBrush="#2A2A4F"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Command="{Binding AddEnvironmentVariableCommand}"/>
+                        </Grid>
+                        
+                        <ItemsControl ItemsSource="{Binding EnvironmentVariables}" Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="140,Auto,*,Auto" Margin="0,3">
+                                        <TextBox Grid.Column="0"
+                                                 Text="{Binding Key}"
+                                                 Watermark="Variable"
+                                                 Background="#1A1A3F"
+                                                 BorderBrush="#2A2A4F"
+                                                 Foreground="#FFFFFF"
+                                                 Padding="6,4"
+                                                 FontSize="11"/>
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="=" 
+                                                   Margin="6,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="#666688"/>
+                                        <TextBox Grid.Column="2"
+                                                 Text="{Binding Value}"
+                                                 Watermark="Value"
+                                                 Background="#1A1A3F"
+                                                 BorderBrush="#2A2A4F"
+                                                 Foreground="#FFFFFF"
+                                                 Padding="6,4"
+                                                 FontSize="11"/>
+                                        <Button Grid.Column="3"
+                                                Content="×"
+                                                FontSize="14"
+                                                Margin="6,0,0,0"
+                                                Width="20"
+                                                Height="20"
+                                                Background="Transparent"
+                                                Foreground="#FF6B6B"
+                                                BorderThickness="0"
+                                                Command="{Binding $parent[Window].DataContext.RemoveEnvironmentVariableCommand}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+            
+            <!-- Action buttons -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,20,0,0">
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding ValidationSummary}"
+                           FontSize="12"
+                           Foreground="#FF6B6B"
+                           VerticalAlignment="Center"/>
+                <Button Grid.Column="1"
+                        Content="Cancel"
+                        FontSize="12"
+                        Padding="16,8"
+                        Background="#2A2A4F"
+                        Foreground="#8888AA"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        Margin="0,0,8,0"
+                        Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="2"
+                        Content="Create &amp; Start"
+                        FontSize="12"
+                        Padding="16,8"
+                        Background="#4ECDC4"
+                        Foreground="#000000"
+                        BorderThickness="0"
+                        CornerRadius="4"
+                        IsEnabled="{Binding CanCreate}"
+                        Command="{Binding CreateAndStartCommand}"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

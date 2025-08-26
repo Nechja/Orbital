@@ -53,6 +53,31 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
     }
 
+    public async Task<ErrorOr<CreateContainerResponse>> CreateContainerAsync(CreateContainerParameters parameters, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await dockerClient.Containers.CreateContainerAsync(
+                parameters,
+                cancellationToken);
+            
+            OnContainerEvent(response.ID, "create");
+            return response;
+        }
+        catch (DockerImageNotFoundException)
+        {
+            return DockerErrors.Image.NotFound(parameters.Image ?? "unknown");
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            return DockerErrors.Container.AlreadyExists(parameters.Name ?? "unknown");
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Docker.UnexpectedError(ex.Message);
+        }
+    }
+
     public async Task<ErrorOr<Success>> StartContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Docker.DotNet.Models;
 using ErrorOr;
 using OrbitalDocking.Models;
 
@@ -11,6 +12,7 @@ public interface IDockerService
 {
     Task<ErrorOr<IEnumerable<ContainerInfo>>> GetContainersAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<ContainerInfo>> GetContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<ErrorOr<CreateContainerResponse>> CreateContainerAsync(CreateContainerParameters parameters, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> StartContainerAsync(string containerId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> StopContainerAsync(string containerId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default);

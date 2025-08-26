@@ -22,8 +22,15 @@ public partial class ImageCard : UserControl
             var mainWindow = this.FindAncestorOfType<Window>();
             if (mainWindow?.DataContext is MainWindowViewModel mainVm)
             {
+                var runBtn = this.FindControl<Button>("RunButton");
                 var removeBtn = this.FindControl<Button>("RemoveButton");
                 var pullBtn = this.FindControl<Button>("PullButton");
+                
+                if (runBtn != null)
+                {
+                    runBtn.Command = mainVm.RunImageCommand;
+                    runBtn.CommandParameter = image;
+                }
                 
                 if (removeBtn != null)
                 {

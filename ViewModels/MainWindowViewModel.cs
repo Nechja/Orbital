@@ -26,8 +26,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly Timer _imageRefreshTimer;
     private readonly Timer _volumeRefreshTimer;
     private readonly Timer _networkRefreshTimer;
-    private readonly object _containerLock = new object();
-    private bool _isRefreshing = false;
+    private readonly SemaphoreSlim _containerSemaphore = new(1, 1);
+    private readonly SemaphoreSlim _imageSemaphore = new(1, 1);
+    private readonly SemaphoreSlim _volumeSemaphore = new(1, 1);
+    private readonly SemaphoreSlim _networkSemaphore = new(1, 1);
 
     public Window? MainWindow { get; set; }
     
@@ -208,12 +210,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshContainersAsync()
     {
-        // Prevent concurrent refreshes
-        lock (_containerLock)
-        {
-            if (_isRefreshing) return;
-            _isRefreshing = true;
-        }
+        // Try to acquire the semaphore, skip if already refreshing
+        if (!await _containerSemaphore.WaitAsync(0))
+            return;
 
         try
         {
@@ -235,10 +234,7 @@ public partial class MainWindowViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
-            lock (_containerLock)
-            {
-                _isRefreshing = false;
-            }
+            _containerSemaphore.Release();
         }
     }
 
@@ -564,51 +560,72 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshImagesAsync()
     {
-        IsLoading = true;
-        var result = await _dockerService.GetImagesAsync();
-        
-        if (result.IsError)
+        // Try to acquire the semaphore, skip if already refreshing
+        if (!await _imageSemaphore.WaitAsync(0))
+            return;
+
+        try
         {
-            StatusMessage = $"Error: {result.FirstError.Description}";
-        }
-        else
-        {
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            IsLoading = true;
+            var result = await _dockerService.GetImagesAsync();
+            
+            if (result.IsError)
             {
-                Images.Clear();
-                foreach (var image in result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag))
+                StatusMessage = $"Error: {result.FirstError.Description}";
+            }
+            else
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    Images.Add(new ImageViewModel(image));
-                }
-                OnPropertyChanged(nameof(FilteredImages));
-            });
+                    Images.Clear();
+                    foreach (var image in result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag))
+                    {
+                        Images.Add(new ImageViewModel(image));
+                    }
+                    OnPropertyChanged(nameof(FilteredImages));
+                });
+            }
         }
-        
-        IsLoading = false;
+        finally
+        {
+            IsLoading = false;
+            _imageSemaphore.Release();
+        }
     }
 
     private async Task RefreshVolumesAsync()
     {
-        IsLoading = true;
-        var result = await _dockerService.GetVolumesAsync();
-        
-        if (result.IsError)
+        // Try to acquire the semaphore, skip if already refreshing
+        if (!await _volumeSemaphore.WaitAsync(0))
+            return;
+
+        try
         {
-            StatusMessage = $"Error: {result.FirstError.Description}";
-        }
-        else
-        {
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            IsLoading = true;
+            var result = await _dockerService.GetVolumesAsync();
+            
+            if (result.IsError)
             {
-                Volumes.Clear();
-                foreach (var volume in result.Value.OrderBy(v => v.Name))
+                StatusMessage = $"Error: {result.FirstError.Description}";
+            }
+            else
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    Volumes.Add(new VolumeViewModel(volume));
-                }
-            });
+                    Volumes.Clear();
+                    foreach (var volume in result.Value.OrderBy(v => v.Name))
+                    {
+                        Volumes.Add(new VolumeViewModel(volume));
+                    }
+                    OnPropertyChanged(nameof(FilteredVolumes));
+                });
+            }
         }
-        
-        IsLoading = false;
+        finally
+        {
+            IsLoading = false;
+            _volumeSemaphore.Release();
+        }
     }
     
     [RelayCommand]
@@ -626,26 +643,37 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshNetworksAsync()
     {
-        IsLoading = true;
-        var result = await _dockerService.GetNetworksAsync();
-        
-        if (result.IsError)
+        // Try to acquire the semaphore, skip if already refreshing
+        if (!await _networkSemaphore.WaitAsync(0))
+            return;
+
+        try
         {
-            StatusMessage = $"Error: {result.FirstError.Description}";
-        }
-        else
-        {
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            IsLoading = true;
+            var result = await _dockerService.GetNetworksAsync();
+            
+            if (result.IsError)
             {
-                Networks.Clear();
-                foreach (var network in result.Value.OrderBy(n => n.Name))
+                StatusMessage = $"Error: {result.FirstError.Description}";
+            }
+            else
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    Networks.Add(new NetworkViewModel(network));
-                }
-            });
+                    Networks.Clear();
+                    foreach (var network in result.Value.OrderBy(n => n.Name))
+                    {
+                        Networks.Add(new NetworkViewModel(network));
+                    }
+                    OnPropertyChanged(nameof(FilteredNetworks));
+                });
+            }
         }
-        
-        IsLoading = false;
+        finally
+        {
+            IsLoading = false;
+            _networkSemaphore.Release();
+        }
     }
     
     [RelayCommand]
@@ -669,6 +697,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void UpdateContainerList(IEnumerable<ContainerInfo> containers)
     {
+        // Ensure we're on UI thread
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => UpdateContainerList(containers));
+            return;
+        }
+
+        // We're already protected by the semaphore from RefreshContainersAsync
         var containerList = containers.ToList();
         
         foreach (var container in containerList)
@@ -742,6 +778,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _imageRefreshTimer?.Dispose();
         _volumeRefreshTimer?.Dispose();
         _networkRefreshTimer?.Dispose();
+        
+        _containerSemaphore?.Dispose();
+        _imageSemaphore?.Dispose();
+        _volumeSemaphore?.Dispose();
+        _networkSemaphore?.Dispose();
+        
         _dockerService.ContainerEvent -= OnContainerEvent;
         
         foreach (var container in Containers)

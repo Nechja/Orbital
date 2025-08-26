@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using OrbitalDocking.ViewModels;
@@ -25,8 +26,10 @@ public partial class ContainerCard : UserControl
                 var startBtn = this.FindControl<Button>("StartButton");
                 var stopBtn = this.FindControl<Button>("StopButton");
                 var restartBtn = this.FindControl<Button>("RestartButton");
+                var removeBtn = this.FindControl<Button>("RemoveButton");
                 var logsBtn = this.FindControl<Button>("LogsButton");
                 var expandBtn = this.FindControl<Button>("ExpandButton");
+                var toggleExpandBtn = this.FindControl<ToggleButton>("ToggleExpandButton");
                 
                 if (startBtn != null)
                 {
@@ -46,6 +49,12 @@ public partial class ContainerCard : UserControl
                     restartBtn.CommandParameter = container;
                 }
                 
+                if (removeBtn != null)
+                {
+                    removeBtn.Command = mainVm.RemoveContainerCommand;
+                    removeBtn.CommandParameter = container;
+                }
+                
                 if (logsBtn != null)
                 {
                     logsBtn.Command = mainVm.ShowContainerLogsCommand;
@@ -57,6 +66,21 @@ public partial class ContainerCard : UserControl
                     expandBtn.Click += (s, e) =>
                     {
                         container.IsExpanded = !container.IsExpanded;
+                        if (container.IsExpanded && container.IsRunning)
+                        {
+                            container.StartStatsMonitoring();
+                        }
+                        else
+                        {
+                            container.StopStatsMonitoring();
+                        }
+                    };
+                }
+                
+                if (toggleExpandBtn != null)
+                {
+                    toggleExpandBtn.Click += (s, e) =>
+                    {
                         if (container.IsExpanded && container.IsRunning)
                         {
                             container.StartStatsMonitoring();

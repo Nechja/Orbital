@@ -54,6 +54,9 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     public bool IsRunning => State == Models.ContainerState.Running;
     public bool IsPaused => State == Models.ContainerState.Paused;
     public bool IsStopped => State == Models.ContainerState.Exited || State == Models.ContainerState.Created;
+    public bool IsRestarting => State == Models.ContainerState.Restarting;
+    public bool IsProblematic => State == Models.ContainerState.Restarting || State == Models.ContainerState.Dead;
+    public bool CanRemove => IsStopped || IsProblematic;
 
     public string StateColor => State switch
     {

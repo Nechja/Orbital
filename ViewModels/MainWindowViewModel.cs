@@ -225,54 +225,58 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task StartContainerAsync()
+    private async Task StartContainerAsync(ContainerViewModel? container = null)
     {
-        if (SelectedContainer == null) return;
+        container ??= SelectedContainer;
+        if (container == null) return;
 
-        StatusMessage = $"Starting {SelectedContainer.Name}...";
-        var result = await _dockerService.StartContainerAsync(SelectedContainer.Id);
+        StatusMessage = $"Starting {container.Name}...";
+        var result = await _dockerService.StartContainerAsync(container.Id);
         StatusMessage = result.IsError 
             ? result.ToStatusMessage()
-            : $"Started {SelectedContainer.Name}";
+            : $"Started {container.Name}";
         await RefreshContainersAsync();
     }
 
     [RelayCommand]
-    private async Task StopContainerAsync()
+    private async Task StopContainerAsync(ContainerViewModel? container = null)
     {
-        if (SelectedContainer == null) return;
+        container ??= SelectedContainer;
+        if (container == null) return;
 
-        StatusMessage = $"Stopping {SelectedContainer.Name}...";
-        var result = await _dockerService.StopContainerAsync(SelectedContainer.Id);
+        StatusMessage = $"Stopping {container.Name}...";
+        var result = await _dockerService.StopContainerAsync(container.Id);
         StatusMessage = result.IsError 
             ? result.ToStatusMessage()
-            : $"Stopped {SelectedContainer.Name}";
+            : $"Stopped {container.Name}";
         await RefreshContainersAsync();
     }
 
     [RelayCommand]
-    private async Task RestartContainerAsync()
+    private async Task RestartContainerAsync(ContainerViewModel? container = null)
     {
-        if (SelectedContainer == null) return;
+        container ??= SelectedContainer;
+        if (container == null) return;
 
-        StatusMessage = $"Restarting {SelectedContainer.Name}...";
-        var result = await _dockerService.RestartContainerAsync(SelectedContainer.Id);
+        StatusMessage = $"Restarting {container.Name}...";
+        var result = await _dockerService.RestartContainerAsync(container.Id);
         StatusMessage = result.IsError 
             ? result.ToStatusMessage()
-            : $"Restarted {SelectedContainer.Name}";
+            : $"Restarted {container.Name}";
         await RefreshContainersAsync();
     }
 
     [RelayCommand]
-    private async Task RemoveContainerAsync()
+    private async Task RemoveContainerAsync(ContainerViewModel? container = null)
     {
-        if (SelectedContainer == null) return;
+        container ??= SelectedContainer;
+        if (container == null) return;
 
-        StatusMessage = $"Removing {SelectedContainer.Name}...";
-        var result = await _dockerService.RemoveContainerAsync(SelectedContainer.Id, force: true);
+        StatusMessage = $"Removing {container.Name}...";
+        var result = await _dockerService.RemoveContainerAsync(container.Id, force: true);
         StatusMessage = result.IsError 
             ? result.ToStatusMessage()
-            : $"Removed {SelectedContainer.Name}";
+            : $"Removed {container.Name}";
         await RefreshContainersAsync();
     }
     
@@ -373,24 +377,38 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (imageVm == null) return;
         
-        // Create and show the dialog
-        var dialog = new Views.Dialogs.CreateContainerDialog();
-        var dialogViewModel = new ViewModels.Dialogs.CreateContainerDialogViewModel(
-            _dockerService,
-            _dialogService,
-            imageVm.Repository,
-            imageVm.Tag);
-        
-        dialog.DataContext = dialogViewModel;
-        
-        // Show dialog and wait for result
-        var desktop = Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-        await dialog.ShowDialog(desktop?.MainWindow ?? throw new InvalidOperationException("No main window"));
-        
-        if (dialogViewModel.DialogResult == true)
+        try
         {
-            StatusMessage = $"Container created and started from {imageVm.Repository}:{imageVm.Tag}";
-            await RefreshContainersAsync();
+            // Create and show the dialog
+            var dialog = new Views.Dialogs.CreateContainerDialog();
+            var dialogViewModel = new ViewModels.Dialogs.CreateContainerDialogViewModel(
+                _dockerService,
+                _dialogService,
+                imageVm.Repository,
+                imageVm.Tag);
+            
+            dialog.DataContext = dialogViewModel;
+            
+            // Show dialog and wait for result
+            var desktop = Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            if (desktop?.MainWindow == null)
+            {
+                StatusMessage = "Error: Unable to find main window";
+                return;
+            }
+            
+            await dialog.ShowDialog(desktop.MainWindow);
+            
+            if (dialogViewModel.DialogResult == true)
+            {
+                StatusMessage = $"Container created and started from {imageVm.Repository}:{imageVm.Tag}";
+                await RefreshContainersAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error showing dialog: {ex.Message}";
+            Console.WriteLine($"RunImageAsync error: {ex}");
         }
     }
 

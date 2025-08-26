@@ -19,14 +19,22 @@
         
         <StackPanel>
             <!-- Main container row -->
-            <Button Background="Transparent"
-                    BorderThickness="0"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Stretch"
-                    Padding="24"
-                    Name="ExpandButton"
-                    Cursor="Hand">
-                <Grid ColumnDefinitions="Auto,*,Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Clickable area for expand -->
+                <Button Grid.Column="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Padding="24"
+                        Name="ExpandButton"
+                        Cursor="Hand">
+                    <Grid ColumnDefinitions="Auto,*">
                     <!-- Status and info -->
                     <Grid Grid.Column="0" ColumnDefinitions="Auto,Auto">
                         <Border Grid.Column="0" 
@@ -75,38 +83,46 @@
                                    FontSize="12"
                                    Foreground="#8888AA"/>
                     </StackPanel>
+                    </Grid>
+                </Button>
 
-                    <!-- Actions -->
-                    <StackPanel Grid.Column="2" 
-                                Orientation="Horizontal" 
-                                Spacing="20"
-                                VerticalAlignment="Center">
-                        <Button Classes="action"
-                                Content="RESTART"
-                                Foreground="#FFA500"
-                                IsVisible="{Binding IsRunning}"
-                                Name="RestartButton"/>
-                        <Button Classes="action"
-                                Content="STOP"
-                                Foreground="#FF6B6B"
-                                IsVisible="{Binding IsRunning}"
-                                Name="StopButton"/>
-                        <Button Classes="action"
-                                Content="START"
-                                Foreground="#4ECDC4"
-                                IsVisible="{Binding IsStopped}"
-                                Name="StartButton"/>
-                        <Button Classes="action"
-                                Content="LOGS"
-                                Foreground="#95E1D3"
-                                Name="LogsButton"/>
-                        <ToggleButton IsChecked="{Binding IsExpanded}"
-                                      Classes="action"
-                                      Content="▼"
-                                      Foreground="#666688"/>
-                    </StackPanel>
-                </Grid>
-            </Button>
+                <!-- Actions - Outside expand button -->
+                <StackPanel Grid.Column="1" 
+                            Orientation="Horizontal" 
+                            Spacing="20"
+                            VerticalAlignment="Center"
+                            Margin="0,0,24,0">
+                    <Button Classes="action"
+                            Content="REMOVE"
+                            Foreground="#FF6B6B"
+                            IsVisible="{Binding CanRemove}"
+                            Name="RemoveButton"/>
+                    <Button Classes="action"
+                            Content="RESTART"
+                            Foreground="#FFA500"
+                            IsVisible="{Binding IsRunning}"
+                            Name="RestartButton"/>
+                    <Button Classes="action"
+                            Content="STOP"
+                            Foreground="#FF6B6B"
+                            IsVisible="{Binding IsRunning}"
+                            Name="StopButton"/>
+                    <Button Classes="action"
+                            Content="START"
+                            Foreground="#4ECDC4"
+                            IsVisible="{Binding IsStopped}"
+                            Name="StartButton"/>
+                    <Button Classes="action"
+                            Content="LOGS"
+                            Foreground="#95E1D3"
+                            Name="LogsButton"/>
+                    <ToggleButton IsChecked="{Binding IsExpanded}"
+                                  Classes="action"
+                                  Content="▼"
+                                  Foreground="#666688"
+                                  Name="ToggleExpandButton"/>
+                </StackPanel>
+            </Grid>
             
             <!-- Expanded details -->
             <Border IsVisible="{Binding IsExpanded}"

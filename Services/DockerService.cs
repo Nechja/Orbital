@@ -178,6 +178,60 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
     }
 
+    public async Task<ErrorOr<Success>> RemoveStackAsync(string stackName, IEnumerable<string> containerIds, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var containerIdList = containerIds.ToList();
+            
+            // First, stop all running containers in the stack
+            var runningContainers = new List<string>();
+            foreach (var containerId in containerIdList)
+            {
+                try
+                {
+                    var container = await dockerClient.Containers.InspectContainerAsync(containerId, cancellationToken);
+                    if (container.State.Running)
+                    {
+                        runningContainers.Add(containerId);
+                    }
+                }
+                catch
+                {
+                    // Container might already be gone, continue
+                }
+            }
+            
+            // Stop all running containers in parallel
+            if (runningContainers.Any())
+            {
+                var stopTasks = runningContainers.Select(id => 
+                    dockerClient.Containers.StopContainerAsync(id, new ContainerStopParameters { WaitBeforeKillSeconds = 10 }, cancellationToken)
+                );
+                await Task.WhenAll(stopTasks);
+            }
+            
+            // Now remove all containers in the stack
+            var removeTasks = containerIdList.Select(id => 
+                dockerClient.Containers.RemoveContainerAsync(id, new ContainerRemoveParameters { Force = true, RemoveVolumes = false }, cancellationToken)
+            );
+            
+            await Task.WhenAll(removeTasks);
+            
+            // Fire events for each removed container
+            foreach (var containerId in containerIdList)
+            {
+                OnContainerEvent(containerId, "remove");
+            }
+            
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return DockerErrors.Container.OperationFailed(stackName, $"remove stack: {ex.Message}");
+        }
+    }
+
     public async Task<ErrorOr<Success>> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
     {
         try

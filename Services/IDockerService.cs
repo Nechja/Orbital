@@ -17,6 +17,7 @@ public interface IDockerService
     Task<ErrorOr<Success>> StopContainerAsync(string containerId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default);
+    Task<ErrorOr<Success>> RemoveStackAsync(string stackName, IEnumerable<string> containerIds, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
     

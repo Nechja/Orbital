@@ -23,6 +23,8 @@ public partial class StackGroup : UserControl
             {
                 var startStackBtn = this.FindControl<Button>("StartStackButton");
                 var stopStackBtn = this.FindControl<Button>("StopStackButton");
+                var restartStackBtn = this.FindControl<Button>("RestartStackButton");
+                var removeStackBtn = this.FindControl<Button>("RemoveStackButton");
                 
                 if (startStackBtn != null)
                 {
@@ -34,6 +36,18 @@ public partial class StackGroup : UserControl
                 {
                     stopStackBtn.Command = mainVm.StopStackCommand;
                     stopStackBtn.CommandParameter = stack;
+                }
+                
+                if (restartStackBtn != null)
+                {
+                    restartStackBtn.Command = mainVm.RestartStackCommand;
+                    restartStackBtn.CommandParameter = stack;
+                }
+                
+                if (removeStackBtn != null)
+                {
+                    removeStackBtn.Command = mainVm.RemoveStackCommand;
+                    removeStackBtn.CommandParameter = stack;
                 }
             }
         }

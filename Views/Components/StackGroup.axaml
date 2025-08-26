@@ -79,6 +79,24 @@
                                 CornerRadius="3"
                                 Name="StopStackButton"
                                 IsVisible="{Binding !AllStopped}"/>
+                        <Button Content="RESTART ALL"
+                                FontSize="10"
+                                Padding="8,4"
+                                Background="#FFA500"
+                                Foreground="#FFFFFF"
+                                BorderThickness="0"
+                                CornerRadius="3"
+                                Name="RestartStackButton"
+                                IsVisible="{Binding AllRunning}"/>
+                        <Button Content="REMOVE ALL"
+                                FontSize="10"
+                                Padding="8,4"
+                                Background="#8B0000"
+                                Foreground="#FFFFFF"
+                                BorderThickness="0"
+                                CornerRadius="3"
+                                Name="RemoveStackButton"
+                                IsVisible="{Binding AllStopped}"/>
                     </StackPanel>
                 </Grid>
             </Button>

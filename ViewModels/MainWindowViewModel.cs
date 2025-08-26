@@ -286,7 +286,9 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Starting stack {stack.Name}...";
-        foreach (var container in stack.Containers.Where(c => !c.IsRunning))
+        // Create a snapshot to avoid collection modification during iteration
+        var containersToStart = stack.Containers.Where(c => !c.IsRunning).ToList();
+        foreach (var container in containersToStart)
         {
             await _dockerService.StartContainerAsync(container.Id);
         }
@@ -300,7 +302,9 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Stopping stack {stack.Name}...";
-        foreach (var container in stack.Containers.Where(c => c.IsRunning))
+        // Create a snapshot to avoid collection modification during iteration
+        var containersToStop = stack.Containers.Where(c => c.IsRunning).ToList();
+        foreach (var container in containersToStop)
         {
             await _dockerService.StopContainerAsync(container.Id);
         }
@@ -314,7 +318,9 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Restarting stack {stack.Name}...";
-        foreach (var container in stack.Containers)
+        // Create a snapshot to avoid collection modification during iteration
+        var containersToRestart = stack.Containers.ToList();
+        foreach (var container in containersToRestart)
         {
             await _dockerService.RestartContainerAsync(container.Id);
         }
@@ -328,11 +334,17 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Removing stack {stack.Name}...";
-        foreach (var container in stack.Containers)
-        {
-            await _dockerService.RemoveContainerAsync(container.Id, force: true);
-        }
-        StatusMessage = $"Removed stack {stack.Name}";
+        
+        // Get container IDs from the stack
+        var containerIds = stack.Containers.Select(c => c.Id).ToList();
+        
+        // Use the new RemoveStackAsync method for better handling
+        var result = await _dockerService.RemoveStackAsync(stack.Name, containerIds);
+        
+        StatusMessage = result.IsError 
+            ? $"Failed to remove stack {stack.Name}: {result.FirstError.Description}"
+            : $"Removed stack {stack.Name}";
+            
         await RefreshContainersAsync();
     }
 

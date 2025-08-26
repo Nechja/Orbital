@@ -31,6 +31,9 @@ public partial class CreateContainerDialogViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<EnvironmentVariableViewModel> _environmentVariables = new();
 
+    public bool HasPorts => PortMappings.Any();
+    public bool HasEnvironment => EnvironmentVariables.Any();
+
     [ObservableProperty]
     private string _nameValidationError = "";
 

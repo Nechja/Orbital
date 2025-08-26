@@ -230,6 +230,6 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     public void Dispose()
     {
         StopStatsMonitoring();
-        dockerClient?.Dispose();
+        // Don't dispose dockerClient here - it's shared across all containers
     }
 }

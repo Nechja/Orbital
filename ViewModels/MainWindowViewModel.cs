@@ -26,6 +26,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly Timer _imageRefreshTimer;
     private readonly Timer _volumeRefreshTimer;
     private readonly Timer _networkRefreshTimer;
+    private readonly object _containerLock = new object();
+    private bool _isRefreshing = false;
 
     public Window? MainWindow { get; set; }
     
@@ -206,22 +208,38 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshContainersAsync()
     {
-        IsLoading = true;
-        var result = await _dockerService.GetContainersAsync();
-        
-        if (result.IsError)
+        // Prevent concurrent refreshes
+        lock (_containerLock)
         {
-            StatusMessage = $"Error: {result.FirstError.Description}";
+            if (_isRefreshing) return;
+            _isRefreshing = true;
         }
-        else
+
+        try
         {
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            IsLoading = true;
+            var result = await _dockerService.GetContainersAsync();
+            
+            if (result.IsError)
             {
-                UpdateContainerList(result.Value);
-            });
+                StatusMessage = $"Error: {result.FirstError.Description}";
+            }
+            else
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    UpdateContainerList(result.Value);
+                });
+            }
         }
-        
-        IsLoading = false;
+        finally
+        {
+            IsLoading = false;
+            lock (_containerLock)
+            {
+                _isRefreshing = false;
+            }
+        }
     }
 
     [RelayCommand]

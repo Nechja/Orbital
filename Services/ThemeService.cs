@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
+using OrbitalDocking.Configuration;
 using OrbitalDocking.Models;
 
 namespace OrbitalDocking.Services;
@@ -76,33 +77,35 @@ public class ThemeService : IThemeService
     {
         var resources = _application.Resources;
         
-        if (theme == ThemeMode.Dark)
+        if (theme == ThemeMode.Dark || theme == ThemeMode.System) // Default to dark for now
         {
-            resources["PrimaryColor"] = Color.Parse("#5E72E4");
-            resources["AccentColor"] = Color.Parse("#825EE4");
-            resources["BackgroundColor"] = Color.Parse("#0B0E1A");
-            resources["SurfaceColor"] = Color.Parse("#151823");
-            resources["CardColor"] = Color.Parse("#1A1D2E");
-            resources["TextPrimaryColor"] = Color.Parse("#E8EAED");
-            resources["TextSecondaryColor"] = Color.Parse("#9CA3AF");
-            resources["BorderColor"] = Color.Parse("#2A2E3F");
-            resources["SuccessColor"] = Color.Parse("#10B981");
-            resources["WarningColor"] = Color.Parse("#F59E0B");
-            resources["ErrorColor"] = Color.Parse("#EF4444");
+            resources["PrimaryColor"] = Color.Parse(ThemeColors.Dark.Primary);
+            resources["AccentColor"] = Color.Parse(ThemeColors.Dark.Accent);
+            resources["BackgroundColor"] = Color.Parse(ThemeColors.Dark.Background);
+            resources["SurfaceColor"] = Color.Parse(ThemeColors.Dark.Surface);
+            resources["CardColor"] = Color.Parse(ThemeColors.Dark.Card);
+            resources["TextPrimaryColor"] = Color.Parse(ThemeColors.Dark.TextPrimary);
+            resources["TextSecondaryColor"] = Color.Parse(ThemeColors.Dark.TextSecondary);
+            resources["TextTertiaryColor"] = Color.Parse(ThemeColors.Dark.TextTertiary);
+            resources["BorderColor"] = Color.Parse(ThemeColors.Dark.Border);
+            resources["SuccessColor"] = Color.Parse(ThemeColors.Dark.Success);
+            resources["WarningColor"] = Color.Parse(ThemeColors.Dark.Warning);
+            resources["ErrorColor"] = Color.Parse(ThemeColors.Dark.Error);
         }
         else
         {
-            resources["PrimaryColor"] = Color.Parse("#5E72E4");
-            resources["AccentColor"] = Color.Parse("#825EE4");
-            resources["BackgroundColor"] = Color.Parse("#F8F9FA");
-            resources["SurfaceColor"] = Color.Parse("#FFFFFF");
-            resources["CardColor"] = Color.Parse("#FFFFFF");
-            resources["TextPrimaryColor"] = Color.Parse("#1F2937");
-            resources["TextSecondaryColor"] = Color.Parse("#6B7280");
-            resources["BorderColor"] = Color.Parse("#E5E7EB");
-            resources["SuccessColor"] = Color.Parse("#10B981");
-            resources["WarningColor"] = Color.Parse("#F59E0B");
-            resources["ErrorColor"] = Color.Parse("#EF4444");
+            resources["PrimaryColor"] = Color.Parse(ThemeColors.Light.Primary);
+            resources["AccentColor"] = Color.Parse(ThemeColors.Light.Accent);
+            resources["BackgroundColor"] = Color.Parse(ThemeColors.Light.Background);
+            resources["SurfaceColor"] = Color.Parse(ThemeColors.Light.Surface);
+            resources["CardColor"] = Color.Parse(ThemeColors.Light.Card);
+            resources["TextPrimaryColor"] = Color.Parse(ThemeColors.Light.TextPrimary);
+            resources["TextSecondaryColor"] = Color.Parse(ThemeColors.Light.TextSecondary);
+            resources["TextTertiaryColor"] = Color.Parse(ThemeColors.Light.TextTertiary);
+            resources["BorderColor"] = Color.Parse(ThemeColors.Light.Border);
+            resources["SuccessColor"] = Color.Parse(ThemeColors.Light.Success);
+            resources["WarningColor"] = Color.Parse(ThemeColors.Light.Warning);
+            resources["ErrorColor"] = Color.Parse(ThemeColors.Light.Error);
         }
     }
 }

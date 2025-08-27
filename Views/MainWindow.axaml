@@ -10,7 +10,7 @@
         Title="Orbital Docking"
         Width="1200" Height="700"
         WindowStartupLocation="CenterScreen"
-        Background="#050511">
+        Background="{DynamicResource BackgroundColor}">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -34,9 +34,9 @@
         <Border>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                    <GradientStop Color="#050511" Offset="0"/>
-                    <GradientStop Color="#0A0A1F" Offset="0.5"/>
-                    <GradientStop Color="#0F0F2A" Offset="1"/>
+                    <GradientStop Color="{DynamicResource BackgroundColor}" Offset="0"/>
+                    <GradientStop Color="{DynamicResource SurfaceColor}" Offset="0.5"/>
+                    <GradientStop Color="{DynamicResource CardColor}" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
@@ -58,14 +58,21 @@
                 
                 <!-- Navigation on the left -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
-                    <TextBlock Text="ORBITAL" 
-                               FontSize="14" 
-                               FontWeight="Light"
-                               Foreground="#8888AA"
-                               LetterSpacing="4"
-                               Opacity="0.8"
-                               VerticalAlignment="Center"/>
-                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Padding="0"
+                            Cursor="Hand"
+                            Command="{Binding ShowSettingsViewCommand}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="ORBITAL" 
+                                   FontSize="14" 
+                                   FontWeight="Light"
+                                   Foreground="{Binding SettingsTextColor}"
+                                   LetterSpacing="4"
+                                   Opacity="0.8"
+                                   VerticalAlignment="Center"/>
+                    </Button>
+                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
@@ -85,7 +92,7 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
@@ -105,7 +112,7 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
@@ -125,7 +132,7 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="#333344" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
@@ -153,8 +160,8 @@
                 <!-- Search box and refresh on the right -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                     <Button Command="{Binding RefreshContainersCommand}"
-                            Background="#0A0A1F"
-                            BorderBrush="#1A1A3F"
+                            Background="{DynamicResource SurfaceColor}"
+                            BorderBrush="{DynamicResource BorderColor}"
                             BorderThickness="1"
                             Padding="8,6"
                             CornerRadius="4"
@@ -162,16 +169,16 @@
                             ToolTip.Tip="Refresh Containers">
                         <Button.Styles>
                             <Style Selector="Button:pointerover">
-                                <Setter Property="Background" Value="#1A1A3F"/>
+                                <Setter Property="Background" Value="{DynamicResource CardColor}"/>
                             </Style>
                         </Button.Styles>
-                        <TextBlock Text="↻" FontSize="16" Foreground="#4ECDC4"/>
+                        <TextBlock Text="↻" FontSize="16" Foreground="{DynamicResource PrimaryColor}"/>
                     </Button>
                     <TextBox Text="{Binding SearchText}"
-                             Background="#0A0A1F"
-                             BorderBrush="#1A1A3F"
+                             Background="{DynamicResource SurfaceColor}"
+                             BorderBrush="{DynamicResource BorderColor}"
                              BorderThickness="1"
-                             Foreground="#FFFFFF"
+                             Foreground="{DynamicResource TextPrimaryColor}"
                              FontSize="13"
                              Padding="10,6"
                              CornerRadius="4"
@@ -180,10 +187,10 @@
                              VerticalAlignment="Center">
                     <TextBox.Styles>
                         <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-                            <Setter Property="BorderBrush" Value="#4ECDC4"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor}"/>
                         </Style>
                         <Style Selector="TextBox">
-                            <Setter Property="CaretBrush" Value="#4ECDC4"/>
+                            <Setter Property="CaretBrush" Value="{DynamicResource PrimaryColor}"/>
                         </Style>
                     </TextBox.Styles>
                     </TextBox>
@@ -270,12 +277,15 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            
+            <!-- Settings view -->
+            <components:SettingsView Grid.Row="1" IsVisible="{Binding ShowSettings}"/>
         </Grid>
 
         <!-- Status bar -->
         <Border VerticalAlignment="Bottom"
-                Background="#08081A"
-                BorderBrush="#1A1A3F"
+                Background="{DynamicResource SurfaceColor}"
+                BorderBrush="{DynamicResource BorderColor}"
                 BorderThickness="0,1,0,0"
                 Height="30">
             <Grid Margin="60,0">
@@ -291,14 +301,14 @@
                         <Ellipse Width="6" Height="6" Fill="{Binding DockerStatusColor}" VerticalAlignment="Center"/>
                         <TextBlock Text="DOCKER" 
                                    FontSize="10"
-                                   Foreground="#666688"
+                                   Foreground="{DynamicResource TextTertiaryColor}"
                                    FontWeight="Medium"
                                    LetterSpacing="1"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="{Binding DockerVersion}"
                                FontSize="11"
-                               Foreground="#8888AA"
+                               Foreground="{DynamicResource TextSecondaryColor}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
@@ -306,20 +316,20 @@
                 <TextBlock Grid.Column="1"
                            Text="{Binding StatusMessage}"
                            FontSize="11"
-                           Foreground="#666688"
+                           Foreground="{DynamicResource TextTertiaryColor}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
 
                 <!-- System stats -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
-                    <TextBlock FontSize="11" Foreground="#8888AA">
+                    <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryColor}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0} RUNNING">
                                 <Binding Path="RunningContainersCount"/>
                             </MultiBinding>
                         </TextBlock.Text>
                     </TextBlock>
-                    <TextBlock FontSize="11" Foreground="#666688">
+                    <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryColor}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0} STOPPED">
                                 <Binding Path="StoppedContainersCount"/>

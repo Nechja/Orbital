@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="OrbitalDocking.Views.Components.SettingsView"
+             x:DataType="vm:MainWindowViewModel">
+    
+    <ScrollViewer>
+        <StackPanel Margin="0,20" Spacing="40">
+            
+            <!-- Theme Settings -->
+            <Border Background="{DynamicResource SurfaceColor}"
+                    BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="30">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="APPEARANCE"
+                               FontSize="12"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource TextSecondaryColor}"
+                               LetterSpacing="2"/>
+                    
+                    <Separator Background="{DynamicResource BorderColor}" Height="1" Margin="0,10"/>
+                    
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="Theme"
+                                   FontSize="14"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource TextPrimaryColor}"/>
+                        
+                        <RadioButton GroupName="Theme" 
+                                     Content="Dark Mode"
+                                     IsChecked="{Binding IsDarkTheme}"
+                                     Command="{Binding SetDarkThemeCommand}"
+                                     Foreground="{DynamicResource TextSecondaryColor}"/>
+                        
+                        <RadioButton GroupName="Theme" 
+                                     Content="Light Mode"
+                                     IsChecked="{Binding IsLightTheme}"
+                                     Command="{Binding SetLightThemeCommand}"
+                                     Foreground="{DynamicResource TextSecondaryColor}"/>
+                        
+                        <RadioButton GroupName="Theme" 
+                                     Content="Follow System"
+                                     IsChecked="{Binding IsSystemTheme}"
+                                     Command="{Binding SetSystemThemeCommand}"
+                                     Foreground="{DynamicResource TextSecondaryColor}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Docker Settings -->
+            <Border Background="{DynamicResource SurfaceColor}"
+                    BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="30">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="DOCKER CONFIGURATION"
+                               FontSize="12"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource TextSecondaryColor}"
+                               LetterSpacing="2"/>
+                    
+                    <Separator Background="{DynamicResource BorderColor}" Height="1" Margin="0,10"/>
+                    
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="Connection"
+                                   FontSize="14"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource TextPrimaryColor}"/>
+                        
+                        <StackPanel Spacing="15">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <TextBlock Grid.Column="0"
+                                           Text="Docker Socket:"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextSecondaryColor}"/>
+                                <TextBox Grid.Column="1"
+                                         Text="{Binding DockerEndpoint}"
+                                         IsReadOnly="True"
+                                         Background="{DynamicResource BackgroundColor}"
+                                         BorderBrush="{DynamicResource BorderColor}"
+                                         Foreground="{DynamicResource TextPrimaryColor}"
+                                         Margin="10,0"/>
+                                <Button Grid.Column="2"
+                                        Content="Test Connection"
+                                        Command="{Binding TestDockerConnectionCommand}"
+                                        Background="{DynamicResource BorderColor}"
+                                        BorderBrush="{DynamicResource PrimaryColor}"
+                                        BorderThickness="1"
+                                        Foreground="{DynamicResource PrimaryColor}"
+                                        Padding="15,8"
+                                        Cursor="Hand"/>
+                            </Grid>
+                            
+                            <!-- Connection Status -->
+                            <Border Background="{DynamicResource BackgroundColor}"
+                                    BorderBrush="{DynamicResource BorderColor}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="15,10"
+                                    IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Ellipse Width="8" Height="8" 
+                                             Fill="{Binding DockerStatusColor}" 
+                                             VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding StatusMessage}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryColor}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        
+                        <TextBlock Text="Docker Accounts (Coming Soon)"
+                                   FontSize="14"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource TextPrimaryColor}"
+                                   Margin="0,20,0,0"/>
+                        
+                        <TextBlock Text="Connect to Docker Hub, private registries, and manage credentials"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryColor}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+        </StackPanel>
+    </ScrollViewer>
+    
+</UserControl>

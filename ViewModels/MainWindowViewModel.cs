@@ -53,6 +53,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _dialogService = dialogService;
         _logger = logger;
         
+        // Subscribe to theme changes
+        _themeService.ThemeChanged += OnThemeChanged;
+        
         var containers = new ObservableCollectionExtended<ContainerViewModel>();
         _containers = containers;
         _subscriptions.Add(_containerCache.Connect()
@@ -130,11 +133,24 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty]
     private bool _showNetworks = false;
+    
+    [ObservableProperty]
+    private bool _showSettings = false;
+    
+    // Theme state for settings UI
+    public bool IsDarkTheme => _themeService.CurrentTheme == ThemeMode.Dark;
+    public bool IsLightTheme => _themeService.CurrentTheme == ThemeMode.Light;
+    public bool IsSystemTheme => _themeService.CurrentTheme == ThemeMode.System;
+    
+    // Settings properties
+    [ObservableProperty]
+    private string _dockerEndpoint = AppConstants.Docker.DefaultDockerEndpoint;
 
-    public string ContainersTextColor => ShowContainers ? "#FFFFFF" : "#8888AA";
-    public string ImagesTextColor => ShowImages ? "#FFFFFF" : "#8888AA";
-    public string VolumesTextColor => ShowVolumes ? "#FFFFFF" : "#8888AA";
-    public string NetworksTextColor => ShowNetworks ? "#FFFFFF" : "#8888AA";
+    public string ContainersTextColor => ShowContainers ? GetPrimaryTextColor() : GetSecondaryTextColor();
+    public string ImagesTextColor => ShowImages ? GetPrimaryTextColor() : GetSecondaryTextColor();
+    public string VolumesTextColor => ShowVolumes ? GetPrimaryTextColor() : GetSecondaryTextColor();
+    public string NetworksTextColor => ShowNetworks ? GetPrimaryTextColor() : GetSecondaryTextColor();
+    public string SettingsTextColor => ShowSettings ? GetPrimaryTextColor() : GetSecondaryTextColor();
 
     [ObservableProperty]
     private string _dockerVersion = "Connecting...";
@@ -405,6 +421,57 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         await _themeService.ToggleThemeAsync();
     }
+    
+    [RelayCommand]
+    private async Task SetDarkThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.Dark);
+        StatusMessage = "Theme changed to Dark mode";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+    }
+    
+    [RelayCommand]
+    private async Task SetLightThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.Light);
+        StatusMessage = "Theme changed to Light mode";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+    }
+    
+    [RelayCommand]
+    private async Task SetSystemThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.System);
+        StatusMessage = "Theme set to follow system";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+    }
+    
+    [RelayCommand]
+    private async Task TestDockerConnectionAsync()
+    {
+        StatusMessage = "Testing Docker connection...";
+        var result = await _dockerService.GetSystemInfoAsync();
+        
+        if (result.IsError)
+        {
+            DockerVersion = "Disconnected";
+            DockerStatusColor = _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.DockerOffline : ThemeColors.Dark.DockerOffline;
+            StatusMessage = $"Connection failed: {result.FirstError.Description}";
+        }
+        else
+        {
+            var systemInfo = result.Value;
+            DockerVersion = $"v{systemInfo.ServerVersion}";
+            DockerStatusColor = _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.DockerOnline : ThemeColors.Dark.DockerOnline;
+            StatusMessage = $"Connected to Docker v{systemInfo.ServerVersion} - {systemInfo.Containers} containers ({systemInfo.ContainersRunning} running)";
+        }
+    }
 
     [RelayCommand]
     private async Task PruneContainersAsync()
@@ -538,11 +605,9 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = false;
         ShowNetworks = false;
+        ShowSettings = false;
         OnPropertyChanged(nameof(FilteredContainers));
-        OnPropertyChanged(nameof(ContainersTextColor));
-        OnPropertyChanged(nameof(ImagesTextColor));
-        OnPropertyChanged(nameof(VolumesTextColor));
-        OnPropertyChanged(nameof(NetworksTextColor));
+        UpdateNavigationColors();
     }
 
     [RelayCommand]
@@ -552,11 +617,9 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = true;
         ShowVolumes = false;
         ShowNetworks = false;
+        ShowSettings = false;
         _ = RefreshImagesAsync();
-        OnPropertyChanged(nameof(ContainersTextColor));
-        OnPropertyChanged(nameof(ImagesTextColor));
-        OnPropertyChanged(nameof(VolumesTextColor));
-        OnPropertyChanged(nameof(NetworksTextColor));
+        UpdateNavigationColors();
     }
     
     [RelayCommand]
@@ -566,11 +629,9 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = true;
         ShowNetworks = false;
+        ShowSettings = false;
         _ = RefreshVolumesAsync();
-        OnPropertyChanged(nameof(ContainersTextColor));
-        OnPropertyChanged(nameof(ImagesTextColor));
-        OnPropertyChanged(nameof(VolumesTextColor));
-        OnPropertyChanged(nameof(NetworksTextColor));
+        UpdateNavigationColors();
     }
     
     [RelayCommand]
@@ -580,11 +641,29 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = false;
         ShowNetworks = true;
+        ShowSettings = false;
         _ = RefreshNetworksAsync();
+        UpdateNavigationColors();
+    }
+    
+    [RelayCommand]
+    private void ShowSettingsView()
+    {
+        ShowContainers = false;
+        ShowImages = false;
+        ShowVolumes = false;
+        ShowNetworks = false;
+        ShowSettings = true;
+        UpdateNavigationColors();
+    }
+    
+    private void UpdateNavigationColors()
+    {
         OnPropertyChanged(nameof(ContainersTextColor));
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
         OnPropertyChanged(nameof(NetworksTextColor));
+        OnPropertyChanged(nameof(SettingsTextColor));
     }
 
     private async Task RefreshImagesAsync()
@@ -809,8 +888,34 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private string GetPrimaryTextColor() => 
+        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextPrimary;
+    
+    private string GetSecondaryTextColor() => 
+        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextSecondary : ThemeColors.Dark.TextSecondary;
+    
+    private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
+    {
+        // Update color properties
+        OnPropertyChanged(nameof(ContainersTextColor));
+        OnPropertyChanged(nameof(ImagesTextColor));
+        OnPropertyChanged(nameof(VolumesTextColor));
+        OnPropertyChanged(nameof(NetworksTextColor));
+        OnPropertyChanged(nameof(DockerStatusColor));
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        
+        // Update Docker status color  
+        var isConnected = !string.IsNullOrEmpty(DockerVersion) && DockerVersion != "Disconnected";
+        DockerStatusColor = isConnected 
+            ? (_themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.DockerOnline : ThemeColors.Dark.DockerOnline)
+            : (_themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.DockerOffline : ThemeColors.Dark.DockerOffline);
+    }
+    
     public void Dispose()
     {
+        _themeService.ThemeChanged -= OnThemeChanged;
         _dockerService?.StopMonitoringEvents();
         _subscriptions?.Dispose();
         

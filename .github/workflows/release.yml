@@ -154,9 +154,24 @@ jobs:
       with:
         path: ./artifacts
 
-    - name: Create Release
+    - name: Determine Release Tag
+      id: get_tag
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ -n "${{ github.event.inputs.tag }}" ]]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF_NAME}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create or Update Release
       uses: ncipollo/release-action@v1
       with:
+        tag: ${{ steps.get_tag.outputs.tag }}
+        name: ${{ steps.get_tag.outputs.tag }}
         artifacts: |
           ./artifacts/OrbitalDocking-linux-x64/*.tar.gz
           ./artifacts/OrbitalDocking-linux-arm64/*.tar.gz
@@ -166,7 +181,9 @@ jobs:
           ./artifacts/OrbitalDocking-AppImage/*.AppImage
         generateReleaseNotes: true
         draft: false
-        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+        allowUpdates: true
+        prerelease: ${{ contains(steps.get_tag.outputs.tag, 'beta') || contains(steps.get_tag.outputs.tag, 'alpha') || contains(steps.get_tag.outputs.tag, 'dev') }}
+        makeLatest: ${{ !contains(steps.get_tag.outputs.tag, 'beta') && !contains(steps.get_tag.outputs.tag, 'alpha') && !contains(steps.get_tag.outputs.tag, 'dev') }}
         body: |
           ## Installation
 

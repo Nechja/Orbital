@@ -40,6 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SourceCache<ContainerViewModel, string> _containerCache = new(x => x.Id);
 
     public Window? MainWindow { get; set; }
+    public ITrayService? TrayService { get; private set; }
     
     public MainWindowViewModel(
         IDockerService dockerService, 
@@ -88,6 +89,21 @@ public partial class MainWindowViewModel : ViewModelBase
         _ = GetDockerVersionAsync();
         
         _ = Task.Run(async () => await _dockerService.StartMonitoringEventsAsync());
+        
+        InitializeTrayService();
+    }
+    
+    private void InitializeTrayService()
+    {
+        TrayService = new TrayService();
+        TrayService.Initialize();
+        TrayService.ExitRequested += (_, _) =>
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
+        };
     }
     
     [ObservableProperty]
@@ -961,6 +977,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _themeService.ThemeChanged -= OnThemeChanged;
         _dockerService?.StopMonitoringEvents();
         _subscriptions?.Dispose();
+        
+        TrayService?.Dispose();
         
         _containerCache?.Dispose();
         _containerSemaphore?.Dispose();

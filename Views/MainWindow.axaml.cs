@@ -25,6 +25,19 @@ public partial class MainWindow : Window
                 vm.MainWindow = this;
             }
         };
+        
+        // Handle window closing for tray
+        Closing += OnWindowClosing;
+    }
+    
+    private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        // If we have a tray icon, minimize to tray instead of closing
+        if (DataContext is MainWindowViewModel vm && vm.TrayService != null)
+        {
+            e.Cancel = true;
+            Hide();
+        }
     }
 
     private void OnContainerClick(object? sender, RoutedEventArgs e)

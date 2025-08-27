@@ -7,8 +7,8 @@
              x:Class="OrbitalDocking.Views.Components.NetworkCard"
              x:DataType="vm:NetworkViewModel">
     
-    <Border Background="#0A0A1F"
-            BorderBrush="#1A1A3F"
+    <Border Background="{DynamicResource SurfaceColor}"
+            BorderBrush="{DynamicResource BorderColor}"
             BorderThickness="1"
             CornerRadius="6"
             Padding="20"
@@ -25,11 +25,11 @@
                         MinWidth="300">
                 <TextBlock Text="{Binding ShortName}" 
                            FontSize="14" 
-                           Foreground="#FFFFFF"
+                           Foreground="{DynamicResource TextPrimaryColor}"
                            ToolTip.Tip="{Binding Name}"/>
                 <TextBlock Text="{Binding Driver}" 
                            FontSize="12" 
-                           Foreground="#8888AA"/>
+                           Foreground="{DynamicResource TextSecondaryColor}"/>
             </StackPanel>
             
             <StackPanel Grid.Column="2" 
@@ -37,7 +37,7 @@
                         VerticalAlignment="Center">
                 <TextBlock Text="{Binding Scope}" 
                            FontSize="12" 
-                           Foreground="#666688"
+                           Foreground="{DynamicResource TextSecondaryColor}"
                            HorizontalAlignment="Center"/>
             </StackPanel>
             
@@ -46,7 +46,7 @@
                     FontSize="11"
                     Padding="10,6"
                     Background="#FF6B6B"
-                    Foreground="#FFFFFF"
+                    Foreground="{DynamicResource TextPrimaryColor}"
                     BorderThickness="0"
                     CornerRadius="4"
                     VerticalAlignment="Center"

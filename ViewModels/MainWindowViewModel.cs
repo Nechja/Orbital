@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
@@ -453,6 +454,42 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     
     [RelayCommand]
+    private void OpenGitHub()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/Nechja/Orbital",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open GitHub link");
+            StatusMessage = "Failed to open GitHub link";
+        }
+    }
+    
+    [RelayCommand]
+    private void ReportIssue()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/Nechja/Orbital/issues/new",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open issues page");
+            StatusMessage = "Failed to open issues page";
+        }
+    }
+    
+    [RelayCommand]
     private async Task TestDockerConnectionAsync()
     {
         StatusMessage = "Testing Docker connection...";
@@ -832,7 +869,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
                 else
                 {
-                    cache.AddOrUpdate(new ContainerViewModel(container, _dockerClient));
+                    cache.AddOrUpdate(new ContainerViewModel(container, _dockerClient, _themeService));
                 }
             }
         });
@@ -905,6 +942,12 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        
+        // Update all container colors
+        foreach (var container in Containers)
+        {
+            container.UpdateThemeColors();
+        }
         
         // Update Docker status color  
         var isConnected = !string.IsNullOrEmpty(DockerVersion) && DockerVersion != "Disconnected";

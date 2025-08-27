@@ -7,8 +7,8 @@
              x:Class="OrbitalDocking.Views.Components.ContainerCard"
              x:DataType="vm:ContainerViewModel">
     
-    <Border Background="#0A0A1F"
-            BorderBrush="#1A1A3F"
+    <Border Background="{DynamicResource SurfaceColor}"
+            BorderBrush="{DynamicResource BorderColor}"
             BorderThickness="1"
             CornerRadius="8">
         <Border.Transitions>
@@ -47,7 +47,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="{Binding Name}" 
                                            FontSize="16"
-                                           Foreground="#FFFFFF"
+                                           Foreground="{DynamicResource TextPrimaryColor}"
                                            FontWeight="Medium"/>
                                 <Border Background="{Binding StackColor}"
                                         CornerRadius="3"
@@ -56,13 +56,13 @@
                                         IsVisible="{Binding IsPartOfStack}">
                                     <TextBlock Text="{Binding StackName}"
                                                FontSize="10"
-                                               Foreground="#000000"
+                                               Foreground="{DynamicResource BackgroundColor}"
                                                FontWeight="SemiBold"/>
                                 </Border>
                             </StackPanel>
                             <TextBlock Text="{Binding Image}" 
                                        FontSize="13"
-                                       Foreground="#6666AA"
+                                       Foreground="{DynamicResource TextSecondaryColor}"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
                     </Grid>
@@ -75,13 +75,13 @@
                                 Spacing="16">
                         <TextBlock Text="{Binding Status}"
                                    FontSize="12"
-                                   Foreground="#8888AA"/>
+                                   Foreground="{DynamicResource TextSecondaryColor}"/>
                         <TextBlock Text="•" 
                                    FontSize="12"
-                                   Foreground="#333344"/>
+                                   Foreground="{DynamicResource TextTertiaryColor}"/>
                         <TextBlock Text="{Binding CreatedRelative}"
                                    FontSize="12"
-                                   Foreground="#8888AA"/>
+                                   Foreground="{DynamicResource TextSecondaryColor}"/>
                     </StackPanel>
                     </Grid>
                 </Button>
@@ -109,7 +109,7 @@
                             Name="StopButton"/>
                     <Button Classes="action"
                             Content="START"
-                            Foreground="#4ECDC4"
+                            Foreground="{DynamicResource PrimaryColor}"
                             IsVisible="{Binding IsStopped}"
                             Name="StartButton"/>
                     <Button Classes="action"
@@ -119,15 +119,15 @@
                     <ToggleButton IsChecked="{Binding IsExpanded}"
                                   Classes="action"
                                   Content="▼"
-                                  Foreground="#666688"
+                                  Foreground="{DynamicResource TextTertiaryColor}"
                                   Name="ToggleExpandButton"/>
                 </StackPanel>
             </Grid>
             
             <!-- Expanded details -->
             <Border IsVisible="{Binding IsExpanded}"
-                    Background="#08081A"
-                    BorderBrush="#1A1A3F"
+                    Background="{DynamicResource BackgroundColor}"
+                    BorderBrush="{DynamicResource BorderColor}"
                     BorderThickness="0,1,0,0">
                 <Grid RowDefinitions="Auto,Auto" Margin="24,16">
                     <!-- Container info -->
@@ -135,29 +135,29 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="CONTAINER ID" 
                                        FontSize="11"
-                                       Foreground="#666688"
+                                       Foreground="{DynamicResource TextTertiaryColor}"
                                        FontWeight="Medium"
                                        LetterSpacing="1"
                                        Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding ShortId}"
                                        FontSize="13"
-                                       Foreground="#8888AA"/>
+                                       Foreground="{DynamicResource TextSecondaryColor}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="IMAGE" 
                                        FontSize="11"
-                                       Foreground="#666688"
+                                       Foreground="{DynamicResource TextTertiaryColor}"
                                        FontWeight="Medium"
                                        LetterSpacing="1"
                                        Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding Image}"
                                        FontSize="13"
-                                       Foreground="#8888AA"/>
+                                       Foreground="{DynamicResource TextSecondaryColor}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="STATUS" 
                                        FontSize="11"
-                                       Foreground="#666688"
+                                       Foreground="{DynamicResource TextTertiaryColor}"
                                        FontWeight="Medium"
                                        LetterSpacing="1"
                                        Margin="0,0,0,6"/>
@@ -169,7 +169,7 @@
 
                     <!-- Quick stats -->
                     <Border Grid.Row="1" 
-                            Background="#0F0F2A"
+                            Background="{DynamicResource CardColor}"
                             CornerRadius="4"
                             Padding="16"
                             Margin="0,0,0,16">
@@ -177,41 +177,41 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="CPU" 
                                            FontSize="11"
-                                           Foreground="#666688"
+                                           Foreground="{DynamicResource TextTertiaryColor}"
                                            Margin="0,0,0,4"/>
                                 <TextBlock Text="{Binding CpuUsage}" 
                                            FontSize="18"
-                                           Foreground="#4ECDC4"
+                                           Foreground="{DynamicResource PrimaryColor}"
                                            FontWeight="Bold"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="MEMORY" 
                                            FontSize="11"
-                                           Foreground="#666688"
+                                           Foreground="{DynamicResource TextTertiaryColor}"
                                            Margin="0,0,0,4"/>
                                 <TextBlock Text="{Binding MemoryUsage}" 
                                            FontSize="18"
-                                           Foreground="#4ECDC4"
+                                           Foreground="{DynamicResource PrimaryColor}"
                                            FontWeight="Bold"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="NETWORK I/O" 
                                            FontSize="11"
-                                           Foreground="#666688"
+                                           Foreground="{DynamicResource TextTertiaryColor}"
                                            Margin="0,0,0,4"/>
                                 <TextBlock Text="{Binding NetworkIO}" 
                                            FontSize="18"
-                                           Foreground="#4ECDC4"
+                                           Foreground="{DynamicResource PrimaryColor}"
                                            FontWeight="Bold"/>
                             </StackPanel>
                             <StackPanel Grid.Column="3">
                                 <TextBlock Text="DISK I/O" 
                                            FontSize="11"
-                                           Foreground="#666688"
+                                           Foreground="{DynamicResource TextTertiaryColor}"
                                            Margin="0,0,0,4"/>
                                 <TextBlock Text="{Binding DiskIO}" 
                                            FontSize="18"
-                                           Foreground="#4ECDC4"
+                                           Foreground="{DynamicResource PrimaryColor}"
                                            FontWeight="Bold"/>
                             </StackPanel>
                         </Grid>

@@ -8,8 +8,8 @@
              x:Class="OrbitalDocking.Views.Components.StackGroup"
              x:DataType="vm:StackViewModel">
     
-    <Border Background="#0A0A1F"
-            BorderBrush="#1A1A3F"
+    <Border Background="{DynamicResource SurfaceColor}"
+            BorderBrush="{DynamicResource BorderColor}"
             BorderThickness="1"
             CornerRadius="8">
         <StackPanel>
@@ -34,12 +34,12 @@
                                 VerticalAlignment="Center">
                         <TextBlock Text="{Binding ExpandSymbol}"
                                    FontSize="16"
-                                   Foreground="#4ECDC4"
+                                   Foreground="{DynamicResource PrimaryColor}"
                                    FontWeight="Bold"
                                    Width="20"
                                    TextAlignment="Center"/>
                         <TextBlock FontSize="14"
-                                   Foreground="#4ECDC4"
+                                   Foreground="{DynamicResource PrimaryColor}"
                                    VerticalAlignment="Center"
                                    FontWeight="Bold"
                                    Text="{Binding Name, StringFormat='STACK: {0}'}"/>
@@ -49,7 +49,7 @@
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                FontSize="12"
-                               Foreground="#8888AA">
+                               Foreground="{DynamicResource TextSecondaryColor}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0} containers • {1}">
                                 <Binding Path="ContainerCount"/>
@@ -64,8 +64,8 @@
                         <Button Content="START ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Background="#4ECDC4"
-                                Foreground="#000000"
+                                Background="{DynamicResource PrimaryColor}"
+                                Foreground="{DynamicResource BackgroundColor}"
                                 BorderThickness="0"
                                 CornerRadius="3"
                                 Name="StartStackButton"
@@ -74,7 +74,7 @@
                                 FontSize="10"
                                 Padding="8,4"
                                 Background="#FF6B6B"
-                                Foreground="#FFFFFF"
+                                Foreground="{DynamicResource TextPrimaryColor}"
                                 BorderThickness="0"
                                 CornerRadius="3"
                                 Name="StopStackButton"
@@ -83,7 +83,7 @@
                                 FontSize="10"
                                 Padding="8,4"
                                 Background="#FFA500"
-                                Foreground="#FFFFFF"
+                                Foreground="{DynamicResource TextPrimaryColor}"
                                 BorderThickness="0"
                                 CornerRadius="3"
                                 Name="RestartStackButton"
@@ -92,7 +92,7 @@
                                 FontSize="10"
                                 Padding="8,4"
                                 Background="#8B0000"
-                                Foreground="#FFFFFF"
+                                Foreground="{DynamicResource TextPrimaryColor}"
                                 BorderThickness="0"
                                 CornerRadius="3"
                                 Name="RemoveStackButton"

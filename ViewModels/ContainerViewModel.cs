@@ -8,14 +8,29 @@ using Docker.DotNet.Models;
 using OrbitalDocking.Configuration;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
+using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels;
 
-public partial class ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null) : ObservableObject, IDisposable
+public partial class ContainerViewModel : ObservableObject, IDisposable
 {
-    private ContainerInfo _container = container;
+    private ContainerInfo _container;
     private CancellationTokenSource? _statsTokenSource;
     private Task? _statsMonitoringTask;
+    private readonly IThemeService? _themeService;
+    private readonly DockerClient? _dockerClient;
+    
+    public ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null, IThemeService? themeService = null)
+    {
+        _container = container;
+        _dockerClient = dockerClient;
+        _themeService = themeService;
+        
+        if (_themeService != null)
+        {
+            _themeService.ThemeChanged += OnThemeChanged;
+        }
+    }
 
     [ObservableProperty]
     private bool _isExpanded = false;
@@ -62,15 +77,22 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     public bool IsProblematic => State == Models.ContainerState.Restarting || State == Models.ContainerState.Dead;
     public bool CanRemove => IsStopped || IsProblematic;
 
-    public string StateColor => State switch
+    public string StateColor
     {
-        Models.ContainerState.Running => ThemeColors.Dark.ContainerRunning,
-        Models.ContainerState.Paused => ThemeColors.Dark.ContainerPaused,
-        Models.ContainerState.Exited => ThemeColors.Dark.ContainerStopped,
-        Models.ContainerState.Dead => ThemeColors.Dark.ContainerDead,
-        Models.ContainerState.Restarting => ThemeColors.Dark.ContainerRestarting,
-        _ => ThemeColors.Dark.ContainerStopped
-    };
+        get
+        {
+            var isDark = _themeService?.CurrentTheme != ThemeMode.Light;
+            return State switch
+            {
+                Models.ContainerState.Running => isDark ? ThemeColors.Dark.ContainerRunning : ThemeColors.Light.ContainerRunning,
+                Models.ContainerState.Paused => isDark ? ThemeColors.Dark.ContainerPaused : ThemeColors.Light.ContainerPaused,
+                Models.ContainerState.Exited => isDark ? ThemeColors.Dark.ContainerStopped : ThemeColors.Light.ContainerStopped,
+                Models.ContainerState.Dead => isDark ? ThemeColors.Dark.ContainerDead : ThemeColors.Light.ContainerDead,
+                Models.ContainerState.Restarting => isDark ? ThemeColors.Dark.ContainerRestarting : ThemeColors.Light.ContainerRestarting,
+                _ => isDark ? ThemeColors.Dark.ContainerStopped : ThemeColors.Light.ContainerStopped
+            };
+        }
+    }
 
     public void UpdateFrom(ContainerInfo container)
     {
@@ -125,7 +147,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
 
     private async Task MonitorStats(CancellationToken cancellationToken)
     {
-        if (dockerClient == null)
+        if (_dockerClient == null)
         {
             CpuUsage = "N/A";
             MemoryUsage = "N/A";
@@ -142,7 +164,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
                 ContainerStatsResponse? latestStats = null;
                 var progress = new Progress<ContainerStatsResponse>(stats => latestStats = stats);
                 
-                await dockerClient.Containers.GetContainerStatsAsync(
+                await _dockerClient.Containers.GetContainerStatsAsync(
                     Id,
                     parameters,
                     progress,
@@ -241,9 +263,23 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     }
 
     
+    private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(StateColor));
+    }
+    
+    public void UpdateThemeColors()
+    {
+        OnPropertyChanged(nameof(StateColor));
+    }
+    
     public void Dispose()
     {
+        if (_themeService != null)
+        {
+            _themeService.ThemeChanged -= OnThemeChanged;
+        }
         StopStatsMonitoring();
-        // Don't dispose dockerClient here - it's shared across all containers
+        // Don't dispose _dockerClient here - it's shared across all containers
     }
 }

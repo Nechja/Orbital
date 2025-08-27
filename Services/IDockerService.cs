@@ -41,6 +41,9 @@ public interface IDockerService
     Task<ErrorOr<NetworkInfo>> CreateNetworkAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default);
     
     event EventHandler<ContainerEventArgs>? ContainerEvent;
+    
+    Task StartMonitoringEventsAsync(CancellationToken cancellationToken = default);
+    void StopMonitoringEvents();
 }
 
 public record ContainerEventArgs(string ContainerId, string Action, DateTime Timestamp);

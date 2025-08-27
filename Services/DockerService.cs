@@ -15,6 +15,8 @@ namespace OrbitalDocking.Services;
 public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper) : IDockerService, IDisposable
 {
     public event EventHandler<ContainerEventArgs>? ContainerEvent;
+    private CancellationTokenSource? _eventMonitoringCts;
+    private Task? _eventMonitoringTask;
 
     public async Task<ErrorOr<IEnumerable<ContainerInfo>>> GetContainersAsync(CancellationToken cancellationToken = default)
     {
@@ -585,8 +587,72 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         ContainerEvent?.Invoke(this, new ContainerEventArgs(containerId, action, DateTime.UtcNow));
     }
     
+    public async Task StartMonitoringEventsAsync(CancellationToken cancellationToken = default)
+    {
+        StopMonitoringEvents();
+        
+        _eventMonitoringCts = new CancellationTokenSource();
+        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_eventMonitoringCts.Token, cancellationToken);
+        
+        _eventMonitoringTask = Task.Run(async () =>
+        {
+            try
+            {
+                var parameters = new ContainerEventsParameters
+                {
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                    {
+                        ["type"] = new Dictionary<string, bool> { ["container"] = true }
+                    }
+                };
+                
+                var progress = new Progress<Message>(message =>
+                {
+                    if (message != null && !string.IsNullOrEmpty(message.Action))
+                    {
+                        Console.WriteLine($"[Docker Event] {message.Action} for container {message.Actor?.ID?.Substring(0, Math.Min(12, message.Actor?.ID?.Length ?? 0))}");
+                        
+                        if (message.Actor?.ID != null)
+                        {
+                            OnContainerEvent(message.Actor.ID, message.Action);
+                        }
+                    }
+                });
+                
+                await dockerClient.System.MonitorEventsAsync(parameters, progress, linkedCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine("[Docker Event] Monitoring cancelled");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Docker Event] Monitoring error: {ex.Message}");
+                
+                if (!linkedCts.Token.IsCancellationRequested)
+                {
+                    await Task.Delay(5000, linkedCts.Token);
+                    
+                    if (!linkedCts.Token.IsCancellationRequested)
+                    {
+                        await StartMonitoringEventsAsync(linkedCts.Token);
+                    }
+                }
+            }
+        }, linkedCts.Token);
+    }
+    
+    public void StopMonitoringEvents()
+    {
+        _eventMonitoringCts?.Cancel();
+        _eventMonitoringCts?.Dispose();
+        _eventMonitoringCts = null;
+        _eventMonitoringTask = null;
+    }
+    
     public void Dispose()
     {
+        StopMonitoringEvents();
         dockerClient?.Dispose();
     }
 }

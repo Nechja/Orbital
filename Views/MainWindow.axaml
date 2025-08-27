@@ -150,19 +150,34 @@
                 <!-- Empty middle column for spacing -->
                 <Panel Grid.Column="1"/>
                 
-                <!-- Search box on the right -->
-                <TextBox Grid.Column="2"
-                         Text="{Binding SearchText}"
-                         Background="#0A0A1F"
-                         BorderBrush="#1A1A3F"
-                         BorderThickness="1"
-                         Foreground="#FFFFFF"
-                         FontSize="13"
-                         Padding="10,6"
-                         CornerRadius="4"
-                         Watermark="Search..."
-                         Width="200"
-                         VerticalAlignment="Center">
+                <!-- Search box and refresh on the right -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Command="{Binding RefreshContainersCommand}"
+                            Background="#0A0A1F"
+                            BorderBrush="#1A1A3F"
+                            BorderThickness="1"
+                            Padding="8,6"
+                            CornerRadius="4"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="Refresh Containers">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="#1A1A3F"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="↻" FontSize="16" Foreground="#4ECDC4"/>
+                    </Button>
+                    <TextBox Text="{Binding SearchText}"
+                             Background="#0A0A1F"
+                             BorderBrush="#1A1A3F"
+                             BorderThickness="1"
+                             Foreground="#FFFFFF"
+                             FontSize="13"
+                             Padding="10,6"
+                             CornerRadius="4"
+                             Watermark="Search..."
+                             Width="200"
+                             VerticalAlignment="Center">
                     <TextBox.Styles>
                         <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
                             <Setter Property="BorderBrush" Value="#4ECDC4"/>
@@ -171,7 +186,8 @@
                             <Setter Property="CaretBrush" Value="#4ECDC4"/>
                         </Style>
                     </TextBox.Styles>
-                </TextBox>
+                    </TextBox>
+                </StackPanel>
             </Grid>
 
             <!-- Container list with stacks -->

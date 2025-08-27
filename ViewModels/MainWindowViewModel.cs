@@ -2,14 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
+using DynamicData;
+using DynamicData.Binding;
+using ReactiveUI;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services;
@@ -22,14 +28,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IThemeService _themeService;
     private readonly DockerClient _dockerClient;
     private readonly IDialogService _dialogService;
-    private readonly Timer _refreshTimer;
-    private readonly Timer _imageRefreshTimer;
-    private readonly Timer _volumeRefreshTimer;
-    private readonly Timer _networkRefreshTimer;
+    private readonly CompositeDisposable _subscriptions = new();
     private readonly SemaphoreSlim _containerSemaphore = new(1, 1);
     private readonly SemaphoreSlim _imageSemaphore = new(1, 1);
     private readonly SemaphoreSlim _volumeSemaphore = new(1, 1);
     private readonly SemaphoreSlim _networkSemaphore = new(1, 1);
+    private readonly SourceCache<ContainerViewModel, string> _containerCache = new(x => x.Id);
 
     public Window? MainWindow { get; set; }
     
@@ -44,17 +48,41 @@ public partial class MainWindowViewModel : ViewModelBase
         _dockerClient = dockerClient;
         _dialogService = dialogService;
         
-        _refreshTimer = new Timer(async _ => await RefreshContainersAsync(), null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
-        _imageRefreshTimer = new Timer(async _ => await RefreshImagesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
-        _volumeRefreshTimer = new Timer(async _ => await RefreshVolumesAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
-        _networkRefreshTimer = new Timer(async _ => await RefreshNetworksAsync(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
+        var containers = new ObservableCollectionExtended<ContainerViewModel>();
+        _containers = containers;
+        _subscriptions.Add(_containerCache.Connect()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(containers)
+            .Subscribe());
         
-        _dockerService.ContainerEvent += OnContainerEvent;
+        var dockerEvents = Observable.FromEventPattern<ContainerEventArgs>(
+            h => _dockerService.ContainerEvent += h,
+            h => _dockerService.ContainerEvent -= h);
+        
+        _subscriptions.Add(dockerEvents
+            .Do(e => System.Diagnostics.Debug.WriteLine($"Docker event: {e.EventArgs.Action} for {e.EventArgs.ContainerId}"))
+            .Throttle(TimeSpan.FromMilliseconds(200))
+            .Subscribe(async _ => await RefreshContainersAsync()));
+        
+        _subscriptions.Add(Observable.Timer(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(30))
+            .Subscribe(async _ => await RefreshContainersAsync()));
+        
+        _subscriptions.Add(Observable.Timer(TimeSpan.Zero, TimeSpan.FromMinutes(1))
+            .Subscribe(async _ => await RefreshImagesAsync()));
+            
+        _subscriptions.Add(Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(30))
+            .Subscribe(async _ => await RefreshVolumesAsync()));
+            
+        _subscriptions.Add(Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(30))
+            .Subscribe(async _ => await RefreshNetworksAsync()));
+        
         _ = GetDockerVersionAsync();
+        
+        _ = Task.Run(async () => await _dockerService.StartMonitoringEventsAsync());
     }
     
     [ObservableProperty]
-    private ObservableCollection<ContainerViewModel> _containers = new();
+    private ObservableCollection<ContainerViewModel> _containers;
     
     [ObservableProperty]
     private ObservableCollection<StackViewModel> _stacks = new();
@@ -225,10 +253,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             else
             {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    UpdateContainerList(result.Value);
-                });
+                UpdateContainerList(result.Value);
             }
         }
         finally
@@ -415,7 +440,6 @@ public partial class MainWindowViewModel : ViewModelBase
             
             dialog.DataContext = dialogViewModel;
             
-            // Show dialog and wait for result
             var desktop = Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
             if (desktop?.MainWindow == null)
             {
@@ -697,35 +721,37 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void UpdateContainerList(IEnumerable<ContainerInfo> containers)
     {
-        // Ensure we're on UI thread
-        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
-        {
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => UpdateContainerList(containers));
-            return;
-        }
-
-        // We're already protected by the semaphore from RefreshContainersAsync
         var containerList = containers.ToList();
         
-        foreach (var container in containerList)
+        _containerCache.Edit(cache =>
         {
-            var existingVm = Containers.FirstOrDefault(c => c.Id == container.Id);
-            if (existingVm != null)
+            var currentIds = new HashSet<string>(containerList.Select(c => c.Id));
+            var existingIds = new HashSet<string>(cache.Keys);
+            
+            var toRemove = existingIds.Except(currentIds).ToList();
+            foreach (var id in toRemove)
             {
-                existingVm.UpdateFrom(container);
+                var vm = cache.Lookup(id);
+                if (vm.HasValue)
+                {
+                    vm.Value.Dispose();
+                    cache.Remove(id);
+                }
             }
-            else
+            
+            foreach (var container in containerList)
             {
-                Containers.Add(new ContainerViewModel(container, _dockerClient));
+                var existing = cache.Lookup(container.Id);
+                if (existing.HasValue)
+                {
+                    existing.Value.UpdateFrom(container);
+                }
+                else
+                {
+                    cache.AddOrUpdate(new ContainerViewModel(container, _dockerClient));
+                }
             }
-        }
-
-        var toRemove = Containers.Where(c => !containerList.Any(nc => nc.Id == c.Id)).ToList();
-        foreach (var container in toRemove)
-        {
-            Containers.Remove(container);
-            container.Dispose();
-        }
+        });
         
         GroupContainersByStack();
 
@@ -736,12 +762,20 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private void GroupContainersByStack()
     {
-        var stackGroups = Containers
+        if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => GroupContainersByStack());
+            return;
+        }
+        
+        var allContainers = Containers.ToList();
+        System.Diagnostics.Debug.WriteLine($"GroupContainersByStack: {allContainers.Count} containers total");
+        
+        var stackGroups = allContainers
             .Where(c => c.IsPartOfStack)
             .GroupBy(c => c.StackName)
             .ToList();
         
-        // Keep existing stacks to preserve their expanded state
         var existingStacks = Stacks.ToDictionary(s => s.Name);
         
         Stacks.Clear();
@@ -760,31 +794,26 @@ public partial class MainWindowViewModel : ViewModelBase
             Stacks.Add(stack);
         }
         
+        var standalone = allContainers.Where(c => !c.IsPartOfStack).OrderBy(c => c.Name).ToList();
+        System.Diagnostics.Debug.WriteLine($"GroupContainersByStack: {standalone.Count} standalone containers");
+        
         StandaloneContainers.Clear();
-        foreach (var container in Containers.Where(c => !c.IsPartOfStack).OrderBy(c => c.Name))
+        foreach (var container in standalone)
         {
             StandaloneContainers.Add(container);
         }
     }
 
-    private void OnContainerEvent(object? sender, ContainerEventArgs e)
-    {
-        StatusMessage = $"Container {e.Action}: {e.ContainerId}";
-    }
-
     public void Dispose()
     {
-        _refreshTimer?.Dispose();
-        _imageRefreshTimer?.Dispose();
-        _volumeRefreshTimer?.Dispose();
-        _networkRefreshTimer?.Dispose();
+        _dockerService?.StopMonitoringEvents();
+        _subscriptions?.Dispose();
         
+        _containerCache?.Dispose();
         _containerSemaphore?.Dispose();
         _imageSemaphore?.Dispose();
         _volumeSemaphore?.Dispose();
         _networkSemaphore?.Dispose();
-        
-        _dockerService.ContainerEvent -= OnContainerEvent;
         
         foreach (var container in Containers)
         {

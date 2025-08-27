@@ -88,7 +88,7 @@ public partial class MainWindowViewModel : ViewModelBase
         
         _ = GetDockerVersionAsync();
         
-        _ = Task.Run(async () => await _dockerService.StartMonitoringEventsAsync());
+        _ = Task.Run(async () => await _dockerService.StartMonitoringEvents());
         
         InitializeTrayService();
     }

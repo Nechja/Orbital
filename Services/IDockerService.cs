@@ -42,7 +42,7 @@ public interface IDockerService
     
     event EventHandler<ContainerEventArgs>? ContainerEvent;
     
-    Task StartMonitoringEventsAsync(CancellationToken cancellationToken = default);
+    Task StartMonitoringEvents(CancellationToken cancellationToken = default);
     void StopMonitoringEvents();
 }
 

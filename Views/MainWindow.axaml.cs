@@ -51,56 +51,84 @@ public partial class MainWindow : Window
     private async void OnStopClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true; // Prevent bubble to container click
-        if (sender is Button button && button.DataContext is ContainerViewModel container)
+        try
         {
-            var vm = DataContext as MainWindowViewModel;
-            if (vm != null)
+            if (sender is Button button && button.DataContext is ContainerViewModel container)
             {
-                vm.SelectedContainer = container;
-                await vm.StopContainerCommand.ExecuteAsync(null);
+                var vm = DataContext as MainWindowViewModel;
+                if (vm != null)
+                {
+                    vm.SelectedContainer = container;
+                    await vm.StopContainerCommand.ExecuteAsync(null);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error stopping container: {ex.Message}");
         }
     }
 
     private async void OnStartClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (sender is Button button && button.DataContext is ContainerViewModel container)
+        try
         {
-            var vm = DataContext as MainWindowViewModel;
-            if (vm != null)
+            if (sender is Button button && button.DataContext is ContainerViewModel container)
             {
-                vm.SelectedContainer = container;
-                await vm.StartContainerCommand.ExecuteAsync(null);
+                var vm = DataContext as MainWindowViewModel;
+                if (vm != null)
+                {
+                    vm.SelectedContainer = container;
+                    await vm.StartContainerCommand.ExecuteAsync(null);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error starting container: {ex.Message}");
         }
     }
 
     private async void OnRestartClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (sender is Button button && button.DataContext is ContainerViewModel container)
+        try
         {
-            var vm = DataContext as MainWindowViewModel;
-            if (vm != null)
+            if (sender is Button button && button.DataContext is ContainerViewModel container)
             {
-                vm.SelectedContainer = container;
-                await vm.RestartContainerCommand.ExecuteAsync(null);
+                var vm = DataContext as MainWindowViewModel;
+                if (vm != null)
+                {
+                    vm.SelectedContainer = container;
+                    await vm.RestartContainerCommand.ExecuteAsync(null);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error restarting container: {ex.Message}");
         }
     }
 
     private async void OnRemoveClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (sender is Button button && button.DataContext is ContainerViewModel container)
+        try
         {
-            var vm = DataContext as MainWindowViewModel;
-            if (vm != null)
+            if (sender is Button button && button.DataContext is ContainerViewModel container)
             {
-                vm.SelectedContainer = container;
-                await vm.RemoveContainerCommand.ExecuteAsync(null);
+                var vm = DataContext as MainWindowViewModel;
+                if (vm != null)
+                {
+                    vm.SelectedContainer = container;
+                    await vm.RemoveContainerCommand.ExecuteAsync(null);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing container: {ex.Message}");
         }
     }
 
@@ -108,13 +136,20 @@ public partial class MainWindow : Window
     private async void OnImageRemoveClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (sender is Button button && button.DataContext is ImageViewModel image)
+        try
         {
-            var vm = DataContext as MainWindowViewModel;
-            if (vm != null)
+            if (sender is Button button && button.DataContext is ImageViewModel image)
             {
-                await vm.RemoveImageCommand.ExecuteAsync(image);
+                var vm = DataContext as MainWindowViewModel;
+                if (vm != null)
+                {
+                    await vm.RemoveImageCommand.ExecuteAsync(image);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing image: {ex.Message}");
         }
     }
 }

@@ -589,7 +589,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         ContainerEvent?.Invoke(this, new ContainerEventArgs(containerId, action, DateTime.UtcNow));
     }
     
-    public async Task StartMonitoringEventsAsync(CancellationToken cancellationToken = default)
+    public Task StartMonitoringEventsAsync(CancellationToken cancellationToken = default)
     {
         StopMonitoringEvents();
         
@@ -644,6 +644,8 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 }
             }
         }, linkedCts.Token);
+        
+        return Task.CompletedTask;
     }
     
     public void StopMonitoringEvents()

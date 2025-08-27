@@ -47,15 +47,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
 
     - name: Publish Self-Contained Single File
-      run: |
-        dotnet publish -c Release -r ${{ matrix.rid }} \
-          --self-contained true \
-          -p:PublishSingleFile=true \
-          -p:IncludeNativeLibrariesForSelfExtract=true \
-          -p:EnableCompressionInSingleFile=true \
-          -p:PublishTrimmed=true \
-          -p:TrimMode=partial \
-          -o ./publish
+      run: dotnet publish -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=true -p:TrimMode=partial -o ./publish
 
     - name: Prepare artifacts (Linux/macOS)
       if: runner.os != 'Windows'

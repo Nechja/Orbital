@@ -87,7 +87,7 @@ public partial class MainWindowViewModel : ViewModelBase
             .Subscribe(async _ => await RefreshNetworksAsync()));
         
         _ = GetDockerVersionAsync();
-        
+        //TODO gotta be a better way of dealing with this... Hosted service?
         _ = Task.Run(async () => await _dockerService.StartMonitoringEvents());
         
         InitializeTrayService();

@@ -182,9 +182,9 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
                                 DiskIO = "R:0B W:0B";
                             }
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            System.Diagnostics.Debug.WriteLine($"Error parsing stats for {Name}: {ex.Message}");
+                            // Stats parsing error - ignore and continue
                         }
                     }
                 });
@@ -197,7 +197,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
                 
                 await Task.Delay(3000, cancellationToken);
             }
-            catch (Exception ex)
+            catch
             {
                 // Try simpler approach - just show basic info
                 CpuUsage = "--";
@@ -205,9 +205,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
                 NetworkIO = "--";
                 DiskIO = "--";
                 
-                // Log the error for debugging
-                System.Diagnostics.Debug.WriteLine($"Stats error for {Name}: {ex.Message}");
-                
+                // Stats error - wait before retry
                 await Task.Delay(5000, cancellationToken);
             }
         }

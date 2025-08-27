@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using ErrorOr;
+using Microsoft.Extensions.Logging;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services.Errors;
 
 namespace OrbitalDocking.Services;
 
-public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper) : IDockerService, IDisposable
+public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper, ILogger<DockerService> logger) : IDockerService, IDisposable
 {
     public event EventHandler<ContainerEventArgs>? ContainerEvent;
     private CancellationTokenSource? _eventMonitoringCts;
@@ -610,7 +611,9 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 {
                     if (message != null && !string.IsNullOrEmpty(message.Action))
                     {
-                        Console.WriteLine($"[Docker Event] {message.Action} for container {message.Actor?.ID?.Substring(0, Math.Min(12, message.Actor?.ID?.Length ?? 0))}");
+                        logger.LogDebug("Docker Event: {Action} for container {ContainerId}", 
+                            message.Action, 
+                            message.Actor?.ID?.Substring(0, Math.Min(12, message.Actor?.ID?.Length ?? 0)));
                         
                         if (message.Actor?.ID != null)
                         {
@@ -623,11 +626,11 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("[Docker Event] Monitoring cancelled");
+                logger.LogInformation("Docker event monitoring cancelled");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Docker Event] Monitoring error: {ex.Message}");
+                logger.LogError(ex, "Docker event monitoring error");
                 
                 if (!linkedCts.Token.IsCancellationRequested)
                 {

@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Docker.DotNet;
 using OrbitalDocking.ViewModels;
 
@@ -9,6 +10,14 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddOrbitalDockingServices(this IServiceCollection services)
     {
+        // Logging
+        services.AddLogging(builder =>
+        {
+            builder.AddConsole()
+                   .AddDebug()
+                   .SetMinimumLevel(LogLevel.Information);
+        });
+        
         // Docker services
         services.AddSingleton<IDockerClientFactory, DockerClientFactory>();
         services.AddSingleton<DockerClient>(provider => 

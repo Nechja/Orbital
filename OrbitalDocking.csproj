@@ -34,5 +34,8 @@
     <PackageReference Include="DynamicData" Version="9.0.4" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="ReactiveUI" Version="20.1.63" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
   </ItemGroup>
 </Project>

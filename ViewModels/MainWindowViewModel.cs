@@ -15,6 +15,7 @@ using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
 using DynamicData;
 using DynamicData.Binding;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
@@ -28,6 +29,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IThemeService _themeService;
     private readonly DockerClient _dockerClient;
     private readonly IDialogService _dialogService;
+    private readonly ILogger<MainWindowViewModel> _logger;
     private readonly CompositeDisposable _subscriptions = new();
     private readonly SemaphoreSlim _containerSemaphore = new(1, 1);
     private readonly SemaphoreSlim _imageSemaphore = new(1, 1);
@@ -41,12 +43,14 @@ public partial class MainWindowViewModel : ViewModelBase
         IDockerService dockerService, 
         IThemeService themeService, 
         DockerClient dockerClient, 
-        IDialogService dialogService)
+        IDialogService dialogService,
+        ILogger<MainWindowViewModel> logger)
     {
         _dockerService = dockerService;
         _themeService = themeService;
         _dockerClient = dockerClient;
         _dialogService = dialogService;
+        _logger = logger;
         
         var containers = new ObservableCollectionExtended<ContainerViewModel>();
         _containers = containers;
@@ -60,7 +64,7 @@ public partial class MainWindowViewModel : ViewModelBase
             h => _dockerService.ContainerEvent -= h);
         
         _subscriptions.Add(dockerEvents
-            .Do(e => System.Diagnostics.Debug.WriteLine($"Docker event: {e.EventArgs.Action} for {e.EventArgs.ContainerId}"))
+            .Do(e => _logger.LogDebug("Docker event: {Action} for {ContainerId}", e.EventArgs.Action, e.EventArgs.ContainerId))
             .Throttle(TimeSpan.FromMilliseconds(200))
             .Subscribe(async _ => await RefreshContainersAsync()));
         
@@ -458,7 +462,7 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Error showing dialog: {ex.Message}";
-            Console.WriteLine($"RunImageAsync error: {ex}");
+            _logger.LogError(ex, "Error showing create container dialog");
         }
     }
 
@@ -769,7 +773,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         
         var allContainers = Containers.ToList();
-        System.Diagnostics.Debug.WriteLine($"GroupContainersByStack: {allContainers.Count} containers total");
+        _logger.LogDebug("GroupContainersByStack: {Count} containers total", allContainers.Count);
         
         var stackGroups = allContainers
             .Where(c => c.IsPartOfStack)
@@ -795,7 +799,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         
         var standalone = allContainers.Where(c => !c.IsPartOfStack).OrderBy(c => c.Name).ToList();
-        System.Diagnostics.Debug.WriteLine($"GroupContainersByStack: {standalone.Count} standalone containers");
+        _logger.LogDebug("GroupContainersByStack: {Count} standalone containers", standalone.Count);
         
         StandaloneContainers.Clear();
         foreach (var container in standalone)

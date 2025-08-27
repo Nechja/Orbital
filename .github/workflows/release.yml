@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.0.0) - leave empty to use branch name'
+        required: false
+        type: string
+      create_release:
+        description: 'Create a new release (vs updating existing)'
+        required: true
+        type: boolean
+        default: true
 
 env:
   DOTNET_VERSION: '9.0.x'

@@ -1,5 +1,8 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using OrbitalDocking.ViewModels;
 
 namespace OrbitalDocking.Views;
@@ -9,6 +12,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        
+        // Set the window icon
+        var assets = AssetLoader.Open(new Uri("avares://OrbitalDocking/Assets/orbital.ico"));
+        Icon = new WindowIcon(assets);
         
         // Set the MainWindow reference when DataContext is set
         DataContextChanged += (_, _) =>

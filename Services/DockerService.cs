@@ -8,6 +8,7 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using OrbitalDocking.Configuration;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services.Errors;
 
@@ -113,7 +114,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         {
             await dockerClient.Containers.StopContainerAsync(
                 containerId,
-                new ContainerStopParameters { WaitBeforeKillSeconds = 10 },
+                new ContainerStopParameters { WaitBeforeKillSeconds = (uint)AppConstants.Timing.ContainerStopTimeout },
                 cancellationToken);
             
             OnContainerEvent(containerId, "stop");
@@ -139,7 +140,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         {
             await dockerClient.Containers.RestartContainerAsync(
                 containerId,
-                new ContainerRestartParameters { WaitBeforeKillSeconds = 10 },
+                new ContainerRestartParameters { WaitBeforeKillSeconds = (uint)AppConstants.Timing.ContainerRestartTimeout },
                 cancellationToken);
             
             OnContainerEvent(containerId, "restart");
@@ -634,7 +635,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 
                 if (!linkedCts.Token.IsCancellationRequested)
                 {
-                    await Task.Delay(5000, linkedCts.Token);
+                    await Task.Delay(AppConstants.Timing.EventMonitoringRetryDelay, linkedCts.Token);
                     
                     if (!linkedCts.Token.IsCancellationRequested)
                     {

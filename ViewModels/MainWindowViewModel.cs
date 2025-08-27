@@ -17,6 +17,7 @@ using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using OrbitalDocking.Configuration;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services;
@@ -139,7 +140,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _dockerVersion = "Connecting...";
 
     [ObservableProperty]
-    private string _dockerStatusColor = "#666688";
+    private string _dockerStatusColor = ThemeColors.Dark.TextTertiary;
 
     public int RunningContainersCount => Containers.Count(c => c.IsRunning);
     public int StoppedContainersCount => Containers.Count(c => c.IsStopped);
@@ -152,14 +153,14 @@ public partial class MainWindowViewModel : ViewModelBase
         if (result.IsError)
         {
             DockerVersion = "Disconnected";
-            DockerStatusColor = "#FF6B6B";
+            DockerStatusColor = ThemeColors.Dark.DockerOffline;
             StatusMessage = result.FirstError.Description;
         }
         else
         {
             var systemInfo = result.Value;
             DockerVersion = $"v{systemInfo.ServerVersion}";
-            DockerStatusColor = "#4ECDC4";
+            DockerStatusColor = ThemeColors.Dark.DockerOnline;
             StatusMessage = "Connected to Docker";
         }
     }

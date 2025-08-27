@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using OrbitalDocking.Configuration;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 
@@ -14,6 +15,7 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
 {
     private ContainerInfo _container = container;
     private CancellationTokenSource? _statsTokenSource;
+    private Task? _statsMonitoringTask;
 
     [ObservableProperty]
     private bool _isExpanded = false;
@@ -31,7 +33,9 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     private string _diskIO = "--";
 
     public string Id => _container.Id;
-    public string ShortId => _container.Id.Length > 12 ? _container.Id.Substring(0, 12) : _container.Id;
+    public string ShortId => _container.Id.Length > AppConstants.UI.ContainerIdDisplayLength 
+        ? _container.Id.Substring(0, AppConstants.UI.ContainerIdDisplayLength) 
+        : _container.Id;
     public string Name => _container.Name;
     public string Image => _container.Image;
     public Models.ContainerState State => _container.State;
@@ -60,12 +64,12 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
 
     public string StateColor => State switch
     {
-        Models.ContainerState.Running => "#4ECDC4",
-        Models.ContainerState.Paused => "#FFB347",
-        Models.ContainerState.Exited => "#666666",
-        Models.ContainerState.Dead => "#FF6B6B",
-        Models.ContainerState.Restarting => "#A8E6CF",
-        _ => "#666666"
+        Models.ContainerState.Running => ThemeColors.Dark.ContainerRunning,
+        Models.ContainerState.Paused => ThemeColors.Dark.ContainerPaused,
+        Models.ContainerState.Exited => ThemeColors.Dark.ContainerStopped,
+        Models.ContainerState.Dead => ThemeColors.Dark.ContainerDead,
+        Models.ContainerState.Restarting => ThemeColors.Dark.ContainerRestarting,
+        _ => ThemeColors.Dark.ContainerStopped
     };
 
     public void UpdateFrom(ContainerInfo container)
@@ -102,14 +106,21 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
     {
         StopStatsMonitoring();
         _statsTokenSource = new CancellationTokenSource();
-        _ = MonitorStats(_statsTokenSource.Token);
+        _statsMonitoringTask = MonitorStats(_statsTokenSource.Token);
     }
 
     public void StopStatsMonitoring()
     {
-        _statsTokenSource?.Cancel();
-        _statsTokenSource?.Dispose();
-        _statsTokenSource = null;
+        try
+        {
+            _statsTokenSource?.Cancel();
+        }
+        finally
+        {
+            _statsTokenSource?.Dispose();
+            _statsTokenSource = null;
+            _statsMonitoringTask = null;
+        }
     }
 
     private async Task MonitorStats(CancellationToken cancellationToken)
@@ -128,66 +139,8 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
             try
             {
                 var parameters = new ContainerStatsParameters { Stream = false };
-                var progress = new Progress<ContainerStatsResponse>(stats =>
-                {
-                    if (stats != null)
-                    {
-                        try
-                        {
-                            // Calculate CPU percentage
-                            var cpuDelta = stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage;
-                            var systemDelta = stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage;
-                            var onlineCpus = stats.CPUStats.OnlineCPUs > 0 ? stats.CPUStats.OnlineCPUs : 1;
-                            var cpuPercent = systemDelta > 0 ? (cpuDelta / (double)systemDelta) * onlineCpus * 100.0 : 0;
-                            
-                            CpuUsage = $"{cpuPercent:F1}%";
-                            
-                            // Calculate memory usage
-                            var memoryMB = stats.MemoryStats.Usage / (1024.0 * 1024.0);
-                            var limitMB = stats.MemoryStats.Limit / (1024.0 * 1024.0);
-                            var memoryPercent = limitMB > 0 ? (memoryMB / limitMB) * 100 : 0;
-                            MemoryUsage = $"{memoryMB:F0} MB ({memoryPercent:F0}%)";
-                            
-                            // Network stats
-                            if (stats.Networks != null)
-                            {
-                                long totalRx = 0, totalTx = 0;
-                                foreach (var network in stats.Networks.Values)
-                                {
-                                    totalRx += (long)network.RxBytes;
-                                    totalTx += (long)network.TxBytes;
-                                }
-                                NetworkIO = $"↓{FormatBytes(totalRx)} ↑{FormatBytes(totalTx)}";
-                            }
-                            else
-                            {
-                                NetworkIO = "↓0B ↑0B";
-                            }
-                            
-                            // Disk I/O stats
-                            if (stats.BlkioStats?.IoServiceBytesRecursive != null && stats.BlkioStats.IoServiceBytesRecursive.Count > 0)
-                            {
-                                long totalRead = 0, totalWrite = 0;
-                                foreach (var io in stats.BlkioStats.IoServiceBytesRecursive)
-                                {
-                                    if (io.Op == "read" || io.Op == "Read") 
-                                        totalRead += (long)io.Value;
-                                    if (io.Op == "write" || io.Op == "Write") 
-                                        totalWrite += (long)io.Value;
-                                }
-                                DiskIO = $"R:{FormatBytes(totalRead)} W:{FormatBytes(totalWrite)}";
-                            }
-                            else
-                            {
-                                DiskIO = "R:0B W:0B";
-                            }
-                        }
-                        catch
-                        {
-                            // Stats parsing error - ignore and continue
-                        }
-                    }
-                });
+                ContainerStatsResponse? latestStats = null;
+                var progress = new Progress<ContainerStatsResponse>(stats => latestStats = stats);
                 
                 await dockerClient.Containers.GetContainerStatsAsync(
                     Id,
@@ -195,7 +148,12 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
                     progress,
                     cancellationToken);
                 
-                await Task.Delay(3000, cancellationToken);
+                if (latestStats != null && !cancellationToken.IsCancellationRequested)
+                {
+                    UpdateStatsFromResponse(latestStats);
+                }
+                
+                await Task.Delay(AppConstants.Timing.StatsUpdateInterval, cancellationToken);
             }
             catch
             {
@@ -206,11 +164,69 @@ public partial class ContainerViewModel(ContainerInfo container, DockerClient? d
                 DiskIO = "--";
                 
                 // Stats error - wait before retry
-                await Task.Delay(5000, cancellationToken);
+                await Task.Delay(AppConstants.Timing.StatsErrorRetryDelay, cancellationToken);
             }
         }
     }
 
+    private void UpdateStatsFromResponse(ContainerStatsResponse stats)
+    {
+        try
+        {
+            // Calculate CPU percentage
+            var cpuDelta = stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage;
+            var systemDelta = stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage;
+            var onlineCpus = stats.CPUStats.OnlineCPUs > 0 ? stats.CPUStats.OnlineCPUs : 1;
+            var cpuPercent = systemDelta > 0 ? (cpuDelta / (double)systemDelta) * onlineCpus * 100.0 : 0;
+            
+            CpuUsage = $"{cpuPercent:F1}%";
+            
+            // Calculate memory usage
+            var memoryMB = stats.MemoryStats.Usage / (1024.0 * 1024.0);
+            var limitMB = stats.MemoryStats.Limit / (1024.0 * 1024.0);
+            var memoryPercent = limitMB > 0 ? (memoryMB / limitMB) * 100 : 0;
+            MemoryUsage = $"{memoryMB:F0} MB ({memoryPercent:F0}%)";
+            
+            // Network stats
+            if (stats.Networks != null)
+            {
+                long totalRx = 0, totalTx = 0;
+                foreach (var network in stats.Networks.Values)
+                {
+                    totalRx += (long)network.RxBytes;
+                    totalTx += (long)network.TxBytes;
+                }
+                NetworkIO = $"↓{FormatBytes(totalRx)} ↑{FormatBytes(totalTx)}";
+            }
+            else
+            {
+                NetworkIO = "↓0B ↑0B";
+            }
+            
+            // Disk I/O stats
+            if (stats.BlkioStats?.IoServiceBytesRecursive != null && stats.BlkioStats.IoServiceBytesRecursive.Count > 0)
+            {
+                long totalRead = 0, totalWrite = 0;
+                foreach (var io in stats.BlkioStats.IoServiceBytesRecursive)
+                {
+                    if (io.Op == "read" || io.Op == "Read") 
+                        totalRead += (long)io.Value;
+                    if (io.Op == "write" || io.Op == "Write") 
+                        totalWrite += (long)io.Value;
+                }
+                DiskIO = $"R:{FormatBytes(totalRead)} W:{FormatBytes(totalWrite)}";
+            }
+            else
+            {
+                DiskIO = "R:0B W:0B";
+            }
+        }
+        catch
+        {
+            // Stats parsing error - ignore
+        }
+    }
+    
     private string FormatBytes(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB" };

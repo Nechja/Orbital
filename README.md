@@ -1,7 +1,6 @@
 # Orbital Docker UI
 
-![Build](https://github.com/Nechja/Orbital/workflows/Build/badge.svg)
-![Release](https://github.com/Nechja/Orbital/workflows/Release/badge.svg)
+[![Build and Test](https://github.com/Nechja/Orbital/actions/workflows/build.yml/badge.svg)](https://github.com/Nechja/Orbital/actions/workflows/build.yml)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![.NET](https://img.shields.io/badge/.NET-9.0-purple)
 ![Platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macos-lightgrey)

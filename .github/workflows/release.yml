@@ -130,6 +130,11 @@ jobs:
 
     - name: Create AppImage
       run: |
+        # Install FUSE for AppImage
+        sudo apt-get update
+        sudo apt-get install -y libfuse2
+        
+        # Download and run AppImage tool
         wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
         chmod +x appimagetool-x86_64.AppImage
         ./appimagetool-x86_64.AppImage AppDir OrbitalDocking-x86_64.AppImage

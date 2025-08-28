@@ -110,9 +110,13 @@ jobs:
         
         # Copy icon from Assets (if it exists in the tar)
         if [ -f "Assets/orbital.png" ]; then
+          # Copy to AppDir root (required by appimagetool)
+          cp Assets/orbital.png AppDir/orbital-docking.png
+          # Also copy to standard location
           cp Assets/orbital.png AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
         else
           # Create a placeholder if icon isn't included
+          touch AppDir/orbital-docking.png
           touch AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
         fi
         
@@ -123,7 +127,7 @@ jobs:
         Exec=OrbitalDocking
         Icon=orbital-docking
         Type=Application
-        Categories=Development;System;
+        Categories=Development;
         Comment=Docker container management tool
         Terminal=false
         EOF

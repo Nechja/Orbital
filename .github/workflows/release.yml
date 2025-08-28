@@ -82,6 +82,88 @@ jobs:
           *.tar.gz
           *.zip
 
+  create-deb:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download Linux x64 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: OrbitalDocking-linux-x64
+    
+    - name: Extract artifact
+      run: |
+        tar -xzf OrbitalDocking-linux-x64.tar.gz
+        chmod +x OrbitalDocking
+    
+    - name: Create .deb package structure
+      run: |
+        # Define package info
+        PACKAGE_NAME="orbital"
+        VERSION="${GITHUB_REF_NAME#v}"  # Remove 'v' prefix from tag
+        VERSION="${VERSION:-1.0.0}"  # Default version if not a tag
+        ARCH="amd64"
+        
+        # Create directory structure
+        mkdir -p ${PACKAGE_NAME}_${VERSION}_${ARCH}/DEBIAN
+        mkdir -p ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/bin
+        mkdir -p ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/share/applications
+        mkdir -p ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/share/icons/hicolor/256x256/apps
+        
+        # Copy files
+        cp OrbitalDocking ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/bin/orbital
+        chmod 755 ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/bin/orbital
+        
+        # Copy icon if exists
+        if [ -f "Assets/orbital.png" ]; then
+          cp Assets/orbital.png ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/share/icons/hicolor/256x256/apps/orbital.png
+        fi
+        
+        # Create control file
+        cat > ${PACKAGE_NAME}_${VERSION}_${ARCH}/DEBIAN/control << EOF
+        Package: ${PACKAGE_NAME}
+        Version: ${VERSION}
+        Section: utils
+        Priority: optional
+        Architecture: ${ARCH}
+        Depends: docker.io | docker-ce
+        Maintainer: Nechja <nechja@github.com>
+        Homepage: https://github.com/Nechja/Orbital
+        Description: Docker Desktop alternative
+         A free, open-source Docker GUI with no subscriptions
+         or corporate restrictions. Just a simple tool to manage
+         your containers.
+        EOF
+        
+        # Create desktop file
+        cat > ${PACKAGE_NAME}_${VERSION}_${ARCH}/usr/share/applications/orbital.desktop << EOF
+        [Desktop Entry]
+        Name=Orbital
+        GenericName=Docker UI
+        Comment=Docker container management tool
+        Exec=/usr/bin/orbital
+        Icon=orbital
+        Terminal=false
+        Type=Application
+        Categories=Development;
+        StartupNotify=true
+        EOF
+        
+        # Build the .deb package
+        dpkg-deb --build ${PACKAGE_NAME}_${VERSION}_${ARCH}
+        
+        # Rename to match artifact naming convention
+        mv ${PACKAGE_NAME}_${VERSION}_${ARCH}.deb OrbitalDocking-${VERSION}-linux-amd64.deb
+    
+    - name: Upload .deb package
+      uses: actions/upload-artifact@v4
+      with:
+        name: OrbitalDocking-deb-package
+        path: OrbitalDocking-*.deb
+
   create-appimage:
     runs-on: ubuntu-latest
     needs: build
@@ -163,7 +245,7 @@ jobs:
         path: OrbitalDocking-x86_64.AppImage
 
   release:
-    needs: [build, create-appimage]
+    needs: [build, create-deb, create-appimage]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -200,6 +282,7 @@ jobs:
           ./artifacts/OrbitalDocking-win-x64/*.zip
           ./artifacts/OrbitalDocking-osx-x64/*.tar.gz
           ./artifacts/OrbitalDocking-osx-arm64/*.tar.gz
+          ./artifacts/OrbitalDocking-deb-package/*.deb
           ./artifacts/OrbitalDocking-AppImage/*.AppImage
         generateReleaseNotes: true
         draft: false

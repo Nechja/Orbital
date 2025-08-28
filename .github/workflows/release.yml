@@ -108,6 +108,14 @@ jobs:
         # Move executable
         mv OrbitalDocking AppDir/usr/bin/
         
+        # Copy icon from Assets (if it exists in the tar)
+        if [ -f "Assets/orbital.png" ]; then
+          cp Assets/orbital.png AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
+        else
+          # Create a placeholder if icon isn't included
+          touch AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
+        fi
+        
         # Create desktop file
         cat > AppDir/usr/share/applications/orbital-docking.desktop << 'EOF'
         [Desktop Entry]
@@ -119,14 +127,6 @@ jobs:
         Comment=Docker container management tool
         Terminal=false
         EOF
-        
-        # Create a simple icon (you can replace with actual icon later)
-        convert -size 256x256 xc:black \
-          -fill '#4ECDC4' \
-          -draw 'circle 128,128 128,32' \
-          -fill '#050511' \
-          -draw 'circle 128,128 128,80' \
-          AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
 
     - name: Create AppImage
       run: |

@@ -116,8 +116,8 @@ jobs:
           touch AppDir/usr/share/icons/hicolor/256x256/apps/orbital-docking.png
         fi
         
-        # Create desktop file
-        cat > AppDir/usr/share/applications/orbital-docking.desktop << 'EOF'
+        # Create desktop file in AppDir root (required by appimagetool)
+        cat > AppDir/orbital-docking.desktop << 'EOF'
         [Desktop Entry]
         Name=Orbital Docking
         Exec=OrbitalDocking
@@ -127,6 +127,19 @@ jobs:
         Comment=Docker container management tool
         Terminal=false
         EOF
+        
+        # Also copy to standard location
+        cp AppDir/orbital-docking.desktop AppDir/usr/share/applications/
+        
+        # Create AppRun script
+        cat > AppDir/AppRun << 'EOF'
+        #!/bin/sh
+        SELF=$(readlink -f "$0")
+        HERE=${SELF%/*}
+        export PATH="${HERE}/usr/bin:${PATH}"
+        exec "${HERE}/usr/bin/OrbitalDocking" "$@"
+        EOF
+        chmod +x AppDir/AppRun
 
     - name: Create AppImage
       run: |

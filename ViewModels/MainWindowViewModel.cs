@@ -167,7 +167,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string ImagesTextColor => ShowImages ? GetPrimaryTextColor() : GetSecondaryTextColor();
     public string VolumesTextColor => ShowVolumes ? GetPrimaryTextColor() : GetSecondaryTextColor();
     public string NetworksTextColor => ShowNetworks ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string SettingsTextColor => ShowSettings ? GetPrimaryTextColor() : GetSecondaryTextColor();
+    public string SettingsTextColor => ShowSettings ? GetPrimaryTextColor() : GetOrbitalTextColor();
 
     [ObservableProperty]
     private string _dockerVersion = "Connecting...";
@@ -947,6 +947,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string GetSecondaryTextColor() => 
         _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextSecondary : ThemeColors.Dark.TextSecondary;
     
+    private string GetOrbitalTextColor() => 
+        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextSecondary;
+    
     private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
     {
         // Update color properties
@@ -954,6 +957,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
         OnPropertyChanged(nameof(NetworksTextColor));
+        OnPropertyChanged(nameof(SettingsTextColor));
         OnPropertyChanged(nameof(DockerStatusColor));
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));

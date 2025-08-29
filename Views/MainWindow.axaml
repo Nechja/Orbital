@@ -66,10 +66,9 @@
                             VerticalAlignment="Center">
                         <TextBlock Text="ORBITAL" 
                                    FontSize="14" 
-                                   FontWeight="Light"
+                                   FontWeight="Medium"
                                    Foreground="{Binding SettingsTextColor}"
                                    LetterSpacing="4"
-                                   Opacity="0.8"
                                    VerticalAlignment="Center"/>
                     </Button>
                     <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>

@@ -139,3 +139,20 @@ out/
 OrbitalDocking
 OrbitalDocking.exe
 *.AppImage
+
+# Code signing certificates - NEVER COMMIT THESE!
+certs/
+*.pfx
+*.p12
+*.cer
+*.crt
+*.key
+*.pem
+cert.pem
+key.pem
+codesign.*
+*-base64.txt
+
+# Build/publish directories
+publish-*/
+publish/

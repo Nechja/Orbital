@@ -68,6 +68,76 @@ jobs:
         tar -czf ../${{ matrix.artifact }}.tar.gz *
         cd ..
 
+    - name: Sign Windows executable
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+      run: |
+        # Check if certificate is available
+        if (-not "${{ secrets.WINDOWS_CERTIFICATE }}") {
+          Write-Host "No certificate configured, skipping signing"
+          exit 0
+        }
+        
+        # Decode certificate from base64 secret
+        $certBytes = [System.Convert]::FromBase64String("${{ secrets.WINDOWS_CERTIFICATE }}")
+        $certPath = Join-Path $env:TEMP "codesign_cert.pfx"
+        [System.IO.File]::WriteAllBytes($certPath, $certBytes)
+        
+        try {
+          # Find signtool.exe
+          $signtoolPaths = @(
+            "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe",
+            "${env:ProgramFiles}\Windows Kits\10\bin\*\x64\signtool.exe",
+            "${env:ProgramFiles(x86)}\Microsoft SDKs\Windows\*\Bin\signtool.exe"
+          )
+          
+          $signtool = $null
+          foreach ($path in $signtoolPaths) {
+            $found = Get-ChildItem -Path $path -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              $signtool = $found.FullName
+              break
+            }
+          }
+          
+          if (-not $signtool) {
+            throw "signtool.exe not found. Please ensure Windows SDK is installed."
+          }
+          
+          Write-Host "Using signtool: $signtool"
+          
+          # Sign the executable with SHA256
+          & $signtool sign `
+            /f $certPath `
+            /p $env:CERT_PASSWORD `
+            /tr http://timestamp.digicert.com `
+            /td SHA256 `
+            /fd SHA256 `
+            /v `
+            "publish\${{ env.PROJECT_NAME }}.exe"
+          
+          if ($LASTEXITCODE -ne 0) {
+            throw "Code signing failed with exit code $LASTEXITCODE"
+          }
+          
+          # Verify signature
+          & $signtool verify /pa /v "publish\${{ env.PROJECT_NAME }}.exe"
+          
+          if ($LASTEXITCODE -ne 0) {
+            throw "Signature verification failed"
+          }
+          
+          Write-Host "✓ Successfully signed ${{ env.PROJECT_NAME }}.exe"
+        }
+        finally {
+          # Always clean up certificate file
+          if (Test-Path $certPath) {
+            Remove-Item $certPath -Force
+          }
+        }
+
     - name: Prepare artifacts (Windows)
       if: runner.os == 'Windows'
       shell: pwsh

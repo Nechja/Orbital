@@ -102,7 +102,17 @@ public class DockerMapper : IDockerMapper
             Name: m.Name ?? string.Empty,
             Source: m.Source ?? string.Empty,
             Destination: m.Destination ?? string.Empty,
-            ReadWrite: !m.Mode?.Contains("ro") ?? true,
+            ReadWrite: IsReadWrite(m.Mode),
             Driver: m.Driver ?? string.Empty)).ToList();
+    }
+    
+    private static bool IsReadWrite(string? mode)
+    {
+        // If mode is null or empty, default to read-write
+        if (string.IsNullOrEmpty(mode))
+            return true;
+            
+        // Check if mode contains "ro" (read-only)
+        return !mode.Contains("ro", StringComparison.OrdinalIgnoreCase);
     }
 }

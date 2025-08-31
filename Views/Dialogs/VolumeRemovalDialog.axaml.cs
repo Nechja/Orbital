@@ -38,7 +38,7 @@ public partial class VolumeRemovalDialog : Window, INotifyPropertyChanged
         DataContext = this;
     }
     
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public new event PropertyChangedEventHandler? PropertyChanged;
     
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {

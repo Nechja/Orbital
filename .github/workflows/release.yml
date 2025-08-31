@@ -124,15 +124,17 @@ jobs:
           
           # Verify signature (allow self-signed certificates)
           & $signtool verify /v "publish\${{ env.PROJECT_NAME }}.exe"
+          $verifyExitCode = $LASTEXITCODE
           
           # Check if file is signed (don't require trusted chain for self-signed certs)
-          if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 1) {
+          if ($verifyExitCode -eq 0 -or $verifyExitCode -eq 1) {
             Write-Host "✓ File is signed (self-signed certificate accepted)"
+            Write-Host "✓ Successfully signed ${{ env.PROJECT_NAME }}.exe"
+            # Reset exit code to 0 for success
+            $global:LASTEXITCODE = 0
           } else {
-            throw "Signature verification failed with exit code $LASTEXITCODE"
+            throw "Signature verification failed with exit code $verifyExitCode"
           }
-          
-          Write-Host "✓ Successfully signed ${{ env.PROJECT_NAME }}.exe"
         }
         finally {
           # Always clean up certificate file

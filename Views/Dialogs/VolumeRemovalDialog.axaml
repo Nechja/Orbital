@@ -4,64 +4,103 @@
         x:Class="OrbitalDocking.Views.Dialogs.VolumeRemovalDialog"
         x:DataType="dialogs:VolumeRemovalDialog"
         Title="Container Has Volumes"
-        Width="500"
-        Height="350"
+        Width="650"
+        SizeToContent="Height"
+        MinHeight="250"
+        MaxHeight="500"
         WindowStartupLocation="CenterOwner"
-        CanResize="False">
-    <Grid Margin="20" RowDefinitions="Auto,*,Auto">
-        <TextBlock Grid.Row="0" 
-                   FontWeight="Bold"
-                   FontSize="14"
-                   Margin="0,0,0,10">
-            <TextBlock.Text>
-                <MultiBinding StringFormat="Container '{0}' has the following named volumes:">
-                    <Binding Path="ContainerName"/>
-                </MultiBinding>
-            </TextBlock.Text>
-        </TextBlock>
-        
-        <ScrollViewer Grid.Row="1" 
-                      VerticalScrollBarVisibility="Auto"
-                      Margin="0,10">
-            <ItemsControl ItemsSource="{Binding VolumeNames}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Margin="20,2">
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="• {0}">
-                                    <Binding/>
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-        
-        <Grid Grid.Row="2" RowDefinitions="Auto,Auto">
-            <TextBlock Grid.Row="0" 
-                       Text="What would you like to do?"
-                       Margin="0,10,0,20"
-                       HorizontalAlignment="Center"/>
+        CanResize="False"
+        Background="{DynamicResource SystemRegionBrush}">
+    <Border Classes="dialog-content">
+        <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto">
+            <!-- Header Section -->
+            <StackPanel Grid.Row="0" Spacing="8">
+                <TextBlock FontSize="16" 
+                           FontWeight="SemiBold"
+                           TextWrapping="Wrap">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Container '{0}' has the following named volumes:">
+                            <Binding Path="ContainerName"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
             
-            <StackPanel Grid.Row="1" 
-                        Orientation="Horizontal" 
-                        HorizontalAlignment="Center"
-                        Spacing="10">
-                <Button Name="CancelButton" 
-                        Content="Cancel" 
-                        Width="120"
-                        Click="OnCancelClick"/>
-                <Button Name="ContainerOnlyButton" 
-                        Content="Remove Container Only" 
-                        Width="160"
-                        Click="OnContainerOnlyClick"/>
-                <Button Name="ContainerAndVolumesButton" 
-                        Content="Remove Container and Volumes" 
-                        Width="200"
-                        Classes="accent"
-                        Click="OnContainerAndVolumesClick"/>
+            <!-- Volumes List -->
+            <Border Grid.Row="2" 
+                    Margin="0,16,0,0"
+                    Background="{DynamicResource SystemAltHighColor}"
+                    CornerRadius="8"
+                    BorderBrush="{DynamicResource SystemBaseLowColor}"
+                    BorderThickness="1"
+                    MinHeight="60"
+                    MaxHeight="200">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Padding="16,12">
+                    <ItemsControl ItemsSource="{Binding VolumeNames}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="•" 
+                                               Margin="0,0,8,0"
+                                               Foreground="{DynamicResource SystemAccentColor}"/>
+                                    <TextBlock Text="{Binding}"
+                                               FontFamily="Cascadia Code, Consolas, monospace"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+            
+            <!-- Action Section -->
+            <StackPanel Grid.Row="3" 
+                        Margin="0,24,0,0"
+                        Spacing="16">
+                <TextBlock Text="What would you like to do?"
+                           HorizontalAlignment="Center"
+                           FontSize="14"
+                           Opacity="0.8"/>
+                
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Center"
+                            Spacing="12">
+                    <Button Name="CancelButton" 
+                            Content="Cancel" 
+                            MinWidth="100"
+                            Height="36"
+                            Padding="16,8"
+                            Click="OnCancelClick"/>
+                    <Button Name="ContainerOnlyButton" 
+                            Content="Container Only" 
+                            MinWidth="140"
+                            Height="36"
+                            Padding="16,8"
+                            Click="OnContainerOnlyClick"/>
+                    <Button Name="ContainerAndVolumesButton" 
+                            Content="Container + Volumes" 
+                            MinWidth="180"
+                            Height="36"
+                            Padding="16,8"
+                            Classes="accent"
+                            Click="OnContainerAndVolumesClick"/>
+                </StackPanel>
             </StackPanel>
         </Grid>
-    </Grid>
+    </Border>
+    
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.accent:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}"/>
+        </Style>
+    </Window.Styles>
 </Window>

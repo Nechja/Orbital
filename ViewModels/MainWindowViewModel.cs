@@ -359,6 +359,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var containerInfo = containerInfoResult.Value;
         
+        // Debug: Log volume information
+        if (containerInfo.Volumes != null)
+        {
+            _logger.LogInformation("Container {Name} has {Count} volumes", container.Name, containerInfo.Volumes.Count);
+            foreach (var vol in containerInfo.Volumes)
+            {
+                _logger.LogInformation("Volume: Name={Name}, Source={Source}, Dest={Dest}", vol.Name, vol.Source, vol.Destination);
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Container {Name} has null Volumes", container.Name);
+        }
+        
         // Check if container has named volumes (not bind mounts)
         var namedVolumes = containerInfo.Volumes?
             .Where(v => !string.IsNullOrEmpty(v.Name))

@@ -347,14 +347,76 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task RemoveContainerAsync(ContainerViewModel? container = null)
     {
         container ??= SelectedContainer;
-        if (container == null) return;
+        if (container == null || MainWindow == null) return;
+
+        // First, get the full container info to check for volumes
+        var containerInfoResult = await _dockerService.GetContainerAsync(container.Id);
+        if (containerInfoResult.IsError)
+        {
+            StatusMessage = $"Failed to get container info: {containerInfoResult.FirstError.Description}";
+            return;
+        }
+
+        var containerInfo = containerInfoResult.Value;
+        
+        // Check if container has named volumes (not bind mounts)
+        var namedVolumes = containerInfo.Volumes?
+            .Where(v => !string.IsNullOrEmpty(v.Name))
+            .Select(v => v.Name)
+            .Distinct()
+            .ToList() ?? new List<string>();
+        
+        VolumeRemovalChoice choice;
+        if (namedVolumes.Count > 0)
+        {
+            // Has named volumes, show volume removal dialog
+            choice = await _dialogService.ShowVolumeRemovalDialogAsync(container.Name, containerInfo.Volumes!, MainWindow);
+        }
+        else
+        {
+            // No named volumes, proceed without confirmation
+            choice = VolumeRemovalChoice.RemoveContainerOnly;
+        }
+
+        if (choice == VolumeRemovalChoice.Cancel)
+        {
+            StatusMessage = "Container removal cancelled";
+            return;
+        }
 
         StatusMessage = $"Removing {container.Name}...";
+        
+        // Remove the container
         var result = await _dockerService.RemoveContainerAsync(container.Id, force: true);
-        StatusMessage = result.IsError 
-            ? result.ToStatusMessage()
+        if (result.IsError)
+        {
+            StatusMessage = result.ToStatusMessage();
+            return;
+        }
+
+        // If user chose to remove volumes, remove them now
+        if (choice == VolumeRemovalChoice.RemoveContainerAndVolumes && namedVolumes.Count > 0)
+        {
+            foreach (var volumeName in namedVolumes)
+            {
+                StatusMessage = $"Removing volume {volumeName}...";
+                var volumeResult = await _dockerService.RemoveVolumeAsync(volumeName, force: true);
+                if (volumeResult.IsError)
+                {
+                    _logger.LogWarning("Failed to remove volume {Volume}: {Error}", volumeName, volumeResult.FirstError.Description);
+                }
+            }
+        }
+
+        StatusMessage = choice == VolumeRemovalChoice.RemoveContainerAndVolumes 
+            ? $"Removed {container.Name} and its volumes"
             : $"Removed {container.Name}";
+            
         await RefreshContainersAsync();
+        if (choice == VolumeRemovalChoice.RemoveContainerAndVolumes)
+        {
+            await RefreshVolumesAsync();
+        }
     }
     
     [RelayCommand]
@@ -408,7 +470,49 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RemoveStackAsync(StackViewModel? stack)
     {
-        if (stack == null) return;
+        if (stack == null || MainWindow == null) return;
+        
+        // Collect all volumes from all containers in the stack
+        var allVolumes = new List<VolumeMount>();
+        var containerInfos = new List<ContainerInfo>();
+        
+        foreach (var container in stack.Containers)
+        {
+            var containerInfoResult = await _dockerService.GetContainerAsync(container.Id);
+            if (containerInfoResult.IsError) continue;
+            
+            var containerInfo = containerInfoResult.Value;
+            containerInfos.Add(containerInfo);
+            if (containerInfo.Volumes != null)
+            {
+                allVolumes.AddRange(containerInfo.Volumes);
+            }
+        }
+        
+        // Check if any containers have named volumes and prompt user
+        VolumeRemovalChoice choice;
+        var distinctVolumes = allVolumes
+            .Where(v => !string.IsNullOrEmpty(v.Name))
+            .GroupBy(v => v.Name)
+            .Select(g => g.First())
+            .ToList();
+            
+        if (distinctVolumes.Count > 0)
+        {
+            // Has named volumes, show volume removal dialog
+            choice = await _dialogService.ShowVolumeRemovalDialogAsync($"stack '{stack.Name}'", distinctVolumes, MainWindow);
+        }
+        else
+        {
+            // No named volumes, proceed without confirmation
+            choice = VolumeRemovalChoice.RemoveContainerOnly;
+        }
+
+        if (choice == VolumeRemovalChoice.Cancel)
+        {
+            StatusMessage = "Stack removal cancelled";
+            return;
+        }
         
         StatusMessage = $"Removing stack {stack.Name}...";
         
@@ -418,11 +522,41 @@ public partial class MainWindowViewModel : ViewModelBase
         // Use the new RemoveStackAsync method for better handling
         var result = await _dockerService.RemoveStackAsync(stack.Name, containerIds);
         
-        StatusMessage = result.IsError 
-            ? $"Failed to remove stack {stack.Name}: {result.FirstError.Description}"
+        if (result.IsError)
+        {
+            StatusMessage = $"Failed to remove stack {stack.Name}: {result.FirstError.Description}";
+            return;
+        }
+        
+        // If user chose to remove volumes, remove them now
+        if (choice == VolumeRemovalChoice.RemoveContainerAndVolumes && distinctVolumes.Count > 0)
+        {
+            var volumeNamesToRemove = distinctVolumes
+                .Where(v => !string.IsNullOrEmpty(v.Name))
+                .Select(v => v.Name)
+                .Distinct()
+                .ToList();
+
+            foreach (var volumeName in volumeNamesToRemove)
+            {
+                StatusMessage = $"Removing volume {volumeName}...";
+                var volumeResult = await _dockerService.RemoveVolumeAsync(volumeName, force: true);
+                if (volumeResult.IsError)
+                {
+                    _logger.LogWarning("Failed to remove volume {Volume}: {Error}", volumeName, volumeResult.FirstError.Description);
+                }
+            }
+        }
+        
+        StatusMessage = choice == VolumeRemovalChoice.RemoveContainerAndVolumes 
+            ? $"Removed stack {stack.Name} and its volumes"
             : $"Removed stack {stack.Name}";
             
         await RefreshContainersAsync();
+        if (choice == VolumeRemovalChoice.RemoveContainerAndVolumes)
+        {
+            await RefreshVolumesAsync();
+        }
     }
 
     [RelayCommand]

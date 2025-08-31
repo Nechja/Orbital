@@ -11,7 +11,15 @@ public record ContainerInfo(
     DateTime Created,
     string Status,
     Dictionary<string, string> Labels,
-    List<PortMapping> Ports);
+    List<PortMapping> Ports,
+    List<VolumeMount>? Volumes = null);
+
+public record VolumeMount(
+    string Name,
+    string Source,
+    string Destination,
+    bool ReadWrite,
+    string Driver);
 
 public record struct PortMapping(
     string PrivatePort,

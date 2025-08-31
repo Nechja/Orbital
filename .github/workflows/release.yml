@@ -178,8 +178,12 @@ jobs:
       run: |
         # Define package info
         PACKAGE_NAME="orbital"
-        VERSION="${GITHUB_REF_NAME#v}"  # Remove 'v' prefix from tag
-        VERSION="${VERSION:-1.0.0}"  # Default version if not a tag
+        # Extract version from tag or use default
+        if [[ "$GITHUB_REF_NAME" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          VERSION="${GITHUB_REF_NAME#v}"  # Remove 'v' prefix from tag
+        else
+          VERSION="1.0.0"  # Default version for non-tag builds
+        fi
         ARCH="amd64"
         
         # Create directory structure

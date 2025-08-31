@@ -22,7 +22,8 @@ public class DockerMapper : IDockerMapper
                 p.PrivatePort.ToString(),
                 p.PublicPort.ToString(),
                 p.Type,
-                p.IP ?? string.Empty)).ToList() ?? new List<PortMapping>());
+                p.IP ?? string.Empty)).ToList() ?? new List<PortMapping>(),
+            Volumes: MapVolumeMounts(container.Mounts));
     }
 
     public ImageInfo MapToImageInfo(ImagesListResponse image)
@@ -49,7 +50,8 @@ public class DockerMapper : IDockerMapper
             Created: container.Created,
             Status: container.State.Status,
             Labels: container.Config.Labels?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>(),
-            Ports: new List<PortMapping>());
+            Ports: new List<PortMapping>(),
+            Volumes: MapVolumeMounts(container.Mounts));
     }
 
     public VolumeInfo MapToVolumeInfo(VolumeResponse volume)
@@ -89,5 +91,18 @@ public class DockerMapper : IDockerMapper
             "removing" => Models.ContainerState.Removing,
             _ => Models.ContainerState.Exited
         };
+    }
+
+    private List<VolumeMount>? MapVolumeMounts(IList<MountPoint>? mounts)
+    {
+        if (mounts == null || mounts.Count == 0)
+            return null;
+
+        return mounts.Select(m => new VolumeMount(
+            Name: m.Name ?? string.Empty,
+            Source: m.Source ?? string.Empty,
+            Destination: m.Destination ?? string.Empty,
+            ReadWrite: !m.Mode?.Contains("ro") ?? true,
+            Driver: m.Driver ?? string.Empty)).ToList();
     }
 }

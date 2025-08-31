@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dialogs="using:OrbitalDocking.Views.Dialogs"
+        x:Class="OrbitalDocking.Views.Dialogs.ConfirmationDialog"
+        x:DataType="dialogs:ConfirmationDialog"
+        Title="Confirmation"
+        Width="400"
+        Height="200"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    <Grid Margin="20" RowDefinitions="*, Auto">
+        <TextBlock Grid.Row="0" 
+                   Name="MessageTextBlock"
+                   Text="{Binding Message}" 
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"/>
+        
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    Spacing="10"
+                    Margin="0,20,0,0">
+            <Button Name="CancelButton" 
+                    Content="Cancel" 
+                    Width="80"
+                    Click="OnCancelClick"/>
+            <Button Name="ConfirmButton" 
+                    Content="Yes" 
+                    Width="80"
+                    Classes="accent"
+                    Click="OnConfirmClick"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -66,7 +66,7 @@ public class CoreFunctionalityTests
         var vm = new ContainerViewModel(container);
         
         vm.ShortId.Should().Be("sha256:12345");
-        vm.ShortId.Length.Should().BeLessOrEqualTo(12);
+        vm.ShortId.Length.Should().BeLessThanOrEqualTo(12);
     }
 
     [Fact]

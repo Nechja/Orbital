@@ -3,6 +3,8 @@ using FluentAssertions;
 using Moq;
 using Docker.DotNet;
 using ErrorOr;
+using Microsoft.Extensions.Logging;
+using OrbitalDocking.Configuration;
 using OrbitalDocking.Models;
 using OrbitalDocking.Services;
 using OrbitalDocking.ViewModels;
@@ -18,6 +20,7 @@ public class ViewModelTests
     private readonly Mock<IDockerService> _dockerServiceMock;
     private readonly Mock<IThemeService> _themeServiceMock;
     private readonly Mock<IDialogService> _dialogServiceMock;
+    private readonly Mock<ILogger<MainWindowViewModel>> _loggerMock;
     private readonly DockerClient? _dockerClient = null;
 
     public ViewModelTests()
@@ -25,6 +28,27 @@ public class ViewModelTests
         _dockerServiceMock = new Mock<IDockerService>();
         _themeServiceMock = new Mock<IThemeService>();
         _dialogServiceMock = new Mock<IDialogService>();
+        _loggerMock = new Mock<ILogger<MainWindowViewModel>>();
+
+        // Default setups to prevent background timer crashes
+        _dockerServiceMock
+            .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ContainerInfo>>(new List<ContainerInfo>()));
+        _dockerServiceMock
+            .Setup(x => x.GetImagesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ImageInfo>>(new List<ImageInfo>()));
+        _dockerServiceMock
+            .Setup(x => x.GetVolumesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<VolumeInfo>>(new List<VolumeInfo>()));
+        _dockerServiceMock
+            .Setup(x => x.GetNetworksAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ErrorOrFactory.From<IEnumerable<NetworkInfo>>(new List<NetworkInfo>()));
+        _dockerServiceMock
+            .Setup(x => x.GetSystemInfoAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ErrorOrFactory.From(new DockerSystemInfo(
+                ServerVersion: "0.0.0", ApiVersion: "0.0", OS: "test", Architecture: "test",
+                Containers: 0, ContainersRunning: 0, ContainersPaused: 0, ContainersStopped: 0,
+                Images: 0, MemoryTotal: 0, Driver: "test")));
     }
 
     [Fact]
@@ -58,7 +82,7 @@ public class ViewModelTests
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ContainerInfo>>(containers));
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object, _loggerMock.Object);
         
         // Wait for the timer to trigger
         await Task.Delay(100);
@@ -76,7 +100,7 @@ public class ViewModelTests
             .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ContainerInfo>>(new List<ContainerInfo>()));
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object, _loggerMock.Object);
 
         // Manually add containers for testing
         vm.Containers.Add(new ContainerViewModel(new ContainerInfo(
@@ -122,19 +146,19 @@ public class ViewModelTests
             .Setup(x => x.GetImagesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(ErrorOrFactory.From<IEnumerable<ImageInfo>>(new List<ImageInfo>()));
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object, _loggerMock.Object);
 
         vm.ShowContainers.Should().BeTrue();
         vm.ShowImages.Should().BeFalse();
-        vm.ContainersTextColor.Should().Be("#FFFFFF");
-        vm.ImagesTextColor.Should().Be("#8888AA");
+        vm.ContainersTextColor.Should().Be(ThemeColors.Light.TextPrimary);
+        vm.ImagesTextColor.Should().Be(ThemeColors.Light.TextSecondary);
 
         vm.ShowImagesViewCommand.Execute(null);
 
         vm.ShowContainers.Should().BeFalse();
         vm.ShowImages.Should().BeTrue();
-        vm.ContainersTextColor.Should().Be("#8888AA");
-        vm.ImagesTextColor.Should().Be("#FFFFFF");
+        vm.ContainersTextColor.Should().Be(ThemeColors.Light.TextSecondary);
+        vm.ImagesTextColor.Should().Be(ThemeColors.Light.TextPrimary);
         
         vm.Dispose();
     }
@@ -160,13 +184,38 @@ public class ViewModelTests
             .Setup(x => x.GetSystemInfoAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(ErrorOrFactory.From(systemInfo));
 
-        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object);
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object, _loggerMock.Object);
         
         await Task.Delay(100); // Let constructor task complete
 
         vm.DockerVersion.Should().Be("v24.0.7");
         vm.DockerStatusColor.Should().Be("#4ECDC4");
-        
+
         vm.Dispose();
+    }
+
+    [Fact]
+    public async Task MainWindowViewModel_Should_NotThrowOnDisposeWhileRefreshing()
+    {
+        // Simulate a slow service call so the timer is mid-refresh when we dispose
+        _dockerServiceMock
+            .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
+            .Returns(async (CancellationToken _) =>
+            {
+                await Task.Delay(200);
+                return ErrorOrFactory.From<IEnumerable<ContainerInfo>>(new List<ContainerInfo>());
+            });
+
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object, _loggerMock.Object);
+
+        // Let the timer fire and start a refresh
+        await Task.Delay(150);
+
+        // Dispose while refresh is in-flight — should not throw ObjectDisposedException
+        var act = () => vm.Dispose();
+        act.Should().NotThrow();
+
+        // Give background tasks time to complete/fail gracefully
+        await Task.Delay(300);
     }
 }

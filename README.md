@@ -2,7 +2,7 @@
 
 [![Build and Test](https://github.com/Nechja/Orbital/actions/workflows/build.yml/badge.svg)](https://github.com/Nechja/Orbital/actions/workflows/build.yml)
 ![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![.NET](https://img.shields.io/badge/.NET-9.0-purple)
+![.NET](https://img.shields.io/badge/.NET-10.0-purple)
 ![Platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20macos-lightgrey)
 
 A free, open-source Docker GUI
@@ -24,12 +24,12 @@ No subscriptions, no corporate restrictions, just a simple tool to manage your c
     - Search/filter functionality
 
   - Performance
-    - Native performance with .NET 9
+    - Native performance with .NET 10
 
 ## Building from Source
 
 ### Prerequisites
-- .NET 9 SDK
+- .NET 10 SDK
 - Docker Engine running
 
 ### Build and Run

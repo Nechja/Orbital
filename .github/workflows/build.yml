@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  DOTNET_VERSION: '9.0.x'
+  DOTNET_VERSION: '10.0.x'
 
 jobs:
   build:
@@ -22,22 +22,22 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Orbital.sln
 
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build Orbital.sln --configuration Release --no-restore
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration Release
+      run: dotnet test Orbital.sln --no-build --verbosity normal --configuration Release
 
     - name: Verify single-file publish
       run: |
-        dotnet publish -c Release -r linux-x64 \
+        dotnet publish OrbitalDocking.csproj -c Release -r linux-x64 \
           --self-contained true \
           -p:PublishSingleFile=true \
           -p:IncludeNativeLibrariesForSelfExtract=true \
           -o ./test-publish
-        
+
         # Verify the executable was created
         test -f ./test-publish/OrbitalDocking
-        echo "✅ Single-file publish successful"
+        echo "Single-file publish successful"

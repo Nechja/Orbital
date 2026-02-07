@@ -38,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SemaphoreSlim _volumeSemaphore = new(1, 1);
     private readonly SemaphoreSlim _networkSemaphore = new(1, 1);
     private readonly SourceCache<ContainerViewModel, string> _containerCache = new(x => x.Id);
+    private volatile bool _disposed;
 
     public Window? MainWindow { get; set; }
     public ITrayService? TrayService { get; private set; }
@@ -276,29 +277,35 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshContainersAsync()
     {
-        // Try to acquire the semaphore, skip if already refreshing
-        if (!await _containerSemaphore.WaitAsync(0))
-            return;
-
+        if (_disposed) return;
         try
         {
-            IsLoading = true;
-            var result = await _dockerService.GetContainersAsync();
-            
-            if (result.IsError)
+            // Try to acquire the semaphore, skip if already refreshing
+            if (!await _containerSemaphore.WaitAsync(0))
+                return;
+
+            try
             {
-                StatusMessage = $"Error: {result.FirstError.Description}";
+                IsLoading = true;
+                var result = await _dockerService.GetContainersAsync();
+                if (_disposed) return;
+
+                if (result.IsError)
+                {
+                    StatusMessage = $"Error: {result.FirstError.Description}";
+                }
+                else
+                {
+                    UpdateContainerList(result.Value);
+                }
             }
-            else
+            finally
             {
-                UpdateContainerList(result.Value);
+                IsLoading = false;
+                if (!_disposed) _containerSemaphore.Release();
             }
         }
-        finally
-        {
-            IsLoading = false;
-            _containerSemaphore.Release();
-        }
+        catch (ObjectDisposedException) { }
     }
 
     [RelayCommand]
@@ -855,72 +862,84 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshImagesAsync()
     {
-        // Try to acquire the semaphore, skip if already refreshing
-        if (!await _imageSemaphore.WaitAsync(0))
-            return;
-
+        if (_disposed) return;
         try
         {
-            IsLoading = true;
-            var result = await _dockerService.GetImagesAsync();
-            
-            if (result.IsError)
+            // Try to acquire the semaphore, skip if already refreshing
+            if (!await _imageSemaphore.WaitAsync(0))
+                return;
+
+            try
             {
-                StatusMessage = $"Error: {result.FirstError.Description}";
-            }
-            else
-            {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                IsLoading = true;
+                var result = await _dockerService.GetImagesAsync();
+                if (_disposed) return;
+
+                if (result.IsError)
                 {
-                    Images.Clear();
-                    foreach (var image in result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag))
+                    StatusMessage = $"Error: {result.FirstError.Description}";
+                }
+                else
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        Images.Add(new ImageViewModel(image));
-                    }
-                    OnPropertyChanged(nameof(FilteredImages));
-                });
+                        Images.Clear();
+                        foreach (var image in result.Value.OrderBy(i => i.Repository).ThenBy(i => i.Tag))
+                        {
+                            Images.Add(new ImageViewModel(image));
+                        }
+                        OnPropertyChanged(nameof(FilteredImages));
+                    });
+                }
+            }
+            finally
+            {
+                IsLoading = false;
+                if (!_disposed) _imageSemaphore.Release();
             }
         }
-        finally
-        {
-            IsLoading = false;
-            _imageSemaphore.Release();
-        }
+        catch (ObjectDisposedException) { }
     }
 
     private async Task RefreshVolumesAsync()
     {
-        // Try to acquire the semaphore, skip if already refreshing
-        if (!await _volumeSemaphore.WaitAsync(0))
-            return;
-
+        if (_disposed) return;
         try
         {
-            IsLoading = true;
-            var result = await _dockerService.GetVolumesAsync();
-            
-            if (result.IsError)
+            // Try to acquire the semaphore, skip if already refreshing
+            if (!await _volumeSemaphore.WaitAsync(0))
+                return;
+
+            try
             {
-                StatusMessage = $"Error: {result.FirstError.Description}";
-            }
-            else
-            {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                IsLoading = true;
+                var result = await _dockerService.GetVolumesAsync();
+                if (_disposed) return;
+
+                if (result.IsError)
                 {
-                    Volumes.Clear();
-                    foreach (var volume in result.Value.OrderBy(v => v.Name))
+                    StatusMessage = $"Error: {result.FirstError.Description}";
+                }
+                else
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        Volumes.Add(new VolumeViewModel(volume));
-                    }
-                    OnPropertyChanged(nameof(FilteredVolumes));
-                });
+                        Volumes.Clear();
+                        foreach (var volume in result.Value.OrderBy(v => v.Name))
+                        {
+                            Volumes.Add(new VolumeViewModel(volume));
+                        }
+                        OnPropertyChanged(nameof(FilteredVolumes));
+                    });
+                }
+            }
+            finally
+            {
+                IsLoading = false;
+                if (!_disposed) _volumeSemaphore.Release();
             }
         }
-        finally
-        {
-            IsLoading = false;
-            _volumeSemaphore.Release();
-        }
+        catch (ObjectDisposedException) { }
     }
     
     [RelayCommand]
@@ -938,37 +957,43 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshNetworksAsync()
     {
-        // Try to acquire the semaphore, skip if already refreshing
-        if (!await _networkSemaphore.WaitAsync(0))
-            return;
-
+        if (_disposed) return;
         try
         {
-            IsLoading = true;
-            var result = await _dockerService.GetNetworksAsync();
-            
-            if (result.IsError)
+            // Try to acquire the semaphore, skip if already refreshing
+            if (!await _networkSemaphore.WaitAsync(0))
+                return;
+
+            try
             {
-                StatusMessage = $"Error: {result.FirstError.Description}";
-            }
-            else
-            {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                IsLoading = true;
+                var result = await _dockerService.GetNetworksAsync();
+                if (_disposed) return;
+
+                if (result.IsError)
                 {
-                    Networks.Clear();
-                    foreach (var network in result.Value.OrderBy(n => n.Name))
+                    StatusMessage = $"Error: {result.FirstError.Description}";
+                }
+                else
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        Networks.Add(new NetworkViewModel(network));
-                    }
-                    OnPropertyChanged(nameof(FilteredNetworks));
-                });
+                        Networks.Clear();
+                        foreach (var network in result.Value.OrderBy(n => n.Name))
+                        {
+                            Networks.Add(new NetworkViewModel(network));
+                        }
+                        OnPropertyChanged(nameof(FilteredNetworks));
+                    });
+                }
+            }
+            finally
+            {
+                IsLoading = false;
+                if (!_disposed) _networkSemaphore.Release();
             }
         }
-        finally
-        {
-            IsLoading = false;
-            _networkSemaphore.Release();
-        }
+        catch (ObjectDisposedException) { }
     }
     
     [RelayCommand]
@@ -1112,6 +1137,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     public void Dispose()
     {
+        _disposed = true;
         _themeService.ThemeChanged -= OnThemeChanged;
         _dockerService?.StopMonitoringEvents();
         _subscriptions?.Dispose();

@@ -38,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SemaphoreSlim _volumeSemaphore = new(1, 1);
     private readonly SemaphoreSlim _networkSemaphore = new(1, 1);
     private readonly SourceCache<ContainerViewModel, string> _containerCache = new(x => x.Id);
+    private volatile bool _disposed;
 
     public Window? MainWindow { get; set; }
     public ITrayService? TrayService { get; private set; }
@@ -276,6 +277,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshContainersAsync()
     {
+        if (_disposed) return;
         // Try to acquire the semaphore, skip if already refreshing
         if (!await _containerSemaphore.WaitAsync(0))
             return;
@@ -297,7 +299,7 @@ public partial class MainWindowViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
-            _containerSemaphore.Release();
+            if (!_disposed) _containerSemaphore.Release();
         }
     }
 
@@ -855,6 +857,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshImagesAsync()
     {
+        if (_disposed) return;
         // Try to acquire the semaphore, skip if already refreshing
         if (!await _imageSemaphore.WaitAsync(0))
             return;
@@ -884,12 +887,13 @@ public partial class MainWindowViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
-            _imageSemaphore.Release();
+            if (!_disposed) _imageSemaphore.Release();
         }
     }
 
     private async Task RefreshVolumesAsync()
     {
+        if (_disposed) return;
         // Try to acquire the semaphore, skip if already refreshing
         if (!await _volumeSemaphore.WaitAsync(0))
             return;
@@ -919,7 +923,7 @@ public partial class MainWindowViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
-            _volumeSemaphore.Release();
+            if (!_disposed) _volumeSemaphore.Release();
         }
     }
     
@@ -938,6 +942,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RefreshNetworksAsync()
     {
+        if (_disposed) return;
         // Try to acquire the semaphore, skip if already refreshing
         if (!await _networkSemaphore.WaitAsync(0))
             return;
@@ -967,7 +972,7 @@ public partial class MainWindowViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
-            _networkSemaphore.Release();
+            if (!_disposed) _networkSemaphore.Release();
         }
     }
     
@@ -1112,6 +1117,7 @@ public partial class MainWindowViewModel : ViewModelBase
     
     public void Dispose()
     {
+        _disposed = true;
         _themeService.ThemeChanged -= OnThemeChanged;
         _dockerService?.StopMonitoringEvents();
         _subscriptions?.Dispose();

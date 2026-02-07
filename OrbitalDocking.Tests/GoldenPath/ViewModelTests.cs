@@ -190,7 +190,32 @@ public class ViewModelTests
 
         vm.DockerVersion.Should().Be("v24.0.7");
         vm.DockerStatusColor.Should().Be("#4ECDC4");
-        
+
         vm.Dispose();
+    }
+
+    [Fact]
+    public async Task MainWindowViewModel_Should_NotThrowOnDisposeWhileRefreshing()
+    {
+        // Simulate a slow service call so the timer is mid-refresh when we dispose
+        _dockerServiceMock
+            .Setup(x => x.GetContainersAsync(It.IsAny<CancellationToken>()))
+            .Returns(async (CancellationToken _) =>
+            {
+                await Task.Delay(200);
+                return ErrorOrFactory.From<IEnumerable<ContainerInfo>>(new List<ContainerInfo>());
+            });
+
+        var vm = new MainWindowViewModel(_dockerServiceMock.Object, _themeServiceMock.Object, _dockerClient!, _dialogServiceMock.Object, _loggerMock.Object);
+
+        // Let the timer fire and start a refresh
+        await Task.Delay(150);
+
+        // Dispose while refresh is in-flight — should not throw ObjectDisposedException
+        var act = () => vm.Dispose();
+        act.Should().NotThrow();
+
+        // Give background tasks time to complete/fail gracefully
+        await Task.Delay(300);
     }
 }

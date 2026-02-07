@@ -16,7 +16,7 @@
         <Grid ColumnDefinitions="Auto,Auto,*,Auto">
             <Border Grid.Column="0" 
                     Width="3" Height="30"
-                    Background="#FFD700"
+                    Background="{DynamicResource NetworkAccentColor}"
                     CornerRadius="2"
                     Margin="0,0,20,0"/>
             
@@ -45,7 +45,7 @@
                     Content="REMOVE"
                     FontSize="11"
                     Padding="10,6"
-                    Background="#FF6B6B"
+                    Background="{DynamicResource DangerColor}"
                     Foreground="{DynamicResource TextPrimaryColor}"
                     BorderThickness="0"
                     CornerRadius="4"

@@ -37,7 +37,7 @@
                     Content="REMOVE"
                     FontSize="11"
                     Padding="10,6"
-                    Background="#FF6B6B"
+                    Background="{DynamicResource DangerColor}"
                     Foreground="{DynamicResource TextPrimaryColor}"
                     BorderThickness="0"
                     CornerRadius="4"

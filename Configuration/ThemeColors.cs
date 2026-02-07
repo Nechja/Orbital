@@ -40,13 +40,31 @@ public static class ThemeColors
         public const string Border = "#1A1A3F";
         public const string BorderLight = "#333344";
         public const string BorderFocus = "#4ECDC4";
-        
+
+        // Semantic action colors
+        public const string Danger = "#FF6B6B";
+        public const string DangerDark = "#8B0000";
+        public const string Restart = "#FFA500";
+        public const string ActionAccent = "#95E1D3";
+
+        // Input field colors
+        public const string BackgroundInput = "#0F0F2A";
+        public const string BorderInput = "#2A2A4F";
+
+        // Contrast text (for colored button backgrounds)
+        public const string TextContrast = "#000000";
+
+        // Specialized colors
+        public const string NetworkAccent = "#FFD700";
+        public const string LogsText = "#AAAACC";
+        public const string LogsTimestamp = "#6666AA";
+
         // Docker status
         public const string DockerOnline = "#4ECDC4";
         public const string DockerOffline = "#FF6B6B";
         public const string DockerConnecting = "#FFB347";
     }
-    
+
     public static class Light
     {
         // Primary colors
@@ -85,7 +103,25 @@ public static class ThemeColors
         public const string Border = "#E5E7EB";
         public const string BorderLight = "#F3F4F6";
         public const string BorderFocus = "#4ECDC4";
-        
+
+        // Semantic action colors
+        public const string Danger = "#EF4444";
+        public const string DangerDark = "#991B1B";
+        public const string Restart = "#F97316";
+        public const string ActionAccent = "#6EE7B7";
+
+        // Input field colors
+        public const string BackgroundInput = "#F3F4F6";
+        public const string BorderInput = "#D1D5DB";
+
+        // Contrast text (for colored button backgrounds)
+        public const string TextContrast = "#FFFFFF";
+
+        // Specialized colors
+        public const string NetworkAccent = "#EAB308";
+        public const string LogsText = "#4B5563";
+        public const string LogsTimestamp = "#9CA3AF";
+
         // Docker status
         public const string DockerOnline = "#10B981";
         public const string DockerOffline = "#EF4444";

@@ -91,6 +91,16 @@ public class ThemeService : IThemeService
             resources["SuccessColor"] = Color.Parse(ThemeColors.Dark.Success);
             resources["WarningColor"] = Color.Parse(ThemeColors.Dark.Warning);
             resources["ErrorColor"] = Color.Parse(ThemeColors.Dark.Error);
+            resources["DangerColor"] = Color.Parse(ThemeColors.Dark.Danger);
+            resources["DangerDarkColor"] = Color.Parse(ThemeColors.Dark.DangerDark);
+            resources["RestartColor"] = Color.Parse(ThemeColors.Dark.Restart);
+            resources["ActionAccentColor"] = Color.Parse(ThemeColors.Dark.ActionAccent);
+            resources["BackgroundInputColor"] = Color.Parse(ThemeColors.Dark.BackgroundInput);
+            resources["BorderInputColor"] = Color.Parse(ThemeColors.Dark.BorderInput);
+            resources["TextContrastColor"] = Color.Parse(ThemeColors.Dark.TextContrast);
+            resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Dark.NetworkAccent);
+            resources["LogsTextColor"] = Color.Parse(ThemeColors.Dark.LogsText);
+            resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Dark.LogsTimestamp);
         }
         else
         {
@@ -106,6 +116,16 @@ public class ThemeService : IThemeService
             resources["SuccessColor"] = Color.Parse(ThemeColors.Light.Success);
             resources["WarningColor"] = Color.Parse(ThemeColors.Light.Warning);
             resources["ErrorColor"] = Color.Parse(ThemeColors.Light.Error);
+            resources["DangerColor"] = Color.Parse(ThemeColors.Light.Danger);
+            resources["DangerDarkColor"] = Color.Parse(ThemeColors.Light.DangerDark);
+            resources["RestartColor"] = Color.Parse(ThemeColors.Light.Restart);
+            resources["ActionAccentColor"] = Color.Parse(ThemeColors.Light.ActionAccent);
+            resources["BackgroundInputColor"] = Color.Parse(ThemeColors.Light.BackgroundInput);
+            resources["BorderInputColor"] = Color.Parse(ThemeColors.Light.BorderInput);
+            resources["TextContrastColor"] = Color.Parse(ThemeColors.Light.TextContrast);
+            resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Light.NetworkAccent);
+            resources["LogsTextColor"] = Color.Parse(ThemeColors.Light.LogsText);
+            resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Light.LogsTimestamp);
         }
     }
 }

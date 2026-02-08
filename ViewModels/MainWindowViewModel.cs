@@ -592,7 +592,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
         OnPropertyChanged(nameof(IsSoftTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
 
     [RelayCommand]
@@ -605,7 +604,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
         OnPropertyChanged(nameof(IsSoftTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
     
     [RelayCommand]

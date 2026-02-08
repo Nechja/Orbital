@@ -155,26 +155,26 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
             DiskIO = "N/A";
             return;
         }
-        
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 var parameters = new ContainerStatsParameters { Stream = false };
                 ContainerStatsResponse? latestStats = null;
-                var progress = new Progress<ContainerStatsResponse>(stats => latestStats = stats);
-                
+                var progress = new SynchronousProgress<ContainerStatsResponse>(stats => latestStats = stats);
+
                 await _dockerClient.Containers.GetContainerStatsAsync(
                     Id,
                     parameters,
                     progress,
                     cancellationToken);
-                
+
                 if (latestStats != null && !cancellationToken.IsCancellationRequested)
                 {
                     UpdateStatsFromResponse(latestStats);
                 }
-                
+
                 await Task.Delay(AppConstants.Timing.StatsUpdateInterval, cancellationToken);
             }
             catch
@@ -184,11 +184,22 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
                 MemoryUsage = "--";
                 NetworkIO = "--";
                 DiskIO = "--";
-                
+
                 // Stats error - wait before retry
                 await Task.Delay(AppConstants.Timing.StatsErrorRetryDelay, cancellationToken);
             }
         }
+    }
+
+    /// <summary>
+    /// IProgress implementation that invokes the callback synchronously on the calling thread,
+    /// avoiding the race condition in Progress&lt;T&gt; which posts to a captured SynchronizationContext.
+    /// </summary>
+    private class SynchronousProgress<T> : IProgress<T>
+    {
+        private readonly Action<T> _handler;
+        public SynchronousProgress(Action<T> handler) => _handler = handler;
+        public void Report(T value) => _handler(value);
     }
 
     private void UpdateStatsFromResponse(ContainerStatsResponse stats)

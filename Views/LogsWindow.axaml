@@ -53,11 +53,9 @@
                               Content="TIMESTAMPS"
                               Foreground="{DynamicResource TextSecondaryColor}"
                               FontSize="11"/>
-                    <Button Content="CLEAR"
-                            Background="{DynamicResource CardColor}"
-                            Foreground="{DynamicResource TextSecondaryColor}"
+                    <Button Classes="subtle"
+                            Content="CLEAR"
                             Padding="12,4"
-                            CornerRadius="4"
                             Command="{Binding ClearLogsCommand}"/>
                 </StackPanel>
             </Grid>
@@ -98,17 +96,13 @@
                            VerticalAlignment="Center"/>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                    <Button Content="EXPORT"
-                            Background="{DynamicResource CardColor}"
-                            Foreground="{DynamicResource TextSecondaryColor}"
+                    <Button Classes="subtle"
+                            Content="EXPORT"
                             Padding="16,6"
-                            CornerRadius="4"
                             Command="{Binding ExportLogsCommand}"/>
-                    <Button Content="CLOSE"
-                            Background="{DynamicResource CardColor}"
-                            Foreground="{DynamicResource TextSecondaryColor}"
+                    <Button Classes="subtle"
+                            Content="CLOSE"
                             Padding="16,6"
-                            CornerRadius="4"
                             Click="OnCloseClick"/>
                 </StackPanel>
             </Grid>

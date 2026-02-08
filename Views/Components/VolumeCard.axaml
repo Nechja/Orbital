@@ -34,13 +34,8 @@
             </StackPanel>
             
             <Button Grid.Column="2"
+                    Classes="danger"
                     Content="REMOVE"
-                    FontSize="11"
-                    Padding="10,6"
-                    Background="{DynamicResource DangerColor}"
-                    Foreground="{DynamicResource TextPrimaryColor}"
-                    BorderThickness="0"
-                    CornerRadius="4"
                     VerticalAlignment="Center"
                     Name="RemoveButton"/>
         </Grid>

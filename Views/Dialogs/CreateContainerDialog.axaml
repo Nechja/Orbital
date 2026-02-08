@@ -48,24 +48,12 @@
             
             <!-- Quick config buttons -->
             <StackPanel Orientation="Horizontal" Spacing="12">
-                <Button Content="+ Port"
-                        FontSize="11"
-                        Padding="12,6"
-                        Background="Transparent"
-                        Foreground="{DynamicResource PrimaryColor}"
-                        BorderBrush="{DynamicResource BorderInputColor}"
-                        BorderThickness="1"
-                        CornerRadius="4"
+                <Button Classes="outlined"
+                        Content="+ Port"
                         Command="{Binding AddPortCommand}"/>
-                        
-                <Button Content="+ Environment"
-                        FontSize="11"
-                        Padding="12,6"
-                        Background="Transparent"
-                        Foreground="{DynamicResource PrimaryColor}"
-                        BorderBrush="{DynamicResource BorderInputColor}"
-                        BorderThickness="1"
-                        CornerRadius="4"
+
+                <Button Classes="outlined"
+                        Content="+ Environment"
                         Command="{Binding AddEnvironmentVariableCommand}"/>
             </StackPanel>
             

@@ -16,19 +16,6 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Window.Styles>
-        <Style Selector="Button.action">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.action:pointerover">
-            <Setter Property="Opacity" Value="0.8"/>
-        </Style>
-    </Window.Styles>
-
     <Panel>
         <!-- Background gradient -->
         <Border>

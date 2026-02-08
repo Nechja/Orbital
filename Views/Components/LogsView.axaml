@@ -136,32 +136,55 @@
                                         BorderThickness="1"
                                         CornerRadius="4"
                                         Padding="16"
-                                        Margin="0,0,0,12">
-                                    <Grid ColumnDefinitions="Auto,*,Auto">
-                                        <TextBlock Grid.Column="0"
-                                                   Text="⚠️"
-                                                   FontSize="20"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,12,0"/>
+                                        Margin="0,0,0,16">
+                                    <StackPanel Spacing="12">
+                                        <!-- Header -->
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="⚠️"
+                                                       FontSize="20"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,12,0"/>
 
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{Binding ContainerName}"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
-                                                       Foreground="{DynamicResource TextPrimaryColor}"/>
-                                            <TextBlock Text="{Binding ErrorCount, StringFormat='{}{0} errors found'}"
-                                                       FontSize="11"
-                                                       Foreground="{DynamicResource TextTertiaryColor}"/>
-                                        </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="{Binding ContainerName}"
+                                                           FontSize="14"
+                                                           FontWeight="Medium"
+                                                           Foreground="{DynamicResource TextPrimaryColor}"/>
+                                                <TextBlock Text="{Binding ErrorCount, StringFormat='{}{0} errors found'}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextTertiaryColor}"/>
+                                            </StackPanel>
 
-                                        <Button Grid.Column="2"
-                                                Content="VIEW LOGS"
-                                                Classes="subtle"
-                                                Padding="10,6"
-                                                FontSize="10"
-                                                Command="{Binding $parent[ItemsControl].((vm:LogsViewModel)DataContext).ViewContainerLogsCommand}"
-                                                CommandParameter="{Binding}"/>
-                                    </Grid>
+                                            <Button Grid.Column="2"
+                                                    Content="VIEW FULL LOGS"
+                                                    Classes="subtle"
+                                                    Padding="10,6"
+                                                    FontSize="10"
+                                                    Command="{Binding $parent[ItemsControl].((vm:LogsViewModel)DataContext).ViewContainerLogsCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+
+                                        <!-- Error lines -->
+                                        <Border Background="{DynamicResource BackgroundColor}"
+                                                BorderBrush="{DynamicResource BorderColor}"
+                                                BorderThickness="1"
+                                                CornerRadius="2"
+                                                Padding="12">
+                                            <ItemsControl ItemsSource="{Binding ErrorLines}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding}"
+                                                                   FontFamily="Consolas,Menlo,monospace"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource DangerColor}"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0,2"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Border>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

@@ -264,17 +264,20 @@ public partial class LogsViewModel : ObservableObject, IDisposable
                 }
 
                 var logs = containerLogs.ToString();
-                var errorCount = logs.Split('\n')
-                    .Count(line => errorKeywords.Any(keyword =>
-                        line.Contains(keyword, StringComparison.OrdinalIgnoreCase)));
+                var errorLines = logs.Split('\n')
+                    .Where(line => errorKeywords.Any(keyword =>
+                        line.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
+                    .Take(10) // Limit to 10 error lines per container
+                    .ToList();
 
-                if (errorCount > 0)
+                if (errorLines.Any())
                 {
                     ErrorContainers.Add(new ErrorContainerInfo
                     {
                         ContainerId = container.Id,
                         ContainerName = container.Name,
-                        ErrorCount = errorCount
+                        ErrorCount = errorLines.Count,
+                        ErrorLines = errorLines
                     });
                 }
             }
@@ -358,4 +361,5 @@ public class ErrorContainerInfo
     public string ContainerId { get; set; } = string.Empty;
     public string ContainerName { get; set; } = string.Empty;
     public int ErrorCount { get; set; }
+    public List<string> ErrorLines { get; set; } = new();
 }

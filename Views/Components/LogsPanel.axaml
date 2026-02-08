@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="300"
+             x:Class="OrbitalDocking.Views.Components.LogsPanel"
+             x:DataType="vm:LogsPanelViewModel">
+
+    <Border Background="{DynamicResource SurfaceColor}"
+            BorderBrush="{DynamicResource BorderColor}"
+            BorderThickness="0,1,0,0">
+        <Grid RowDefinitions="Auto,*">
+
+            <!-- Panel Header -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource CardColor}"
+                    BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,8">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+
+                    <!-- Container info -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="📋"
+                                   FontSize="14"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ContainerName}"
+                                   FontSize="13"
+                                   FontWeight="Medium"
+                                   Foreground="{DynamicResource TextPrimaryColor}"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ContainerId}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryColor}"
+                                   FontFamily="Consolas,monospace"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Controls -->
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="12">
+                        <CheckBox IsChecked="{Binding AutoScroll}"
+                                  Content="AUTO SCROLL"
+                                  Foreground="{DynamicResource TextSecondaryColor}"
+                                  FontSize="10"/>
+                        <CheckBox IsChecked="{Binding ShowTimestamps}"
+                                  Content="TIMESTAMPS"
+                                  Foreground="{DynamicResource TextSecondaryColor}"
+                                  FontSize="10"/>
+                        <Button Classes="subtle"
+                                Content="CLEAR"
+                                Padding="8,4"
+                                FontSize="10"
+                                Command="{Binding ClearLogsCommand}"/>
+                        <Button Classes="subtle"
+                                Content="EXPORT"
+                                Padding="8,4"
+                                FontSize="10"
+                                Command="{Binding ExportLogsCommand}"/>
+                        <Button Background="Transparent"
+                                BorderThickness="0"
+                                Content="×"
+                                FontSize="16"
+                                Padding="8,0"
+                                Foreground="{DynamicResource TextSecondaryColor}"
+                                Cursor="Hand"
+                                Command="{Binding CloseCommand}"
+                                ToolTip.Tip="Close panel"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Logs Content -->
+            <Border Grid.Row="1"
+                    Background="{DynamicResource BackgroundColor}">
+                <ScrollViewer x:Name="LogsScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding LogsContent}"
+                             IsReadOnly="True"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Foreground="{DynamicResource LogsTextColor}"
+                             FontFamily="Consolas,Menlo,monospace"
+                             FontSize="12"
+                             Padding="16"
+                             TextWrapping="NoWrap"
+                             AcceptsReturn="True"/>
+                </ScrollViewer>
+            </Border>
+
+        </Grid>
+    </Border>
+</UserControl>

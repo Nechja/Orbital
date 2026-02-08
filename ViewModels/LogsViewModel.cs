@@ -52,34 +52,27 @@ public partial class LogsViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedContainerChanged(ContainerViewModel? value)
     {
-        if (value != null)
-        {
+        if (value is not null)
             _ = LoadContainerLogsAsync(value.Id, value.Name);
-        }
     }
 
-    partial void OnSearchFilterChanged(string value)
-    {
-        FilterLogs();
-    }
+    partial void OnSearchFilterChanged(string value) => FilterLogs();
 
     public async Task LoadContainerLogsAsync(string containerId, string containerName)
     {
-        // Stop previous stream if any
         StopStreaming();
 
         _logsBuilder.Clear();
         LogsContent = string.Empty;
         ShowingErrorOverview = false;
 
-        // Start new stream
         _cancellationTokenSource = new CancellationTokenSource();
         await StartStreamingLogsAsync(containerId, containerName);
     }
 
     private async Task StartStreamingLogsAsync(string containerId, string containerName)
     {
-        if (_cancellationTokenSource == null) return;
+        if (_cancellationTokenSource is null) return;
 
         try
         {
@@ -116,7 +109,6 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Expected when stopping stream
         }
         catch (Exception ex)
         {
@@ -146,9 +138,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
     private async Task SearchAllLogs()
     {
         if (string.IsNullOrWhiteSpace(SearchFilter))
-        {
             return;
-        }
 
         StopStreaming();
         ShowingErrorOverview = false;
@@ -283,7 +273,6 @@ public partial class LogsViewModel : ObservableObject, IDisposable
             }
             catch (Exception)
             {
-                // Silently skip containers we can't access
             }
         }
 
@@ -293,10 +282,10 @@ public partial class LogsViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ViewContainerLogs(ErrorContainerInfo? errorInfo)
     {
-        if (errorInfo == null) return;
+        if (errorInfo is null) return;
 
         var container = AvailableContainers.FirstOrDefault(c => c.Id == errorInfo.ContainerId);
-        if (container != null)
+        if (container is not null)
         {
             ShowingErrorOverview = false;
             SelectedContainer = container;
@@ -326,7 +315,6 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         }
         catch (Exception)
         {
-            // Silently fail for now - could add status message later
         }
     }
 
@@ -339,9 +327,8 @@ public partial class LogsViewModel : ObservableObject, IDisposable
 
     partial void OnShowTimestampsChanged(bool value)
     {
-        if (SelectedContainer == null) return;
+        if (SelectedContainer is null) return;
 
-        // Restart streaming with new timestamp setting
         StopStreaming();
         _logsBuilder.Clear();
         LogsContent = string.Empty;
@@ -350,10 +337,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         _ = StartStreamingLogsAsync(SelectedContainer.Id, SelectedContainer.Name);
     }
 
-    public void Dispose()
-    {
-        StopStreaming();
-    }
+    public void Dispose() => StopStreaming();
 }
 
 public class ErrorContainerInfo

@@ -4,8 +4,5 @@ namespace OrbitalDocking.Views.Components;
 
 public partial class LogsView : UserControl
 {
-    public LogsView()
-    {
-        InitializeComponent();
-    }
+    public LogsView() => InitializeComponent();
 }

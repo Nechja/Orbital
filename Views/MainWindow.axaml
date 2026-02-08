@@ -42,26 +42,94 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                
-                <!-- Navigation on the left -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+
+                <!-- Hamburger Menu (visible on small screens) -->
+                <Button Grid.Column="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        Margin="0,0,20,0"
+                        Cursor="Hand"
+                        IsVisible="{Binding IsSmallScreen}"
+                        VerticalAlignment="Center">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                            <MenuItem Header="ORBITAL" Command="{Binding ShowSettingsViewCommand}"/>
+                            <Separator/>
+                            <MenuItem Command="{Binding ShowContainersViewCommand}">
+                                <MenuItem.Header>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} CONTAINERS">
+                                                <Binding Path="Containers.Count"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding ShowImagesViewCommand}">
+                                <MenuItem.Header>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} IMAGES">
+                                                <Binding Path="Images.Count"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding ShowVolumesViewCommand}">
+                                <MenuItem.Header>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} VOLUMES">
+                                                <Binding Path="Volumes.Count"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Command="{Binding ShowNetworksViewCommand}">
+                                <MenuItem.Header>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} NETWORKS">
+                                                <Binding Path="Networks.Count"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </MenuItem.Header>
+                            </MenuItem>
+                            <MenuItem Header="LOGS" Command="{Binding ShowLogsViewCommand}"/>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <TextBlock Text="☰" FontSize="20" Foreground="{DynamicResource TextPrimaryColor}"/>
+                </Button>
+
+                <!-- Navigation on the left (hidden on small screens) -->
+                <WrapPanel Grid.Column="1"
+                           Orientation="Horizontal"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding !IsSmallScreen}">
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
+                            Margin="0,0,12,0"
                             Cursor="Hand"
                             Command="{Binding ShowSettingsViewCommand}"
                             VerticalAlignment="Center">
-                        <TextBlock Text="ORBITAL" 
-                                   FontSize="14" 
+                        <TextBlock Text="ORBITAL"
+                                   FontSize="13"
                                    FontWeight="Medium"
                                    Foreground="{Binding SettingsTextColor}"
-                                   LetterSpacing="4"
+                                   LetterSpacing="3"
                                    VerticalAlignment="Center"/>
                     </Button>
-                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="14" Background="{DynamicResource BorderColor}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
+                            Margin="0,0,12,0"
                             Cursor="Hand"
                             Command="{Binding ShowContainersViewCommand}"
                             VerticalAlignment="Center">
@@ -70,7 +138,7 @@
                                 <Setter Property="Opacity" Value="0.8"/>
                             </Style>
                         </Button.Styles>
-                        <TextBlock FontSize="14" Foreground="{Binding ContainersTextColor}" VerticalAlignment="Center">
+                        <TextBlock FontSize="13" Foreground="{Binding ContainersTextColor}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} CONTAINERS">
                                     <Binding Path="Containers.Count"/>
@@ -78,10 +146,11 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="14" Background="{DynamicResource BorderColor}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
+                            Margin="0,0,12,0"
                             Cursor="Hand"
                             Command="{Binding ShowImagesViewCommand}"
                             VerticalAlignment="Center">
@@ -90,7 +159,7 @@
                                 <Setter Property="Opacity" Value="0.8"/>
                             </Style>
                         </Button.Styles>
-                        <TextBlock FontSize="14" Foreground="{Binding ImagesTextColor}" VerticalAlignment="Center">
+                        <TextBlock FontSize="13" Foreground="{Binding ImagesTextColor}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} IMAGES">
                                     <Binding Path="Images.Count"/>
@@ -98,10 +167,11 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="14" Background="{DynamicResource BorderColor}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
+                            Margin="0,0,12,0"
                             Cursor="Hand"
                             Command="{Binding ShowVolumesViewCommand}"
                             VerticalAlignment="Center">
@@ -110,7 +180,7 @@
                                 <Setter Property="Opacity" Value="0.8"/>
                             </Style>
                         </Button.Styles>
-                        <TextBlock FontSize="14" Foreground="{Binding VolumesTextColor}" VerticalAlignment="Center">
+                        <TextBlock FontSize="13" Foreground="{Binding VolumesTextColor}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} VOLUMES">
                                     <Binding Path="Volumes.Count"/>
@@ -118,10 +188,11 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="14" Background="{DynamicResource BorderColor}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
+                            Margin="0,0,12,0"
                             Cursor="Hand"
                             Command="{Binding ShowNetworksViewCommand}"
                             VerticalAlignment="Center">
@@ -130,7 +201,7 @@
                                 <Setter Property="Opacity" Value="0.8"/>
                             </Style>
                         </Button.Styles>
-                        <TextBlock FontSize="14" Foreground="{Binding NetworksTextColor}" VerticalAlignment="Center">
+                        <TextBlock FontSize="13" Foreground="{Binding NetworksTextColor}" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} NETWORKS">
                                     <Binding Path="Networks.Count"/>
@@ -138,10 +209,11 @@
                             </TextBlock.Text>
                         </TextBlock>
                     </Button>
-                    <Border Width="1" Height="16" Background="{DynamicResource BorderColor}" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="14" Background="{DynamicResource BorderColor}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Button Background="Transparent"
                             BorderThickness="0"
                             Padding="0"
+                            Margin="0,0,0,0"
                             Cursor="Hand"
                             Command="{Binding ShowLogsViewCommand}"
                             VerticalAlignment="Center">
@@ -151,17 +223,14 @@
                             </Style>
                         </Button.Styles>
                         <TextBlock Text="LOGS"
-                                   FontSize="14"
+                                   FontSize="13"
                                    Foreground="{Binding LogsTextColor}"
                                    VerticalAlignment="Center"/>
                     </Button>
-                </StackPanel>
-                
-                <!-- Empty middle column for spacing -->
-                <Panel Grid.Column="1"/>
-                
+                </WrapPanel>
+
                 <!-- Search box and refresh on the right -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button Command="{Binding RefreshContainersCommand}"
                             Background="{DynamicResource SurfaceColor}"
                             BorderBrush="{DynamicResource BorderColor}"

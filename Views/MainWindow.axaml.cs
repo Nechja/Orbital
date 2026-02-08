@@ -28,6 +28,18 @@ public partial class MainWindow : Window
         
         // Handle window closing for tray
         Closing += OnWindowClosing;
+
+        // Handle window size changes for responsive navigation
+        PropertyChanged += OnWindowPropertyChanged;
+    }
+
+    private void OnWindowPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property.Name == nameof(Bounds) && DataContext is MainWindowViewModel vm)
+        {
+            var width = Bounds.Width;
+            vm.IsSmallScreen = width < 1000; // Breakpoint at 1000px
+        }
     }
     
     private void OnWindowClosing(object? sender, WindowClosingEventArgs e)

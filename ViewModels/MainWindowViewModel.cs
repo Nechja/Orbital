@@ -163,7 +163,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _showLogs = false;
-    
+
+    [ObservableProperty]
+    private bool _isSmallScreen = false;
+
     // Theme state for settings UI
     public bool IsDarkTheme => _themeService.CurrentTheme == ThemeMode.Dark;
     public bool IsLightTheme => _themeService.CurrentTheme == ThemeMode.Light;

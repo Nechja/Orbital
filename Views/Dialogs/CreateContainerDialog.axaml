@@ -10,7 +10,7 @@
         Width="450"
         Height="340"
         WindowStartupLocation="CenterOwner"
-        Background="#0A0A1F"
+        Background="{DynamicResource BackgroundColor}"
         CanResize="False">
     
     <Grid>
@@ -27,10 +27,10 @@
             </Grid.RowDefinitions>
             
             <!-- Image name at top -->
-            <TextBlock Grid.Row="0" 
-                       Text="{Binding ImageFullName}" 
-                       FontSize="11" 
-                       Foreground="#4ECDC4"
+            <TextBlock Grid.Row="0"
+                       Text="{Binding ImageFullName}"
+                       FontSize="11"
+                       Foreground="{DynamicResource PrimaryColor}"
                        Opacity="0.8"
                        Margin="0,0,0,24"/>
             
@@ -39,33 +39,21 @@
             <!-- Name input - minimal -->
             <TextBox Text="{Binding ContainerName}"
                      Background="Transparent"
-                     BorderBrush="#2A2A4F"
+                     BorderBrush="{DynamicResource BorderInputColor}"
                      BorderThickness="0,0,0,1"
-                     Foreground="#FFFFFF"
+                     Foreground="{DynamicResource TextPrimaryColor}"
                      FontSize="14"
                      Padding="0,0,0,8"
                      Watermark="Container name"/>
             
             <!-- Quick config buttons -->
             <StackPanel Orientation="Horizontal" Spacing="12">
-                <Button Content="+ Port"
-                        FontSize="11"
-                        Padding="12,6"
-                        Background="Transparent"
-                        Foreground="#4ECDC4"
-                        BorderBrush="#2A2A4F"
-                        BorderThickness="1"
-                        CornerRadius="4"
+                <Button Classes="outlined"
+                        Content="+ Port"
                         Command="{Binding AddPortCommand}"/>
-                        
-                <Button Content="+ Environment"
-                        FontSize="11"
-                        Padding="12,6"
-                        Background="Transparent"
-                        Foreground="#4ECDC4"
-                        BorderBrush="#2A2A4F"
-                        BorderThickness="1"
-                        CornerRadius="4"
+
+                <Button Classes="outlined"
+                        Content="+ Environment"
                         Command="{Binding AddEnvironmentVariableCommand}"/>
             </StackPanel>
             
@@ -76,14 +64,14 @@
                     <ItemsControl ItemsSource="{Binding PortMappings}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0F0F2A" 
+                                <Border Background="{DynamicResource BackgroundInputColor}" 
                                         CornerRadius="4" 
                                         Padding="10,6">
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" 
                                                    Text="Port" 
                                                    FontSize="10"
-                                                   Foreground="#666688"
+                                                   Foreground="{DynamicResource TextTertiaryColor}"
                                                    Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1" 
                                                     Orientation="Horizontal" 
@@ -91,17 +79,17 @@
                                             <TextBox Text="{Binding HostPort}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
-                                                     Foreground="#FFFFFF"
+                                                     Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="50"
                                                      Watermark="8080"/>
                                             <TextBlock Text="→" 
-                                                       Foreground="#666688"
+                                                       Foreground="{DynamicResource TextTertiaryColor}"
                                                        VerticalAlignment="Center"/>
                                             <TextBox Text="{Binding ContainerPort}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
-                                                     Foreground="#FFFFFF"
+                                                     Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="50"
                                                      Watermark="80"/>
@@ -112,7 +100,7 @@
                                                 Width="16"
                                                 Height="16"
                                                 Background="Transparent"
-                                                Foreground="#666688"
+                                                Foreground="{DynamicResource TextTertiaryColor}"
                                                 BorderThickness="0"
                                                 Padding="0"
                                                 VerticalAlignment="Center"
@@ -128,14 +116,14 @@
                     <ItemsControl ItemsSource="{Binding EnvironmentVariables}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#0F0F2A" 
+                                <Border Background="{DynamicResource BackgroundInputColor}" 
                                         CornerRadius="4" 
                                         Padding="10,6">
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" 
                                                    Text="Env" 
                                                    FontSize="10"
-                                                   Foreground="#666688"
+                                                   Foreground="{DynamicResource TextTertiaryColor}"
                                                    Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1" 
                                                     Orientation="Horizontal" 
@@ -143,17 +131,17 @@
                                             <TextBox Text="{Binding Key}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
-                                                     Foreground="#FFFFFF"
+                                                     Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="80"
                                                      Watermark="KEY"/>
                                             <TextBlock Text="=" 
-                                                       Foreground="#666688"
+                                                       Foreground="{DynamicResource TextTertiaryColor}"
                                                        VerticalAlignment="Center"/>
                                             <TextBox Text="{Binding Value}"
                                                      Background="Transparent"
                                                      BorderThickness="0"
-                                                     Foreground="#FFFFFF"
+                                                     Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="100"
                                                      Watermark="value"/>
@@ -164,7 +152,7 @@
                                                 Width="16"
                                                 Height="16"
                                                 Background="Transparent"
-                                                Foreground="#666688"
+                                                Foreground="{DynamicResource TextTertiaryColor}"
                                                 BorderThickness="0"
                                                 Padding="0"
                                                 VerticalAlignment="Center"
@@ -181,9 +169,9 @@
         </Grid>
         
         <!-- Action button zone with background -->
-        <Border Grid.Row="1" 
-                Background="#08081A"
-                BorderBrush="#1A1A3F"
+        <Border Grid.Row="1"
+                Background="{DynamicResource SurfaceColor}"
+                BorderBrush="{DynamicResource BorderColor}"
                 BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" 
                         HorizontalAlignment="Right"
@@ -193,14 +181,14 @@
                         FontSize="12"
                         Padding="20,8"
                         Background="Transparent"
-                        Foreground="#666688"
+                        Foreground="{DynamicResource TextTertiaryColor}"
                         BorderThickness="0"
                         Command="{Binding CancelCommand}"/>
                 <Button Content="Run"
                         FontSize="12"
                         Padding="32,8"
-                        Background="#4ECDC4"
-                        Foreground="#000000"
+                        Background="{DynamicResource PrimaryColor}"
+                        Foreground="{DynamicResource TextContrastColor}"
                         BorderThickness="0"
                         CornerRadius="4"
                         FontWeight="SemiBold"

@@ -31,7 +31,9 @@ public enum ThemeMode
 {
     Light,
     Dark,
-    System
+    System,
+    HighContrastDark,
+    Soft
 }
 
 public enum ImageAction

@@ -159,16 +159,18 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsDarkTheme => _themeService.CurrentTheme == ThemeMode.Dark;
     public bool IsLightTheme => _themeService.CurrentTheme == ThemeMode.Light;
     public bool IsSystemTheme => _themeService.CurrentTheme == ThemeMode.System;
+    public bool IsHighContrastDarkTheme => _themeService.CurrentTheme == ThemeMode.HighContrastDark;
+    public bool IsSoftTheme => _themeService.CurrentTheme == ThemeMode.Soft;
     
     // Settings properties
     [ObservableProperty]
     private string _dockerEndpoint = AppConstants.Docker.DefaultDockerEndpoint;
 
-    public string ContainersTextColor => ShowContainers ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string ImagesTextColor => ShowImages ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string VolumesTextColor => ShowVolumes ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string NetworksTextColor => ShowNetworks ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string SettingsTextColor => ShowSettings ? GetPrimaryTextColor() : GetOrbitalTextColor();
+    public string ContainersTextColor => ShowContainers ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string ImagesTextColor => ShowImages ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string VolumesTextColor => ShowVolumes ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string NetworksTextColor => ShowNetworks ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string SettingsTextColor => ShowSettings ? GetNavigationSelectedColor() : GetOrbitalTextColor();
 
     [ObservableProperty]
     private string _dockerVersion = "Connecting...";
@@ -588,8 +590,10 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
     }
-    
+
     [RelayCommand]
     private async Task SetLightThemeAsync()
     {
@@ -598,6 +602,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
     }
     
     [RelayCommand]
@@ -608,8 +614,34 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
     }
-    
+
+    [RelayCommand]
+    private async Task SetHighContrastDarkThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.HighContrastDark);
+        StatusMessage = "Theme changed to High Contrast Dark";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
+    }
+
+    [RelayCommand]
+    private async Task SetSoftThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.Soft);
+        StatusMessage = "Theme changed to Soft";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
+    }
+
     [RelayCommand]
     private void OpenGitHub()
     {
@@ -1100,15 +1132,54 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private string GetPrimaryTextColor() => 
-        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextPrimary;
-    
-    private string GetSecondaryTextColor() => 
-        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextSecondary : ThemeColors.Dark.TextSecondary;
-    
-    private string GetOrbitalTextColor() => 
-        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextSecondary;
-    
+    private string GetPrimaryTextColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.TextPrimary,
+            ThemeMode.Light => ThemeColors.Light.TextPrimary,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.TextPrimary,
+            ThemeMode.Soft => ThemeColors.Soft.TextPrimary,
+            _ => ThemeColors.Dark.TextPrimary
+        };
+    }
+
+    private string GetSecondaryTextColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.TextSecondary,
+            ThemeMode.Light => ThemeColors.Light.TextSecondary,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.TextSecondary,
+            ThemeMode.Soft => ThemeColors.Soft.TextSecondary,
+            _ => ThemeColors.Dark.TextSecondary
+        };
+    }
+
+    private string GetOrbitalTextColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.TextSecondary,
+            ThemeMode.Light => ThemeColors.Light.TextPrimary,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.TextSecondary,
+            ThemeMode.Soft => ThemeColors.Soft.TextPrimary,
+            _ => ThemeColors.Dark.TextSecondary
+        };
+    }
+
+    private string GetNavigationSelectedColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.NavigationSelected,
+            ThemeMode.Light => ThemeColors.Light.NavigationSelected,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.NavigationSelected,
+            ThemeMode.Soft => ThemeColors.Soft.NavigationSelected,
+            _ => ThemeColors.Dark.NavigationSelected
+        };
+    }
+
     private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
     {
         // Update color properties
@@ -1121,6 +1192,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
         
         // Update all container colors
         foreach (var container in Containers)

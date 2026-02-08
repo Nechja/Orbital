@@ -60,9 +60,11 @@ public class ThemeService : IThemeService
         switch (theme)
         {
             case ThemeMode.Dark:
+            case ThemeMode.HighContrastDark:
                 _application.RequestedThemeVariant = ThemeVariant.Dark;
                 break;
             case ThemeMode.Light:
+            case ThemeMode.Soft:
                 _application.RequestedThemeVariant = ThemeVariant.Light;
                 break;
             case ThemeMode.System:
@@ -76,8 +78,69 @@ public class ThemeService : IThemeService
     private void UpdateCustomColors(ThemeMode theme)
     {
         var resources = _application.Resources;
-        
-        if (theme == ThemeMode.Dark || theme == ThemeMode.System) // Default to dark for now
+
+        // For System theme, detect actual system theme variant
+        var effectiveTheme = theme;
+        if (theme == ThemeMode.System)
+        {
+            effectiveTheme = _application.ActualThemeVariant == ThemeVariant.Light
+                ? ThemeMode.Light
+                : ThemeMode.Dark;
+        }
+
+        if (effectiveTheme == ThemeMode.Soft)
+        {
+            resources["PrimaryColor"] = Color.Parse(ThemeColors.Soft.Primary);
+            resources["AccentColor"] = Color.Parse(ThemeColors.Soft.Accent);
+            resources["BackgroundColor"] = Color.Parse(ThemeColors.Soft.Background);
+            resources["SurfaceColor"] = Color.Parse(ThemeColors.Soft.Surface);
+            resources["CardColor"] = Color.Parse(ThemeColors.Soft.Card);
+            resources["TextPrimaryColor"] = Color.Parse(ThemeColors.Soft.TextPrimary);
+            resources["TextSecondaryColor"] = Color.Parse(ThemeColors.Soft.TextSecondary);
+            resources["TextTertiaryColor"] = Color.Parse(ThemeColors.Soft.TextTertiary);
+            resources["BorderColor"] = Color.Parse(ThemeColors.Soft.Border);
+            resources["SuccessColor"] = Color.Parse(ThemeColors.Soft.Success);
+            resources["WarningColor"] = Color.Parse(ThemeColors.Soft.Warning);
+            resources["ErrorColor"] = Color.Parse(ThemeColors.Soft.Error);
+            resources["DangerColor"] = Color.Parse(ThemeColors.Soft.Danger);
+            resources["DangerDarkColor"] = Color.Parse(ThemeColors.Soft.DangerDark);
+            resources["RestartColor"] = Color.Parse(ThemeColors.Soft.Restart);
+            resources["ActionAccentColor"] = Color.Parse(ThemeColors.Soft.ActionAccent);
+            resources["BackgroundInputColor"] = Color.Parse(ThemeColors.Soft.BackgroundInput);
+            resources["BorderInputColor"] = Color.Parse(ThemeColors.Soft.BorderInput);
+            resources["TextContrastColor"] = Color.Parse(ThemeColors.Soft.TextContrast);
+            resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Soft.NetworkAccent);
+            resources["LogsTextColor"] = Color.Parse(ThemeColors.Soft.LogsText);
+            resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Soft.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Soft.NavigationSelected);
+        }
+        else if (effectiveTheme == ThemeMode.HighContrastDark)
+        {
+            resources["PrimaryColor"] = Color.Parse(ThemeColors.HighContrastDark.Primary);
+            resources["AccentColor"] = Color.Parse(ThemeColors.HighContrastDark.Accent);
+            resources["BackgroundColor"] = Color.Parse(ThemeColors.HighContrastDark.Background);
+            resources["SurfaceColor"] = Color.Parse(ThemeColors.HighContrastDark.Surface);
+            resources["CardColor"] = Color.Parse(ThemeColors.HighContrastDark.Card);
+            resources["TextPrimaryColor"] = Color.Parse(ThemeColors.HighContrastDark.TextPrimary);
+            resources["TextSecondaryColor"] = Color.Parse(ThemeColors.HighContrastDark.TextSecondary);
+            resources["TextTertiaryColor"] = Color.Parse(ThemeColors.HighContrastDark.TextTertiary);
+            resources["BorderColor"] = Color.Parse(ThemeColors.HighContrastDark.Border);
+            resources["SuccessColor"] = Color.Parse(ThemeColors.HighContrastDark.Success);
+            resources["WarningColor"] = Color.Parse(ThemeColors.HighContrastDark.Warning);
+            resources["ErrorColor"] = Color.Parse(ThemeColors.HighContrastDark.Error);
+            resources["DangerColor"] = Color.Parse(ThemeColors.HighContrastDark.Danger);
+            resources["DangerDarkColor"] = Color.Parse(ThemeColors.HighContrastDark.DangerDark);
+            resources["RestartColor"] = Color.Parse(ThemeColors.HighContrastDark.Restart);
+            resources["ActionAccentColor"] = Color.Parse(ThemeColors.HighContrastDark.ActionAccent);
+            resources["BackgroundInputColor"] = Color.Parse(ThemeColors.HighContrastDark.BackgroundInput);
+            resources["BorderInputColor"] = Color.Parse(ThemeColors.HighContrastDark.BorderInput);
+            resources["TextContrastColor"] = Color.Parse(ThemeColors.HighContrastDark.TextContrast);
+            resources["NetworkAccentColor"] = Color.Parse(ThemeColors.HighContrastDark.NetworkAccent);
+            resources["LogsTextColor"] = Color.Parse(ThemeColors.HighContrastDark.LogsText);
+            resources["LogsTimestampColor"] = Color.Parse(ThemeColors.HighContrastDark.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.HighContrastDark.NavigationSelected);
+        }
+        else if (effectiveTheme == ThemeMode.Dark)
         {
             resources["PrimaryColor"] = Color.Parse(ThemeColors.Dark.Primary);
             resources["AccentColor"] = Color.Parse(ThemeColors.Dark.Accent);
@@ -91,6 +154,17 @@ public class ThemeService : IThemeService
             resources["SuccessColor"] = Color.Parse(ThemeColors.Dark.Success);
             resources["WarningColor"] = Color.Parse(ThemeColors.Dark.Warning);
             resources["ErrorColor"] = Color.Parse(ThemeColors.Dark.Error);
+            resources["DangerColor"] = Color.Parse(ThemeColors.Dark.Danger);
+            resources["DangerDarkColor"] = Color.Parse(ThemeColors.Dark.DangerDark);
+            resources["RestartColor"] = Color.Parse(ThemeColors.Dark.Restart);
+            resources["ActionAccentColor"] = Color.Parse(ThemeColors.Dark.ActionAccent);
+            resources["BackgroundInputColor"] = Color.Parse(ThemeColors.Dark.BackgroundInput);
+            resources["BorderInputColor"] = Color.Parse(ThemeColors.Dark.BorderInput);
+            resources["TextContrastColor"] = Color.Parse(ThemeColors.Dark.TextContrast);
+            resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Dark.NetworkAccent);
+            resources["LogsTextColor"] = Color.Parse(ThemeColors.Dark.LogsText);
+            resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Dark.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Dark.NavigationSelected);
         }
         else
         {
@@ -106,6 +180,17 @@ public class ThemeService : IThemeService
             resources["SuccessColor"] = Color.Parse(ThemeColors.Light.Success);
             resources["WarningColor"] = Color.Parse(ThemeColors.Light.Warning);
             resources["ErrorColor"] = Color.Parse(ThemeColors.Light.Error);
+            resources["DangerColor"] = Color.Parse(ThemeColors.Light.Danger);
+            resources["DangerDarkColor"] = Color.Parse(ThemeColors.Light.DangerDark);
+            resources["RestartColor"] = Color.Parse(ThemeColors.Light.Restart);
+            resources["ActionAccentColor"] = Color.Parse(ThemeColors.Light.ActionAccent);
+            resources["BackgroundInputColor"] = Color.Parse(ThemeColors.Light.BackgroundInput);
+            resources["BorderInputColor"] = Color.Parse(ThemeColors.Light.BorderInput);
+            resources["TextContrastColor"] = Color.Parse(ThemeColors.Light.TextContrast);
+            resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Light.NetworkAccent);
+            resources["LogsTextColor"] = Color.Parse(ThemeColors.Light.LogsText);
+            resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Light.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Light.NavigationSelected);
         }
     }
 }

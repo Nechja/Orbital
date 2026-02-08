@@ -31,19 +31,31 @@
                                    FontWeight="Medium"
                                    Foreground="{DynamicResource TextPrimaryColor}"/>
                         
-                        <RadioButton GroupName="Theme" 
+                        <RadioButton GroupName="Theme"
                                      Content="Dark Mode"
                                      IsChecked="{Binding IsDarkTheme}"
                                      Command="{Binding SetDarkThemeCommand}"
                                      Foreground="{DynamicResource TextSecondaryColor}"/>
-                        
-                        <RadioButton GroupName="Theme" 
+
+                        <RadioButton GroupName="Theme"
                                      Content="Light Mode"
                                      IsChecked="{Binding IsLightTheme}"
                                      Command="{Binding SetLightThemeCommand}"
                                      Foreground="{DynamicResource TextSecondaryColor}"/>
-                        
-                        <RadioButton GroupName="Theme" 
+
+                        <RadioButton GroupName="Theme"
+                                     Content="Soft (Pastels)"
+                                     IsChecked="{Binding IsSoftTheme}"
+                                     Command="{Binding SetSoftThemeCommand}"
+                                     Foreground="{DynamicResource TextSecondaryColor}"/>
+
+                        <RadioButton GroupName="Theme"
+                                     Content="High Contrast Dark"
+                                     IsChecked="{Binding IsHighContrastDarkTheme}"
+                                     Command="{Binding SetHighContrastDarkThemeCommand}"
+                                     Foreground="{DynamicResource TextSecondaryColor}"/>
+
+                        <RadioButton GroupName="Theme"
                                      Content="Follow System"
                                      IsChecked="{Binding IsSystemTheme}"
                                      Command="{Binding SetSystemThemeCommand}"

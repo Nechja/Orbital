@@ -42,12 +42,11 @@ artifacts/
 .idea/
 *.sln.iml
 
-# All dot folders EXCEPT .github
+
 .*/
 !.github/
 !.gitignore
 
-# Markdown files (as requested)
 *.md
 README.md
 CHANGELOG.md

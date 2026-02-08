@@ -9,7 +9,7 @@
         Title="Container Logs"
         Width="900" Height="600"
         WindowStartupLocation="CenterOwner"
-        Background="#050511">
+        Background="{DynamicResource BackgroundColor}">
 
     <Design.DataContext>
         <vm:LogsViewModel/>
@@ -17,15 +17,7 @@
 
     <Panel>
         <!-- Background gradient -->
-        <Border>
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                    <GradientStop Color="#050511" Offset="0"/>
-                    <GradientStop Color="#0A0A1F" Offset="0.5"/>
-                    <GradientStop Color="#0F0F2A" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
+        <Border Background="{DynamicResource BackgroundColor}"/>
 
         <Grid Margin="30">
             <Grid.RowDefinitions>
@@ -42,38 +34,36 @@
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="4">
-                    <TextBlock Text="{Binding ContainerName}" 
+                    <TextBlock Text="{Binding ContainerName}"
                                FontSize="18"
                                FontWeight="Medium"
-                               Foreground="#FFFFFF"/>
+                               Foreground="{DynamicResource TextPrimaryColor}"/>
                     <TextBlock Text="{Binding ContainerId}"
                                FontSize="12"
-                               Foreground="#6666AA"
+                               Foreground="{DynamicResource LogsTimestampColor}"
                                FontFamily="Consolas,monospace"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
                     <CheckBox IsChecked="{Binding AutoScroll}"
                               Content="AUTO SCROLL"
-                              Foreground="#8888AA"
+                              Foreground="{DynamicResource TextSecondaryColor}"
                               FontSize="11"/>
                     <CheckBox IsChecked="{Binding ShowTimestamps}"
                               Content="TIMESTAMPS"
-                              Foreground="#8888AA"
+                              Foreground="{DynamicResource TextSecondaryColor}"
                               FontSize="11"/>
-                    <Button Content="CLEAR"
-                            Background="#1A1A3F"
-                            Foreground="#8888AA"
+                    <Button Classes="subtle"
+                            Content="CLEAR"
                             Padding="12,4"
-                            CornerRadius="4"
                             Command="{Binding ClearLogsCommand}"/>
                 </StackPanel>
             </Grid>
 
             <!-- Logs viewer -->
             <Border Grid.Row="1"
-                    Background="#08081A"
-                    BorderBrush="#1A1A3F"
+                    Background="{DynamicResource SurfaceColor}"
+                    BorderBrush="{DynamicResource BorderColor}"
                     BorderThickness="1"
                     CornerRadius="4">
                 <ScrollViewer x:Name="LogsScrollViewer"
@@ -83,7 +73,7 @@
                              IsReadOnly="True"
                              Background="Transparent"
                              BorderThickness="0"
-                             Foreground="#AAAACC"
+                             Foreground="{DynamicResource LogsTextColor}"
                              FontFamily="Consolas,monospace"
                              FontSize="12"
                              Padding="16"
@@ -102,21 +92,17 @@
                 <TextBlock Grid.Column="0"
                            Text="{Binding StatusMessage}"
                            FontSize="11"
-                           Foreground="#666688"
+                           Foreground="{DynamicResource TextTertiaryColor}"
                            VerticalAlignment="Center"/>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                    <Button Content="EXPORT"
-                            Background="#1A1A3F"
-                            Foreground="#8888AA"
+                    <Button Classes="subtle"
+                            Content="EXPORT"
                             Padding="16,6"
-                            CornerRadius="4"
                             Command="{Binding ExportLogsCommand}"/>
-                    <Button Content="CLOSE"
-                            Background="#1A1A3F"
-                            Foreground="#8888AA"
+                    <Button Classes="subtle"
+                            Content="CLOSE"
                             Padding="16,6"
-                            CornerRadius="4"
                             Click="OnCloseClick"/>
                 </StackPanel>
             </Grid>

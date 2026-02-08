@@ -42,29 +42,14 @@
                         Orientation="Horizontal" 
                         Spacing="8"
                         VerticalAlignment="Center">
-                <Button Content="RUN"
-                        FontSize="11"
-                        Padding="10,6"
-                        Background="{DynamicResource PrimaryColor}"
-                        Foreground="{DynamicResource BackgroundColor}"
-                        BorderThickness="0"
-                        CornerRadius="4"
+                <Button Classes="primary"
+                        Content="RUN"
                         Name="RunButton"/>
-                <Button Content="REMOVE"
-                        FontSize="11"
-                        Padding="10,6"
-                        Background="#FF6B6B"
-                        Foreground="{DynamicResource TextPrimaryColor}"
-                        BorderThickness="0"
-                        CornerRadius="4"
+                <Button Classes="danger"
+                        Content="REMOVE"
                         Name="RemoveButton"/>
-                <Button Content="PULL"
-                        FontSize="11"
-                        Padding="10,6"
-                        Background="#95E1D3"
-                        Foreground="{DynamicResource BackgroundColor}"
-                        BorderThickness="0"
-                        CornerRadius="4"
+                <Button Classes="accent"
+                        Content="PULL"
                         Name="PullButton"/>
             </StackPanel>
         </Grid>

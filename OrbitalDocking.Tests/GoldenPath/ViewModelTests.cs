@@ -150,7 +150,7 @@ public class ViewModelTests
 
         vm.ShowContainers.Should().BeTrue();
         vm.ShowImages.Should().BeFalse();
-        vm.ContainersTextColor.Should().Be(ThemeColors.Light.TextPrimary);
+        vm.ContainersTextColor.Should().Be(ThemeColors.Light.NavigationSelected);
         vm.ImagesTextColor.Should().Be(ThemeColors.Light.TextSecondary);
 
         vm.ShowImagesViewCommand.Execute(null);
@@ -158,7 +158,7 @@ public class ViewModelTests
         vm.ShowContainers.Should().BeFalse();
         vm.ShowImages.Should().BeTrue();
         vm.ContainersTextColor.Should().Be(ThemeColors.Light.TextSecondary);
-        vm.ImagesTextColor.Should().Be(ThemeColors.Light.TextPrimary);
+        vm.ImagesTextColor.Should().Be(ThemeColors.Light.NavigationSelected);
         
         vm.Dispose();
     }

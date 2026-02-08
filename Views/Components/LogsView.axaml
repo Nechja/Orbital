@@ -31,13 +31,16 @@
                               VerticalAlignment="Center">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8" MaxWidth="400">
                                     <TextBlock Text="{Binding Name}"
                                                FontWeight="Medium"
-                                               Foreground="{DynamicResource TextPrimaryColor}"/>
+                                               Foreground="{DynamicResource TextPrimaryColor}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="300"/>
                                     <TextBlock Text="{Binding State}"
                                                FontSize="10"
-                                               Foreground="{DynamicResource TextTertiaryColor}"/>
+                                               Foreground="{DynamicResource TextTertiaryColor}"
+                                               TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
@@ -146,11 +149,12 @@
                                                        VerticalAlignment="Center"
                                                        Margin="0,0,12,0"/>
 
-                                            <StackPanel Grid.Column="1" Spacing="4">
+                                            <StackPanel Grid.Column="1" Spacing="4" MaxWidth="400">
                                                 <TextBlock Text="{Binding ContainerName}"
                                                            FontSize="14"
                                                            FontWeight="Medium"
-                                                           Foreground="{DynamicResource TextPrimaryColor}"/>
+                                                           Foreground="{DynamicResource TextPrimaryColor}"
+                                                           TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding ErrorCount, StringFormat='{}{0} errors found'}"
                                                            FontSize="11"
                                                            Foreground="{DynamicResource TextTertiaryColor}"/>

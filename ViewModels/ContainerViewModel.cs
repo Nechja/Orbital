@@ -36,6 +36,9 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     private bool _isExpanded = false;
 
     [ObservableProperty]
+    private bool _isCompactMode = false;
+
+    [ObservableProperty]
     private string _cpuUsage = "--";
 
     [ObservableProperty]

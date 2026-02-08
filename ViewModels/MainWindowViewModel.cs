@@ -616,7 +616,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
         OnPropertyChanged(nameof(IsSoftTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
 
     [RelayCommand]
@@ -629,7 +628,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
         OnPropertyChanged(nameof(IsSoftTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
     }
 
     [RelayCommand]
@@ -641,7 +639,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
         OnPropertyChanged(nameof(IsSoftTheme));
     }
 
@@ -1135,14 +1132,41 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private string GetPrimaryTextColor() => 
-        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextPrimary;
-    
-    private string GetSecondaryTextColor() => 
-        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextSecondary : ThemeColors.Dark.TextSecondary;
-    
-    private string GetOrbitalTextColor() =>
-        _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextSecondary;
+    private string GetPrimaryTextColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.TextPrimary,
+            ThemeMode.Light => ThemeColors.Light.TextPrimary,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.TextPrimary,
+            ThemeMode.Soft => ThemeColors.Soft.TextPrimary,
+            _ => ThemeColors.Dark.TextPrimary
+        };
+    }
+
+    private string GetSecondaryTextColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.TextSecondary,
+            ThemeMode.Light => ThemeColors.Light.TextSecondary,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.TextSecondary,
+            ThemeMode.Soft => ThemeColors.Soft.TextSecondary,
+            _ => ThemeColors.Dark.TextSecondary
+        };
+    }
+
+    private string GetOrbitalTextColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.TextSecondary,
+            ThemeMode.Light => ThemeColors.Light.TextPrimary,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.TextSecondary,
+            ThemeMode.Soft => ThemeColors.Soft.TextPrimary,
+            _ => ThemeColors.Dark.TextSecondary
+        };
+    }
 
     private string GetNavigationSelectedColor()
     {

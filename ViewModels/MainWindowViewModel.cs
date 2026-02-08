@@ -42,6 +42,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public Window? MainWindow { get; set; }
     public ITrayService? TrayService { get; private set; }
+    public LogsPanelViewModel LogsPanel { get; }
+    public LogsViewModel LogsViewModel { get; }
     
     public MainWindowViewModel(
         IDockerService dockerService, 
@@ -55,8 +57,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _dockerClient = dockerClient;
         _dialogService = dialogService;
         _logger = logger;
-        
-        // Subscribe to theme changes
+
+        LogsPanel = new LogsPanelViewModel(dockerClient);
+        LogsPanel.CloseRequested += (_, _) => { /* Panel visibility is bound to IsVisible */ };
+
+        LogsViewModel = new LogsViewModel(dockerClient);
+
         _themeService.ThemeChanged += OnThemeChanged;
         
         var containers = new ObservableCollectionExtended<ContainerViewModel>();
@@ -151,9 +157,12 @@ public partial class MainWindowViewModel : ViewModelBase
     
     [ObservableProperty]
     private bool _showNetworks = false;
-    
+
     [ObservableProperty]
     private bool _showSettings = false;
+
+    [ObservableProperty]
+    private bool _showLogs = false;
     
     // Theme state for settings UI
     public bool IsDarkTheme => _themeService.CurrentTheme == ThemeMode.Dark;
@@ -170,6 +179,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string ImagesTextColor => ShowImages ? GetNavigationSelectedColor() : GetSecondaryTextColor();
     public string VolumesTextColor => ShowVolumes ? GetNavigationSelectedColor() : GetSecondaryTextColor();
     public string NetworksTextColor => ShowNetworks ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string LogsTextColor => ShowLogs ? GetNavigationSelectedColor() : GetSecondaryTextColor();
     public string SettingsTextColor => ShowSettings ? GetNavigationSelectedColor() : GetOrbitalTextColor();
 
     [ObservableProperty]
@@ -569,11 +579,14 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ShowContainerLogs(ContainerViewModel? container)
+    private async Task ShowContainerLogs(ContainerViewModel? container)
     {
-        if (container == null || MainWindow == null) return;
-        
-        _dialogService.ShowLogsWindow(container.Id, container.Name, MainWindow);
+        if (container == null) return;
+
+        // Navigate to logs view and select the container
+        ShowLogsView();
+        LogsViewModel.SelectedContainer = container;
+        await LogsViewModel.LoadContainerLogsAsync(container.Id, container.Name);
     }
     
     [RelayCommand]
@@ -831,6 +844,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = false;
         ShowNetworks = false;
+        ShowLogs = false;
         ShowSettings = false;
         OnPropertyChanged(nameof(FilteredContainers));
         UpdateNavigationColors();
@@ -843,11 +857,12 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = true;
         ShowVolumes = false;
         ShowNetworks = false;
+        ShowLogs = false;
         ShowSettings = false;
         _ = RefreshImagesAsync();
         UpdateNavigationColors();
     }
-    
+
     [RelayCommand]
     private void ShowVolumesView()
     {
@@ -855,11 +870,12 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = true;
         ShowNetworks = false;
+        ShowLogs = false;
         ShowSettings = false;
         _ = RefreshVolumesAsync();
         UpdateNavigationColors();
     }
-    
+
     [RelayCommand]
     private void ShowNetworksView()
     {
@@ -867,11 +883,32 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = false;
         ShowNetworks = true;
+        ShowLogs = false;
         ShowSettings = false;
         _ = RefreshNetworksAsync();
         UpdateNavigationColors();
     }
-    
+
+    [RelayCommand]
+    private void ShowLogsView()
+    {
+        ShowContainers = false;
+        ShowImages = false;
+        ShowVolumes = false;
+        ShowNetworks = false;
+        ShowLogs = true;
+        ShowSettings = false;
+
+        // Populate available containers
+        LogsViewModel.AvailableContainers.Clear();
+        foreach (var container in Containers.OrderBy(c => c.Name))
+        {
+            LogsViewModel.AvailableContainers.Add(container);
+        }
+
+        UpdateNavigationColors();
+    }
+
     [RelayCommand]
     private void ShowSettingsView()
     {
@@ -879,6 +916,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowImages = false;
         ShowVolumes = false;
         ShowNetworks = false;
+        ShowLogs = false;
         ShowSettings = true;
         UpdateNavigationColors();
     }
@@ -889,6 +927,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
         OnPropertyChanged(nameof(NetworksTextColor));
+        OnPropertyChanged(nameof(LogsTextColor));
         OnPropertyChanged(nameof(SettingsTextColor));
     }
 
@@ -1187,6 +1226,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(ImagesTextColor));
         OnPropertyChanged(nameof(VolumesTextColor));
         OnPropertyChanged(nameof(NetworksTextColor));
+        OnPropertyChanged(nameof(LogsTextColor));
         OnPropertyChanged(nameof(SettingsTextColor));
         OnPropertyChanged(nameof(DockerStatusColor));
         OnPropertyChanged(nameof(IsDarkTheme));
@@ -1214,15 +1254,17 @@ public partial class MainWindowViewModel : ViewModelBase
         _themeService.ThemeChanged -= OnThemeChanged;
         _dockerService?.StopMonitoringEvents();
         _subscriptions?.Dispose();
-        
+
         TrayService?.Dispose();
-        
+        LogsPanel?.Dispose();
+        LogsViewModel?.Dispose();
+
         _containerCache?.Dispose();
         _containerSemaphore?.Dispose();
         _imageSemaphore?.Dispose();
         _volumeSemaphore?.Dispose();
         _networkSemaphore?.Dispose();
-        
+
         foreach (var container in Containers)
         {
             container.Dispose();

@@ -1,27 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using OrbitalDocking.Models;
-using OrbitalDocking.ViewModels;
-using OrbitalDocking.Views;
 using OrbitalDocking.Views.Dialogs;
 
 namespace OrbitalDocking.Services;
 
-public class DialogService(Func<string, string, LogsViewModel> logsViewModelFactory) : IDialogService
+public class DialogService : IDialogService
 {
-    public void ShowLogsWindow(string containerId, string containerName, Window owner)
-    {
-        var logsViewModel = logsViewModelFactory(containerId, containerName);
-        var logsWindow = new LogsWindow(logsViewModel)
-        {
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        };
-        logsWindow.Show(owner);
-    }
-    
     public async Task<bool> ShowConfirmationAsync(string title, string message, Window owner)
     {
         var dialog = new ConfirmationDialog

@@ -12,28 +12,29 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        
-        // Set the window icon
+
         var assets = AssetLoader.Open(new Uri("avares://OrbitalDocking/Assets/orbital.ico"));
         Icon = new WindowIcon(assets);
-        
-        // Set the MainWindow reference when DataContext is set
+
         DataContextChanged += (_, _) =>
         {
             if (DataContext is MainWindowViewModel vm)
-            {
                 vm.MainWindow = this;
-            }
         };
-        
-        // Handle window closing for tray
+
         Closing += OnWindowClosing;
+        PropertyChanged += OnWindowPropertyChanged;
+    }
+
+    private void OnWindowPropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property.Name == nameof(Bounds) && DataContext is MainWindowViewModel vm)
+            vm.IsSmallScreen = Bounds.Width < 1000;
     }
     
     private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
     {
-        // If we have a tray icon, minimize to tray instead of closing
-        if (DataContext is MainWindowViewModel vm && vm.TrayService != null)
+        if (DataContext is MainWindowViewModel vm && vm.TrayService is not null)
         {
             e.Cancel = true;
             Hide();

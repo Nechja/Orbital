@@ -32,15 +32,7 @@ public static class ServiceCollectionExtensions
         // ViewModels
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<ContainerViewModel>();
-        
-        // Factory for LogsViewModel since it needs runtime parameters
-        services.AddTransient<Func<string, string, LogsViewModel>>(provider => 
-            (containerId, containerName) => 
-                new LogsViewModel(
-                    containerId, 
-                    containerName, 
-                    provider.GetRequiredService<DockerClient>()));
-        
+
         return services;
     }
 }

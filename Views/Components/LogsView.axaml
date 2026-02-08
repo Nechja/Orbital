@@ -1,0 +1,221 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="600"
+             x:Class="OrbitalDocking.Views.Components.LogsView"
+             x:DataType="vm:LogsViewModel">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Header Controls -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource CardColor}"
+                BorderBrush="{DynamicResource BorderColor}"
+                BorderThickness="0,0,0,1"
+                Padding="20,12">
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+
+                <!-- Row 0: Container selector -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,8">
+                    <TextBlock Text="📋"
+                               FontSize="16"
+                               VerticalAlignment="Center"/>
+
+                    <!-- Container Selector -->
+                    <ComboBox ItemsSource="{Binding AvailableContainers}"
+                              SelectedItem="{Binding SelectedContainer}"
+                              MinWidth="250"
+                              PlaceholderText="Select a container..."
+                              VerticalAlignment="Center">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8" MaxWidth="400">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="Medium"
+                                               Foreground="{DynamicResource TextPrimaryColor}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="300"/>
+                                    <TextBlock Text="{Binding State}"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource TextTertiaryColor}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <!-- Search within logs -->
+                    <TextBox Text="{Binding SearchFilter}"
+                             MinWidth="180"
+                             Watermark="Search..."
+                             VerticalAlignment="Center"/>
+
+                    <Button Content="SEARCH ALL"
+                            Classes="subtle"
+                            Padding="10,5"
+                            FontSize="10"
+                            Command="{Binding SearchAllLogsCommand}"
+                            ToolTip.Tip="Search across all container logs"/>
+
+                    <Button Content="ERRORS"
+                            Classes="subtle"
+                            Padding="10,5"
+                            FontSize="10"
+                            Command="{Binding ShowErrorsCommand}"
+                            ToolTip.Tip="Show containers with errors"/>
+                </StackPanel>
+
+                <!-- Row 1: Controls -->
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="12">
+                    <CheckBox IsChecked="{Binding AutoScroll}"
+                              Content="AUTO SCROLL"
+                              Foreground="{DynamicResource TextSecondaryColor}"
+                              FontSize="10"
+                              VerticalAlignment="Center"/>
+
+                    <CheckBox IsChecked="{Binding ShowTimestamps}"
+                              Content="TIMESTAMPS"
+                              Foreground="{DynamicResource TextSecondaryColor}"
+                              FontSize="10"
+                              VerticalAlignment="Center"/>
+
+                    <Border Width="1"
+                            Height="16"
+                            Background="{DynamicResource BorderColor}"
+                            VerticalAlignment="Center"/>
+
+                    <Button Classes="subtle"
+                            Content="CLEAR"
+                            Padding="8,4"
+                            FontSize="10"
+                            Command="{Binding ClearLogsCommand}"/>
+
+                    <Button Classes="subtle"
+                            Content="EXPORT"
+                            Padding="8,4"
+                            FontSize="10"
+                            Command="{Binding ExportLogsCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Logs Content Area -->
+        <Border Grid.Row="1" Background="{DynamicResource BackgroundColor}">
+            <Panel>
+                <!-- Main logs view -->
+                <ScrollViewer x:Name="LogsScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto"
+                              IsVisible="{Binding !ShowingErrorOverview}">
+                    <TextBox Text="{Binding LogsContent}"
+                             IsReadOnly="True"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Foreground="{DynamicResource LogsTextColor}"
+                             FontFamily="Consolas,Menlo,monospace"
+                             FontSize="12"
+                             Padding="20"
+                             TextWrapping="NoWrap"
+                             AcceptsReturn="True"/>
+                </ScrollViewer>
+
+                <!-- Error Overview -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding ShowingErrorOverview}">
+                <StackPanel Spacing="16" Margin="20">
+                    <TextBlock Text="Containers with Errors"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryColor}"
+                               Margin="0,10,0,20"/>
+
+                    <ItemsControl ItemsSource="{Binding ErrorContainers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource CardColor}"
+                                        BorderBrush="{DynamicResource BorderColor}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="16"
+                                        Margin="0,0,0,16">
+                                    <StackPanel Spacing="12">
+                                        <!-- Header -->
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="⚠️"
+                                                       FontSize="20"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,12,0"/>
+
+                                            <StackPanel Grid.Column="1" Spacing="4" MaxWidth="400">
+                                                <TextBlock Text="{Binding ContainerName}"
+                                                           FontSize="14"
+                                                           FontWeight="Medium"
+                                                           Foreground="{DynamicResource TextPrimaryColor}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding ErrorCount, StringFormat='{}{0} errors found'}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextTertiaryColor}"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2"
+                                                    Content="VIEW FULL LOGS"
+                                                    Classes="subtle"
+                                                    Padding="10,6"
+                                                    FontSize="10"
+                                                    Command="{Binding $parent[ItemsControl].((vm:LogsViewModel)DataContext).ViewContainerLogsCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+
+                                        <!-- Error lines -->
+                                        <Border Background="{DynamicResource BackgroundColor}"
+                                                BorderBrush="{DynamicResource BorderColor}"
+                                                BorderThickness="1"
+                                                CornerRadius="2"
+                                                Padding="12">
+                                            <ItemsControl ItemsSource="{Binding ErrorLines}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding}"
+                                                                   FontFamily="Consolas,Menlo,monospace"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource DangerColor}"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0,2"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- No errors message -->
+                    <Border Background="{DynamicResource CardColor}"
+                            BorderBrush="{DynamicResource BorderColor}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="40"
+                            HorizontalAlignment="Center"
+                            IsVisible="{Binding !HasErrors}">
+                        <StackPanel Spacing="8" HorizontalAlignment="Center">
+                            <TextBlock Text="✓"
+                                       FontSize="32"
+                                       Foreground="{DynamicResource SuccessColor}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="No errors found in any container"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource TextSecondaryColor}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+            </Panel>
+        </Border>
+    </Grid>
+</UserControl>

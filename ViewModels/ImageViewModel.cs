@@ -9,6 +9,9 @@ public partial class ImageViewModel : ObservableObject
 {
     private readonly ImageInfo _image;
 
+    [ObservableProperty]
+    private bool _isCompactMode = false;
+
     public ImageViewModel(ImageInfo image)
     {
         _image = image;

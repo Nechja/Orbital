@@ -43,12 +43,14 @@
                                 CornerRadius="2"
                                 Margin="0,0,20,0"/>
                         
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="300">
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="200" MaxWidth="400">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{Binding Name}" 
+                                <TextBlock Text="{Binding Name}"
                                            FontSize="16"
                                            Foreground="{DynamicResource TextPrimaryColor}"
-                                           FontWeight="Medium"/>
+                                           FontWeight="Medium"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxWidth="300"/>
                                 <Border Background="{Binding StackColor}"
                                         CornerRadius="3"
                                         Padding="6,2"
@@ -57,70 +59,143 @@
                                     <TextBlock Text="{Binding StackName}"
                                                FontSize="10"
                                                Foreground="{DynamicResource BackgroundColor}"
-                                               FontWeight="SemiBold"/>
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="100"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="{Binding Image}" 
+                            <TextBlock Text="{Binding Image}"
                                        FontSize="13"
                                        Foreground="{DynamicResource TextSecondaryColor}"
-                                       Margin="0,4,0,0"/>
+                                       Margin="0,4,0,0"
+                                       TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Grid>
 
                     <!-- Status text -->
-                    <StackPanel Grid.Column="1" 
+                    <StackPanel Grid.Column="1"
                                 VerticalAlignment="Center"
                                 HorizontalAlignment="Center"
                                 Orientation="Horizontal"
-                                Spacing="16">
+                                Spacing="16"
+                                MaxWidth="300">
                         <TextBlock Text="{Binding Status}"
                                    FontSize="12"
-                                   Foreground="{DynamicResource TextSecondaryColor}"/>
-                        <TextBlock Text="•" 
+                                   Foreground="{DynamicResource TextSecondaryColor}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="150"/>
+                        <TextBlock Text="•"
                                    FontSize="12"
                                    Foreground="{DynamicResource TextTertiaryColor}"/>
                         <TextBlock Text="{Binding CreatedRelative}"
                                    FontSize="12"
-                                   Foreground="{DynamicResource TextSecondaryColor}"/>
+                                   Foreground="{DynamicResource TextSecondaryColor}"
+                                   TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                     </Grid>
                 </Button>
 
                 <!-- Actions - Outside expand button -->
-                <StackPanel Grid.Column="1" 
-                            Orientation="Horizontal" 
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
                             Spacing="20"
                             VerticalAlignment="Center"
                             Margin="0,0,24,0">
-                    <Button Classes="action"
-                            Content="REMOVE"
-                            Foreground="{DynamicResource DangerColor}"
-                            IsVisible="{Binding CanRemove}"
-                            Name="RemoveButton"/>
-                    <Button Classes="action"
-                            Content="RESTART"
-                            Foreground="{DynamicResource RestartColor}"
-                            IsVisible="{Binding IsRunning}"
-                            Name="RestartButton"/>
-                    <Button Classes="action"
-                            Content="STOP"
-                            Foreground="{DynamicResource DangerColor}"
-                            IsVisible="{Binding IsRunning}"
-                            Name="StopButton"/>
-                    <Button Classes="action"
-                            Content="START"
-                            Foreground="{DynamicResource PrimaryColor}"
-                            IsVisible="{Binding IsStopped}"
-                            Name="StartButton"/>
-                    <Button Classes="action"
-                            Content="LOGS"
-                            Foreground="{DynamicResource ActionAccentColor}"
-                            Name="LogsButton"/>
-                    <ToggleButton IsChecked="{Binding IsExpanded}"
-                                  Classes="action"
-                                  Content="▼"
-                                  Foreground="{DynamicResource TextTertiaryColor}"
-                                  Name="ToggleExpandButton"/>
+
+                    <!-- Full buttons (visible when not compact) -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="20"
+                                IsVisible="{Binding !IsCompactMode}">
+                        <Button Classes="action"
+                                Content="REMOVE"
+                                Foreground="{DynamicResource DangerColor}"
+                                IsVisible="{Binding CanRemove}"
+                                Name="RemoveButton"/>
+                        <Button Classes="action"
+                                Content="RESTART"
+                                Foreground="{DynamicResource RestartColor}"
+                                IsVisible="{Binding IsRunning}"
+                                Name="RestartButton"/>
+                        <Button Classes="action"
+                                Content="STOP"
+                                Foreground="{DynamicResource DangerColor}"
+                                IsVisible="{Binding IsRunning}"
+                                Name="StopButton"/>
+                        <Button Classes="action"
+                                Content="START"
+                                Foreground="{DynamicResource PrimaryColor}"
+                                IsVisible="{Binding IsStopped}"
+                                Name="StartButton"/>
+                        <Button Classes="action"
+                                Content="LOGS"
+                                Foreground="{DynamicResource ActionAccentColor}"
+                                Name="LogsButton"/>
+                        <ToggleButton IsChecked="{Binding IsExpanded}"
+                                      Classes="action"
+                                      Content="▼"
+                                      Foreground="{DynamicResource TextTertiaryColor}"
+                                      Name="ToggleExpandButton"/>
+                    </StackPanel>
+
+                    <!-- Compact menu (visible when compact) -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                IsVisible="{Binding IsCompactMode}">
+                        <Button Background="Transparent"
+                                BorderThickness="0"
+                                Padding="8"
+                                Cursor="Hand"
+                                Name="CompactMenuButton">
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                    <MenuItem Header="START"
+                                              Name="MenuStartButton"
+                                              IsVisible="{Binding IsStopped}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="▶" Foreground="{DynamicResource PrimaryColor}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="STOP"
+                                              Name="MenuStopButton"
+                                              IsVisible="{Binding IsRunning}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="■" Foreground="{DynamicResource DangerColor}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="RESTART"
+                                              Name="MenuRestartButton"
+                                              IsVisible="{Binding IsRunning}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="↻" Foreground="{DynamicResource RestartColor}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="LOGS"
+                                              Name="MenuLogsButton">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="📋" Foreground="{DynamicResource ActionAccentColor}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator IsVisible="{Binding CanRemove}"/>
+                                    <MenuItem Header="REMOVE"
+                                              Name="MenuRemoveButton"
+                                              IsVisible="{Binding CanRemove}">
+                                        <MenuItem.Icon>
+                                            <TextBlock Text="🗑" Foreground="{DynamicResource DangerColor}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <TextBlock Text="⋮"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                        </Button>
+                        <ToggleButton IsChecked="{Binding IsExpanded}"
+                                      Classes="action"
+                                      Content="▼"
+                                      Foreground="{DynamicResource TextTertiaryColor}"
+                                      Name="CompactToggleExpandButton"/>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
             
@@ -133,7 +208,7 @@
                     <!-- Container info -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,*,Auto" Margin="0,0,0,16">
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="CONTAINER ID" 
+                            <TextBlock Text="CONTAINER ID"
                                        FontSize="11"
                                        Foreground="{DynamicResource TextTertiaryColor}"
                                        FontWeight="Medium"
@@ -141,10 +216,11 @@
                                        Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding ShortId}"
                                        FontSize="13"
-                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                                       Foreground="{DynamicResource TextSecondaryColor}"
+                                       TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="IMAGE" 
+                            <TextBlock Text="IMAGE"
                                        FontSize="11"
                                        Foreground="{DynamicResource TextTertiaryColor}"
                                        FontWeight="Medium"
@@ -152,10 +228,11 @@
                                        Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding Image}"
                                        FontSize="13"
-                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                                       Foreground="{DynamicResource TextSecondaryColor}"
+                                       TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="STATUS" 
+                            <TextBlock Text="STATUS"
                                        FontSize="11"
                                        Foreground="{DynamicResource TextTertiaryColor}"
                                        FontWeight="Medium"
@@ -163,7 +240,8 @@
                                        Margin="0,0,0,6"/>
                             <TextBlock Text="{Binding State}"
                                        FontSize="13"
-                                       Foreground="{Binding StateColor}"/>
+                                       Foreground="{Binding StateColor}"
+                                       TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Grid>
 

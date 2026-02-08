@@ -61,11 +61,10 @@
                     <StackPanel Grid.Column="3" 
                                 Orientation="Horizontal" 
                                 Spacing="12">
-                        <Button Classes="accent"
+                        <Button Classes="primary"
                                 Content="START ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Background="{DynamicResource PrimaryColor}"
                                 Name="StartStackButton"
                                 IsVisible="{Binding !AllRunning}"/>
                         <Button Classes="danger"
@@ -80,11 +79,10 @@
                                 Padding="8,4"
                                 Name="RestartStackButton"
                                 IsVisible="{Binding AllRunning}"/>
-                        <Button Classes="danger"
+                        <Button Classes="danger-dark"
                                 Content="REMOVE ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Background="{DynamicResource DangerDarkColor}"
                                 Name="RemoveStackButton"
                                 IsVisible="{Binding AllStopped}"/>
                     </StackPanel>

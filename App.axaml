@@ -24,9 +24,22 @@
             <Setter Property="Opacity" Value="0.8"/>
         </Style>
 
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+
         <Style Selector="Button.danger">
             <Setter Property="Background" Value="{DynamicResource DangerColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Padding" Value="10,6"/>
@@ -37,9 +50,22 @@
             <Setter Property="Opacity" Value="0.9"/>
         </Style>
 
+        <Style Selector="Button.danger-dark">
+            <Setter Property="Background" Value="{DynamicResource DangerDarkColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.danger-dark:pointerover">
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+
         <Style Selector="Button.restart">
             <Setter Property="Background" Value="{DynamicResource RestartColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Padding" Value="10,6"/>

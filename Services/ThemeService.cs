@@ -79,7 +79,16 @@ public class ThemeService : IThemeService
     {
         var resources = _application.Resources;
 
-        if (theme == ThemeMode.Soft)
+        // For System theme, detect actual system theme variant
+        var effectiveTheme = theme;
+        if (theme == ThemeMode.System)
+        {
+            effectiveTheme = _application.ActualThemeVariant == ThemeVariant.Light
+                ? ThemeMode.Light
+                : ThemeMode.Dark;
+        }
+
+        if (effectiveTheme == ThemeMode.Soft)
         {
             resources["PrimaryColor"] = Color.Parse(ThemeColors.Soft.Primary);
             resources["AccentColor"] = Color.Parse(ThemeColors.Soft.Accent);
@@ -105,7 +114,7 @@ public class ThemeService : IThemeService
             resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Soft.LogsTimestamp);
             resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Soft.NavigationSelected);
         }
-        else if (theme == ThemeMode.HighContrastDark)
+        else if (effectiveTheme == ThemeMode.HighContrastDark)
         {
             resources["PrimaryColor"] = Color.Parse(ThemeColors.HighContrastDark.Primary);
             resources["AccentColor"] = Color.Parse(ThemeColors.HighContrastDark.Accent);
@@ -131,7 +140,7 @@ public class ThemeService : IThemeService
             resources["LogsTimestampColor"] = Color.Parse(ThemeColors.HighContrastDark.LogsTimestamp);
             resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.HighContrastDark.NavigationSelected);
         }
-        else if (theme == ThemeMode.Dark || theme == ThemeMode.System) // Default to dark for now
+        else if (effectiveTheme == ThemeMode.Dark)
         {
             resources["PrimaryColor"] = Color.Parse(ThemeColors.Dark.Primary);
             resources["AccentColor"] = Color.Parse(ThemeColors.Dark.Accent);

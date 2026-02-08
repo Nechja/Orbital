@@ -136,29 +136,29 @@ public static class ThemeColors
 
     public static class HighContrastDark
     {
-        // Primary colors - brighter, more saturated
-        public const string Primary = "#00FFFF";        // Bright cyan
+        // Primary colors
+        public const string Primary = "#00FFFF";
         public const string PrimaryDark = "#00CCCC";
-        public const string Accent = "#FF00FF";         // Bright magenta
+        public const string Accent = "#FF00FF";
 
-        // Background colors - pure black for maximum contrast
+        // Background colors
         public const string Background = "#000000";
         public const string BackgroundSecondary = "#0A0A0A";
         public const string BackgroundTertiary = "#1A1A1A";
         public const string Surface = "#000000";
         public const string Card = "#1A1A1A";
 
-        // Text colors - pure white and high contrast grays
+        // Text colors
         public const string TextPrimary = "#FFFFFF";
         public const string TextSecondary = "#CCCCCC";
         public const string TextTertiary = "#999999";
         public const string TextMuted = "#666666";
 
-        // State colors - vivid, highly saturated
-        public const string Success = "#00FF00";        // Bright green
-        public const string Warning = "#FFFF00";        // Bright yellow
-        public const string Error = "#FF0000";          // Bright red
-        public const string Info = "#0080FF";           // Bright blue
+        // State colors
+        public const string Success = "#00FF00";
+        public const string Warning = "#FFFF00";
+        public const string Error = "#FF0000";
+        public const string Info = "#0080FF";
 
         // Container state colors
         public const string ContainerRunning = "#00FF00";
@@ -168,7 +168,7 @@ public static class ThemeColors
         public const string ContainerDead = "#FF0000";
         public const string ContainerCreated = "#808080";
 
-        // Border colors - high visibility
+        // Border colors
         public const string Border = "#444444";
         public const string BorderLight = "#666666";
         public const string BorderFocus = "#00FFFF";
@@ -202,29 +202,29 @@ public static class ThemeColors
 
     public static class Soft
     {
-        // Primary colors - soft pastels
-        public const string Primary = "#A8DADC";        // Soft cyan/aqua
+        // Primary colors
+        public const string Primary = "#A8DADC";
         public const string PrimaryDark = "#89C2C4";
-        public const string Accent = "#E0B0FF";         // Soft lavender
+        public const string Accent = "#E0B0FF";
 
-        // Background colors - warm, muted tones
-        public const string Background = "#F8F4F0";     // Warm off-white
+        // Background colors
+        public const string Background = "#F8F4F0";
         public const string BackgroundSecondary = "#FFF8F5";
         public const string BackgroundTertiary = "#FFF0E8";
         public const string Surface = "#FFFAF7";
         public const string Card = "#FFFFFF";
 
-        // Text colors - soft, not harsh
+        // Text colors
         public const string TextPrimary = "#3D3D3D";
         public const string TextSecondary = "#7A7A7A";
         public const string TextTertiary = "#A8A8A8";
         public const string TextMuted = "#C8C8C8";
 
-        // State colors - muted pastels
-        public const string Success = "#A3D9A5";        // Soft green
-        public const string Warning = "#FFD4A3";        // Soft peach
-        public const string Error = "#F4A5A5";          // Soft coral
-        public const string Info = "#B0C4DE";           // Soft blue
+        // State colors
+        public const string Success = "#A3D9A5";
+        public const string Warning = "#FFD4A3";
+        public const string Error = "#F4A5A5";
+        public const string Info = "#B0C4DE";
 
         // Container state colors
         public const string ContainerRunning = "#A3D9A5";
@@ -234,12 +234,12 @@ public static class ThemeColors
         public const string ContainerDead = "#F4A5A5";
         public const string ContainerCreated = "#B8B8B8";
 
-        // Border colors - very subtle
+        // Border colors
         public const string Border = "#E8E0D8";
         public const string BorderLight = "#F0E8E0";
         public const string BorderFocus = "#A8DADC";
 
-        // Semantic action colors - soft but distinguishable
+        // Semantic action colors
         public const string Danger = "#F4A5A5";
         public const string DangerDark = "#D88B8B";
         public const string Restart = "#FFC08A";
@@ -253,7 +253,7 @@ public static class ThemeColors
         public const string TextContrast = "#FFFFFF";
 
         // Specialized colors
-        public const string NetworkAccent = "#F5E6B3";  // Soft gold
+        public const string NetworkAccent = "#F5E6B3";
         public const string LogsText = "#5A5A5A";
         public const string LogsTimestamp = "#9A9A9A";
 

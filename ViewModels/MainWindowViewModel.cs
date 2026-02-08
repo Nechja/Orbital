@@ -160,6 +160,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsLightTheme => _themeService.CurrentTheme == ThemeMode.Light;
     public bool IsSystemTheme => _themeService.CurrentTheme == ThemeMode.System;
     public bool IsHighContrastDarkTheme => _themeService.CurrentTheme == ThemeMode.HighContrastDark;
+    public bool IsSoftTheme => _themeService.CurrentTheme == ThemeMode.Soft;
     
     // Settings properties
     [ObservableProperty]
@@ -590,6 +591,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
 
@@ -602,6 +604,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
     
@@ -614,6 +617,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
 
@@ -626,9 +630,23 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
     }
-    
+
+    [RelayCommand]
+    private async Task SetSoftThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.Soft);
+        StatusMessage = "Theme changed to Soft";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
+    }
+
     [RelayCommand]
     private void OpenGitHub()
     {
@@ -1141,6 +1159,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
         OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
         
         // Update all container colors
         foreach (var container in Containers)

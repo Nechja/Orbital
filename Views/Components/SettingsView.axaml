@@ -44,6 +44,12 @@
                                      Foreground="{DynamicResource TextSecondaryColor}"/>
 
                         <RadioButton GroupName="Theme"
+                                     Content="Soft (Pastels)"
+                                     IsChecked="{Binding IsSoftTheme}"
+                                     Command="{Binding SetSoftThemeCommand}"
+                                     Foreground="{DynamicResource TextSecondaryColor}"/>
+
+                        <RadioButton GroupName="Theme"
                                      Content="High Contrast Dark"
                                      IsChecked="{Binding IsHighContrastDarkTheme}"
                                      Command="{Binding SetHighContrastDarkThemeCommand}"

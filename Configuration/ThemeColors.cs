@@ -266,7 +266,4 @@ public static class ThemeColors
         public const string NavigationSelected = "#2C3E50";
     }
 
-    // Helper method to get theme colors based on mode
-    // Usage: var colors = isDark ? ThemeColors.Dark : ThemeColors.Light;
-    // This is handled in the ViewModels directly
 }

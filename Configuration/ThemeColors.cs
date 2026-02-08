@@ -127,7 +127,70 @@ public static class ThemeColors
         public const string DockerOffline = "#EF4444";
         public const string DockerConnecting = "#F59E0B";
     }
-    
+
+    public static class HighContrastDark
+    {
+        // Primary colors - brighter, more saturated
+        public const string Primary = "#00FFFF";        // Bright cyan
+        public const string PrimaryDark = "#00CCCC";
+        public const string Accent = "#FF00FF";         // Bright magenta
+
+        // Background colors - pure black for maximum contrast
+        public const string Background = "#000000";
+        public const string BackgroundSecondary = "#0A0A0A";
+        public const string BackgroundTertiary = "#1A1A1A";
+        public const string Surface = "#000000";
+        public const string Card = "#1A1A1A";
+
+        // Text colors - pure white and high contrast grays
+        public const string TextPrimary = "#FFFFFF";
+        public const string TextSecondary = "#CCCCCC";
+        public const string TextTertiary = "#999999";
+        public const string TextMuted = "#666666";
+
+        // State colors - vivid, highly saturated
+        public const string Success = "#00FF00";        // Bright green
+        public const string Warning = "#FFFF00";        // Bright yellow
+        public const string Error = "#FF0000";          // Bright red
+        public const string Info = "#0080FF";           // Bright blue
+
+        // Container state colors
+        public const string ContainerRunning = "#00FF00";
+        public const string ContainerPaused = "#FFFF00";
+        public const string ContainerStopped = "#808080";
+        public const string ContainerRestarting = "#00FFAA";
+        public const string ContainerDead = "#FF0000";
+        public const string ContainerCreated = "#808080";
+
+        // Border colors - high visibility
+        public const string Border = "#444444";
+        public const string BorderLight = "#666666";
+        public const string BorderFocus = "#00FFFF";
+
+        // Semantic action colors
+        public const string Danger = "#FF0000";
+        public const string DangerDark = "#CC0000";
+        public const string Restart = "#FF8800";
+        public const string ActionAccent = "#00FFCC";
+
+        // Input field colors
+        public const string BackgroundInput = "#1A1A1A";
+        public const string BorderInput = "#666666";
+
+        // Contrast text (for colored button backgrounds)
+        public const string TextContrast = "#000000";
+
+        // Specialized colors
+        public const string NetworkAccent = "#FFFF00";
+        public const string LogsText = "#FFFFFF";
+        public const string LogsTimestamp = "#AAAAAA";
+
+        // Docker status
+        public const string DockerOnline = "#00FF00";
+        public const string DockerOffline = "#FF0000";
+        public const string DockerConnecting = "#FFFF00";
+    }
+
     // Helper method to get theme colors based on mode
     // Usage: var colors = isDark ? ThemeColors.Dark : ThemeColors.Light;
     // This is handled in the ViewModels directly

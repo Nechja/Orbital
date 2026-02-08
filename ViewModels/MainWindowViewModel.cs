@@ -159,6 +159,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsDarkTheme => _themeService.CurrentTheme == ThemeMode.Dark;
     public bool IsLightTheme => _themeService.CurrentTheme == ThemeMode.Light;
     public bool IsSystemTheme => _themeService.CurrentTheme == ThemeMode.System;
+    public bool IsHighContrastDarkTheme => _themeService.CurrentTheme == ThemeMode.HighContrastDark;
     
     // Settings properties
     [ObservableProperty]
@@ -588,8 +589,10 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
-    
+
     [RelayCommand]
     private async Task SetLightThemeAsync()
     {
@@ -598,6 +601,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
     
     [RelayCommand]
@@ -608,6 +613,20 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+    }
+
+    [RelayCommand]
+    private async Task SetHighContrastDarkThemeAsync()
+    {
+        await _themeService.SetThemeAsync(ThemeMode.HighContrastDark);
+        StatusMessage = "Theme changed to High Contrast Dark";
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
     }
     
     [RelayCommand]
@@ -1121,6 +1140,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDarkTheme));
         OnPropertyChanged(nameof(IsLightTheme));
         OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
         
         // Update all container colors
         foreach (var container in Containers)

@@ -7,6 +7,8 @@ namespace OrbitalDocking.Views.Components;
 
 public partial class ImageCard : UserControl
 {
+    private bool _commandsWired = false;
+
     public ImageCard()
     {
         InitializeComponent();
@@ -18,12 +20,15 @@ public partial class ImageCard : UserControl
         if (e.Property.Name == nameof(Bounds) && DataContext is ImageViewModel vm)
             vm.IsCompactMode = Bounds.Width < 600;
     }
-    
+
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
+        if (_commandsWired) return;
         if (DataContext is not ImageViewModel image) return;
+
+        _commandsWired = true;
 
         var mainWindow = this.FindAncestorOfType<Window>();
         if (mainWindow?.DataContext is MainWindowViewModel mainVm)

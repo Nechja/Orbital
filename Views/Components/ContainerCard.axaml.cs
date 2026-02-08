@@ -8,6 +8,8 @@ namespace OrbitalDocking.Views.Components;
 
 public partial class ContainerCard : UserControl
 {
+    private bool _commandsWired = false;
+
     public ContainerCard()
     {
         InitializeComponent();
@@ -19,12 +21,15 @@ public partial class ContainerCard : UserControl
         if (e.Property.Name == nameof(Bounds) && DataContext is ContainerViewModel vm)
             vm.IsCompactMode = Bounds.Width < 700;
     }
-    
+
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
+        if (_commandsWired) return;
         if (DataContext is not ContainerViewModel container) return;
+
+        _commandsWired = true;
 
         var mainWindow = this.FindAncestorOfType<Window>();
         if (mainWindow?.DataContext is MainWindowViewModel mainVm)

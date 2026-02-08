@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
@@ -18,6 +19,9 @@ public partial class LogsViewModel : ObservableObject, IDisposable
     private readonly DockerClient _dockerClient;
     private CancellationTokenSource? _cancellationTokenSource;
     private readonly StringBuilder _logsBuilder = new();
+    private int _lastProcessedLength = 0;
+    private string? _incompleteLine = null;
+    private readonly List<string> _logLines = new();
 
     [ObservableProperty]
     private ObservableCollection<ContainerViewModel> _availableContainers = new();
@@ -56,14 +60,24 @@ public partial class LogsViewModel : ObservableObject, IDisposable
             _ = LoadContainerLogsAsync(value.Id, value.Name);
     }
 
-    partial void OnSearchFilterChanged(string value) => FilterLogs();
+    partial void OnSearchFilterChanged(string value)
+    {
+        _lastProcessedLength = 0;
+        _logLines.Clear();
+        _incompleteLine = null;
+        FilterLogs();
+    }
 
     public async Task LoadContainerLogsAsync(string containerId, string containerName)
     {
         StopStreaming();
 
         _logsBuilder.Clear();
-        LogsContent = string.Empty;
+        _logLines.Clear();
+        _lastProcessedLength = 0;
+        _incompleteLine = null;
+
+        await Dispatcher.UIThread.InvokeAsync(() => LogsContent = string.Empty);
         ShowingErrorOverview = false;
 
         _cancellationTokenSource = new CancellationTokenSource();
@@ -99,7 +113,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
                 {
                     var text = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     _logsBuilder.Append(text);
-                    FilterLogs();
+                    await Dispatcher.UIThread.InvokeAsync(() => FilterLogs());
                 }
                 else if (result.EOF)
                 {
@@ -124,14 +138,56 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         if (string.IsNullOrWhiteSpace(SearchFilter))
         {
             LogsContent = allLogs;
+            return;
         }
-        else
+
+        if (allLogs.Length < _lastProcessedLength)
         {
-            var lines = allLogs.Split('\n');
-            var filtered = lines.Where(line =>
-                line.Contains(SearchFilter, StringComparison.OrdinalIgnoreCase));
-            LogsContent = string.Join('\n', filtered);
+            _logLines.Clear();
+            _incompleteLine = null;
+            _lastProcessedLength = 0;
         }
+
+        if (allLogs.Length > _lastProcessedLength)
+        {
+            var newText = allLogs.AsSpan(_lastProcessedLength);
+            var start = 0;
+
+            for (var i = 0; i < newText.Length; i++)
+            {
+                if (newText[i] == '\n')
+                {
+                    var lineSpan = newText.Slice(start, i - start);
+                    var lineText = lineSpan.ToString();
+
+                    if (!string.IsNullOrEmpty(_incompleteLine))
+                    {
+                        lineText = _incompleteLine + lineText;
+                        _incompleteLine = null;
+                    }
+
+                    _logLines.Add(lineText);
+                    start = i + 1;
+                }
+            }
+
+            if (start < newText.Length)
+            {
+                var tail = newText.Slice(start).ToString();
+                _incompleteLine = string.IsNullOrEmpty(_incompleteLine) ? tail : _incompleteLine + tail;
+            }
+
+            _lastProcessedLength = allLogs.Length;
+        }
+
+        var sourceLines = (IEnumerable<string>)_logLines;
+        if (!string.IsNullOrEmpty(_incompleteLine))
+            sourceLines = sourceLines.Append(_incompleteLine);
+
+        var filtered = sourceLines.Where(line =>
+            line.Contains(SearchFilter, StringComparison.OrdinalIgnoreCase));
+
+        LogsContent = string.Join('\n', filtered);
     }
 
     [RelayCommand]

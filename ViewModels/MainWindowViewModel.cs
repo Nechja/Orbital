@@ -166,11 +166,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _dockerEndpoint = AppConstants.Docker.DefaultDockerEndpoint;
 
-    public string ContainersTextColor => ShowContainers ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string ImagesTextColor => ShowImages ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string VolumesTextColor => ShowVolumes ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string NetworksTextColor => ShowNetworks ? GetPrimaryTextColor() : GetSecondaryTextColor();
-    public string SettingsTextColor => ShowSettings ? GetPrimaryTextColor() : GetOrbitalTextColor();
+    public string ContainersTextColor => ShowContainers ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string ImagesTextColor => ShowImages ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string VolumesTextColor => ShowVolumes ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string NetworksTextColor => ShowNetworks ? GetNavigationSelectedColor() : GetSecondaryTextColor();
+    public string SettingsTextColor => ShowSettings ? GetNavigationSelectedColor() : GetOrbitalTextColor();
 
     [ObservableProperty]
     private string _dockerVersion = "Connecting...";
@@ -1143,9 +1143,21 @@ public partial class MainWindowViewModel : ViewModelBase
     private string GetSecondaryTextColor() => 
         _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextSecondary : ThemeColors.Dark.TextSecondary;
     
-    private string GetOrbitalTextColor() => 
+    private string GetOrbitalTextColor() =>
         _themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.TextPrimary : ThemeColors.Dark.TextSecondary;
-    
+
+    private string GetNavigationSelectedColor()
+    {
+        return _themeService.CurrentTheme switch
+        {
+            ThemeMode.Dark => ThemeColors.Dark.NavigationSelected,
+            ThemeMode.Light => ThemeColors.Light.NavigationSelected,
+            ThemeMode.HighContrastDark => ThemeColors.HighContrastDark.NavigationSelected,
+            ThemeMode.Soft => ThemeColors.Soft.NavigationSelected,
+            _ => ThemeColors.Dark.NavigationSelected
+        };
+    }
+
     private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
     {
         // Update color properties

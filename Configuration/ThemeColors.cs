@@ -63,6 +63,9 @@ public static class ThemeColors
         public const string DockerOnline = "#4ECDC4";
         public const string DockerOffline = "#FF6B6B";
         public const string DockerConnecting = "#FFB347";
+
+        // Navigation
+        public const string NavigationSelected = "#E5E7EB";
     }
 
     public static class Light
@@ -126,6 +129,9 @@ public static class ThemeColors
         public const string DockerOnline = "#10B981";
         public const string DockerOffline = "#EF4444";
         public const string DockerConnecting = "#F59E0B";
+
+        // Navigation
+        public const string NavigationSelected = "#111827";
     }
 
     public static class HighContrastDark
@@ -189,6 +195,9 @@ public static class ThemeColors
         public const string DockerOnline = "#00FF00";
         public const string DockerOffline = "#FF0000";
         public const string DockerConnecting = "#FFFF00";
+
+        // Navigation
+        public const string NavigationSelected = "#00FFFF";
     }
 
     public static class Soft
@@ -252,6 +261,9 @@ public static class ThemeColors
         public const string DockerOnline = "#A3D9A5";
         public const string DockerOffline = "#F4A5A5";
         public const string DockerConnecting = "#FFD4A3";
+
+        // Navigation
+        public const string NavigationSelected = "#2C3E50";
     }
 
     // Helper method to get theme colors based on mode

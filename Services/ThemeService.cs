@@ -103,6 +103,7 @@ public class ThemeService : IThemeService
             resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Soft.NetworkAccent);
             resources["LogsTextColor"] = Color.Parse(ThemeColors.Soft.LogsText);
             resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Soft.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Soft.NavigationSelected);
         }
         else if (theme == ThemeMode.HighContrastDark)
         {
@@ -128,6 +129,7 @@ public class ThemeService : IThemeService
             resources["NetworkAccentColor"] = Color.Parse(ThemeColors.HighContrastDark.NetworkAccent);
             resources["LogsTextColor"] = Color.Parse(ThemeColors.HighContrastDark.LogsText);
             resources["LogsTimestampColor"] = Color.Parse(ThemeColors.HighContrastDark.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.HighContrastDark.NavigationSelected);
         }
         else if (theme == ThemeMode.Dark || theme == ThemeMode.System) // Default to dark for now
         {
@@ -153,6 +155,7 @@ public class ThemeService : IThemeService
             resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Dark.NetworkAccent);
             resources["LogsTextColor"] = Color.Parse(ThemeColors.Dark.LogsText);
             resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Dark.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Dark.NavigationSelected);
         }
         else
         {
@@ -178,6 +181,7 @@ public class ThemeService : IThemeService
             resources["NetworkAccentColor"] = Color.Parse(ThemeColors.Light.NetworkAccent);
             resources["LogsTextColor"] = Color.Parse(ThemeColors.Light.LogsText);
             resources["LogsTimestampColor"] = Color.Parse(ThemeColors.Light.LogsTimestamp);
+            resources["NavigationSelectedColor"] = Color.Parse(ThemeColors.Light.NavigationSelected);
         }
     }
 }

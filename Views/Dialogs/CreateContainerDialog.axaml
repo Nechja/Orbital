@@ -44,7 +44,7 @@
                      Foreground="{DynamicResource TextPrimaryColor}"
                      FontSize="14"
                      Padding="0,0,0,8"
-                     Watermark="Container name"/>
+                     PlaceholderText="Container name"/>
             
             <!-- Quick config buttons -->
             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -82,7 +82,7 @@
                                                      Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="50"
-                                                     Watermark="8080"/>
+                                                     PlaceholderText="8080"/>
                                             <TextBlock Text="→" 
                                                        Foreground="{DynamicResource TextTertiaryColor}"
                                                        VerticalAlignment="Center"/>
@@ -92,7 +92,7 @@
                                                      Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="50"
-                                                     Watermark="80"/>
+                                                     PlaceholderText="80"/>
                                         </StackPanel>
                                         <Button Grid.Column="2"
                                                 Content="×"
@@ -134,7 +134,7 @@
                                                      Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="80"
-                                                     Watermark="KEY"/>
+                                                     PlaceholderText="KEY"/>
                                             <TextBlock Text="=" 
                                                        Foreground="{DynamicResource TextTertiaryColor}"
                                                        VerticalAlignment="Center"/>
@@ -144,7 +144,7 @@
                                                      Foreground="{DynamicResource TextPrimaryColor}"
                                                      FontSize="11"
                                                      Width="100"
-                                                     Watermark="value"/>
+                                                     PlaceholderText="value"/>
                                         </StackPanel>
                                         <Button Grid.Column="2"
                                                 Content="×"

@@ -57,7 +57,7 @@
                     <!-- Search within logs -->
                     <TextBox Text="{Binding SearchFilter}"
                              MinWidth="180"
-                             Watermark="Search..."
+                             PlaceholderText="Search..."
                              VerticalAlignment="Center"/>
 
                     <Button Content="SEARCH ALL"

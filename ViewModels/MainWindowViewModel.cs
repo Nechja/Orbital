@@ -44,7 +44,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public Window? MainWindow { get; set; }
     public ITrayService? TrayService { get; private set; }
-    public LogsPanelViewModel LogsPanel { get; }
     public LogsViewModel LogsViewModel { get; }
     
     public MainWindowViewModel(
@@ -59,9 +58,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _dockerClient = dockerClient;
         _dialogService = dialogService;
         _logger = logger;
-
-        LogsPanel = new LogsPanelViewModel(dockerClient);
-        LogsPanel.CloseRequested += (_, _) => { /* Panel visibility is bound to IsVisible */ };
 
         LogsViewModel = new LogsViewModel(dockerClient);
         LogsViewModel.BackRequested += (_, _) => ShowContainersView();
@@ -1186,7 +1182,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _subscriptions?.Dispose();
 
         TrayService?.Dispose();
-        LogsPanel?.Dispose();
         LogsViewModel?.Dispose();
 
         _containerCache?.Dispose();

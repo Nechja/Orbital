@@ -19,6 +19,14 @@
 
                 <!-- Row 0: Container selector -->
                 <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,8">
+                    <Button Content="← BACK"
+                            Classes="subtle"
+                            Padding="10,5"
+                            FontSize="10"
+                            VerticalAlignment="Center"
+                            Command="{Binding BackCommand}"
+                            ToolTip.Tip="Return to containers"/>
+
                     <TextBlock Text="📋"
                                FontSize="16"
                                VerticalAlignment="Center"/>

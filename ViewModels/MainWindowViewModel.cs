@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
@@ -17,7 +18,6 @@ using Docker.DotNet;
 using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.Logging;
-using ReactiveUI;
 using OrbitalDocking.Configuration;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
@@ -38,6 +38,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SemaphoreSlim _volumeSemaphore = new(1, 1);
     private readonly SemaphoreSlim _networkSemaphore = new(1, 1);
     private readonly SourceCache<ContainerViewModel, string> _containerCache = new(x => x.Id);
+    private static readonly SynchronizationContextScheduler UiScheduler =
+        new(new AvaloniaSynchronizationContext());
     private volatile bool _disposed;
 
     public Window? MainWindow { get; set; }
@@ -62,13 +64,14 @@ public partial class MainWindowViewModel : ViewModelBase
         LogsPanel.CloseRequested += (_, _) => { /* Panel visibility is bound to IsVisible */ };
 
         LogsViewModel = new LogsViewModel(dockerClient);
+        LogsViewModel.BackRequested += (_, _) => ShowContainersView();
 
         _themeService.ThemeChanged += OnThemeChanged;
         
         var containers = new ObservableCollectionExtended<ContainerViewModel>();
         _containers = containers;
         _subscriptions.Add(_containerCache.Connect()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(UiScheduler)
             .Bind(containers)
             .Subscribe());
         
@@ -167,14 +170,12 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSmallScreen = false;
 
-    // Theme state for settings UI
     public bool IsDarkTheme => _themeService.CurrentTheme == ThemeMode.Dark;
     public bool IsLightTheme => _themeService.CurrentTheme == ThemeMode.Light;
     public bool IsSystemTheme => _themeService.CurrentTheme == ThemeMode.System;
     public bool IsHighContrastDarkTheme => _themeService.CurrentTheme == ThemeMode.HighContrastDark;
     public bool IsSoftTheme => _themeService.CurrentTheme == ThemeMode.Soft;
     
-    // Settings properties
     [ObservableProperty]
     private string _dockerEndpoint = AppConstants.Docker.DefaultDockerEndpoint;
 
@@ -281,12 +282,23 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    partial void OnSearchTextChanged(string value)
+    partial void OnSearchTextChanged(string value) => NotifyFiltersChanged();
+
+    private void NotifyFiltersChanged()
     {
         OnPropertyChanged(nameof(FilteredContainers));
         OnPropertyChanged(nameof(FilteredImages));
         OnPropertyChanged(nameof(FilteredVolumes));
         OnPropertyChanged(nameof(FilteredNetworks));
+    }
+
+    private void NotifyThemeSelectionChanged()
+    {
+        OnPropertyChanged(nameof(IsDarkTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
+        OnPropertyChanged(nameof(IsSoftTheme));
     }
 
     [RelayCommand]
@@ -295,7 +307,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_disposed) return;
         try
         {
-            // Try to acquire the semaphore, skip if already refreshing
             if (!await _containerSemaphore.WaitAsync(0))
                 return;
 
@@ -371,7 +382,6 @@ public partial class MainWindowViewModel : ViewModelBase
         container ??= SelectedContainer;
         if (container == null || MainWindow == null) return;
 
-        // First, get the full container info to check for volumes
         var containerInfoResult = await _dockerService.GetContainerAsync(container.Id);
         if (containerInfoResult.IsError)
         {
@@ -380,25 +390,16 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var containerInfo = containerInfoResult.Value;
-        
-        // Check if container has named volumes (not bind mounts)
+
         var namedVolumes = containerInfo.Volumes?
             .Where(v => !string.IsNullOrEmpty(v.Name))
             .Select(v => v.Name)
             .Distinct()
             .ToList() ?? new List<string>();
         
-        VolumeRemovalChoice choice;
-        if (namedVolumes.Count > 0)
-        {
-            // Has named volumes, show volume removal dialog
-            choice = await _dialogService.ShowVolumeRemovalDialogAsync(container.Name, containerInfo.Volumes!, MainWindow);
-        }
-        else
-        {
-            // No named volumes, proceed without confirmation
-            choice = VolumeRemovalChoice.RemoveContainerOnly;
-        }
+        var choice = namedVolumes.Count > 0
+            ? await _dialogService.ShowVolumeRemovalDialogAsync(container.Name, containerInfo.Volumes!, MainWindow)
+            : VolumeRemovalChoice.RemoveContainerOnly;
 
         if (choice == VolumeRemovalChoice.Cancel)
         {
@@ -407,8 +408,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         StatusMessage = $"Removing {container.Name}...";
-        
-        // Remove the container
+
         var result = await _dockerService.RemoveContainerAsync(container.Id, force: true);
         if (result.IsError)
         {
@@ -416,7 +416,6 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        // If user chose to remove volumes, remove them now
         if (choice == VolumeRemovalChoice.RemoveContainerAndVolumes && namedVolumes.Count > 0)
         {
             foreach (var volumeName in namedVolumes)
@@ -447,7 +446,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Starting stack {stack.Name}...";
-        // Create a snapshot to avoid collection modification during iteration
         var containersToStart = stack.Containers.Where(c => !c.IsRunning).ToList();
         foreach (var container in containersToStart)
         {
@@ -463,7 +461,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Stopping stack {stack.Name}...";
-        // Create a snapshot to avoid collection modification during iteration
         var containersToStop = stack.Containers.Where(c => c.IsRunning).ToList();
         foreach (var container in containersToStop)
         {
@@ -479,7 +476,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (stack == null) return;
         
         StatusMessage = $"Restarting stack {stack.Name}...";
-        // Create a snapshot to avoid collection modification during iteration
         var containersToRestart = stack.Containers.ToList();
         foreach (var container in containersToRestart)
         {
@@ -511,24 +507,15 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
         
-        // Check if any containers have named volumes and prompt user
-        VolumeRemovalChoice choice;
         var distinctVolumes = allVolumes
             .Where(v => !string.IsNullOrEmpty(v.Name))
             .GroupBy(v => v.Name)
             .Select(g => g.First())
             .ToList();
-            
-        if (distinctVolumes.Count > 0)
-        {
-            // Has named volumes, show volume removal dialog
-            choice = await _dialogService.ShowVolumeRemovalDialogAsync($"stack '{stack.Name}'", distinctVolumes, MainWindow);
-        }
-        else
-        {
-            // No named volumes, proceed without confirmation
-            choice = VolumeRemovalChoice.RemoveContainerOnly;
-        }
+
+        var choice = distinctVolumes.Count > 0
+            ? await _dialogService.ShowVolumeRemovalDialogAsync($"stack '{stack.Name}'", distinctVolumes, MainWindow)
+            : VolumeRemovalChoice.RemoveContainerOnly;
 
         if (choice == VolumeRemovalChoice.Cancel)
         {
@@ -537,11 +524,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         
         StatusMessage = $"Removing stack {stack.Name}...";
-        
-        // Get container IDs from the stack
+
         var containerIds = stack.Containers.Select(c => c.Id).ToList();
-        
-        // Use the new RemoveStackAsync method for better handling
         var result = await _dockerService.RemoveStackAsync(stack.Name, containerIds);
         
         if (result.IsError)
@@ -550,7 +534,6 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
         
-        // If user chose to remove volumes, remove them now
         if (choice == VolumeRemovalChoice.RemoveContainerAndVolumes && distinctVolumes.Count > 0)
         {
             var volumeNamesToRemove = distinctVolumes
@@ -582,14 +565,12 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ShowContainerLogs(ContainerViewModel? container)
+    private void ShowContainerLogs(ContainerViewModel? container)
     {
         if (container == null) return;
 
-        // Navigate to logs view and select the container
         ShowLogsView();
         LogsViewModel.SelectedContainer = container;
-        await LogsViewModel.LoadContainerLogsAsync(container.Id, container.Name);
     }
     
     [RelayCommand]
@@ -599,63 +580,25 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     
     [RelayCommand]
-    private async Task SetDarkThemeAsync()
-    {
-        await _themeService.SetThemeAsync(ThemeMode.Dark);
-        StatusMessage = "Theme changed to Dark mode";
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
-        OnPropertyChanged(nameof(IsSystemTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
-    }
+    private Task SetDarkThemeAsync() => ApplyThemeAsync(ThemeMode.Dark, "Theme changed to Dark mode");
 
     [RelayCommand]
-    private async Task SetLightThemeAsync()
-    {
-        await _themeService.SetThemeAsync(ThemeMode.Light);
-        StatusMessage = "Theme changed to Light mode";
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
-        OnPropertyChanged(nameof(IsSystemTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
-    }
-    
-    [RelayCommand]
-    private async Task SetSystemThemeAsync()
-    {
-        await _themeService.SetThemeAsync(ThemeMode.System);
-        StatusMessage = "Theme set to follow system";
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
-        OnPropertyChanged(nameof(IsSystemTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
-    }
+    private Task SetLightThemeAsync() => ApplyThemeAsync(ThemeMode.Light, "Theme changed to Light mode");
 
     [RelayCommand]
-    private async Task SetHighContrastDarkThemeAsync()
-    {
-        await _themeService.SetThemeAsync(ThemeMode.HighContrastDark);
-        StatusMessage = "Theme changed to High Contrast Dark";
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
-        OnPropertyChanged(nameof(IsSystemTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
-    }
+    private Task SetSystemThemeAsync() => ApplyThemeAsync(ThemeMode.System, "Theme set to follow system");
 
     [RelayCommand]
-    private async Task SetSoftThemeAsync()
+    private Task SetHighContrastDarkThemeAsync() => ApplyThemeAsync(ThemeMode.HighContrastDark, "Theme changed to High Contrast Dark");
+
+    [RelayCommand]
+    private Task SetSoftThemeAsync() => ApplyThemeAsync(ThemeMode.Soft, "Theme changed to Soft");
+
+    private async Task ApplyThemeAsync(ThemeMode mode, string statusMessage)
     {
-        await _themeService.SetThemeAsync(ThemeMode.Soft);
-        StatusMessage = "Theme changed to Soft";
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
-        OnPropertyChanged(nameof(IsSystemTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
+        await _themeService.SetThemeAsync(mode);
+        StatusMessage = statusMessage;
+        NotifyThemeSelectionChanged();
     }
 
     [RelayCommand]
@@ -744,7 +687,6 @@ public partial class MainWindowViewModel : ViewModelBase
         
         try
         {
-            // Create and show the dialog
             var dialog = new Views.Dialogs.CreateContainerDialog();
             var dialogViewModel = new ViewModels.Dialogs.CreateContainerDialogViewModel(
                 _dockerService,
@@ -902,7 +844,6 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowLogs = true;
         ShowSettings = false;
 
-        // Populate available containers
         LogsViewModel.AvailableContainers.Clear();
         foreach (var container in Containers.OrderBy(c => c.Name))
         {
@@ -939,7 +880,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_disposed) return;
         try
         {
-            // Try to acquire the semaphore, skip if already refreshing
             if (!await _imageSemaphore.WaitAsync(0))
                 return;
 
@@ -980,7 +920,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_disposed) return;
         try
         {
-            // Try to acquire the semaphore, skip if already refreshing
             if (!await _volumeSemaphore.WaitAsync(0))
                 return;
 
@@ -1034,7 +973,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_disposed) return;
         try
         {
-            // Try to acquire the semaphore, skip if already refreshing
             if (!await _networkSemaphore.WaitAsync(0))
                 return;
 
@@ -1224,31 +1162,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
     {
-        // Update color properties
-        OnPropertyChanged(nameof(ContainersTextColor));
-        OnPropertyChanged(nameof(ImagesTextColor));
-        OnPropertyChanged(nameof(VolumesTextColor));
-        OnPropertyChanged(nameof(NetworksTextColor));
-        OnPropertyChanged(nameof(LogsTextColor));
-        OnPropertyChanged(nameof(SettingsTextColor));
+        UpdateNavigationColors();
         OnPropertyChanged(nameof(DockerStatusColor));
-        OnPropertyChanged(nameof(IsDarkTheme));
-        OnPropertyChanged(nameof(IsLightTheme));
-        OnPropertyChanged(nameof(IsSystemTheme));
-        OnPropertyChanged(nameof(IsHighContrastDarkTheme));
-        OnPropertyChanged(nameof(IsSoftTheme));
-        
-        // Update all container colors
+        NotifyThemeSelectionChanged();
+
         foreach (var container in Containers)
         {
             container.UpdateThemeColors();
         }
-        
-        // Update Docker status color  
+
         var isConnected = !string.IsNullOrEmpty(DockerVersion) && DockerVersion != "Disconnected";
-        DockerStatusColor = isConnected 
-            ? (_themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.DockerOnline : ThemeColors.Dark.DockerOnline)
-            : (_themeService.CurrentTheme == ThemeMode.Light ? ThemeColors.Light.DockerOffline : ThemeColors.Dark.DockerOffline);
+        var isLight = _themeService.CurrentTheme == ThemeMode.Light;
+        DockerStatusColor = isConnected
+            ? (isLight ? ThemeColors.Light.DockerOnline : ThemeColors.Dark.DockerOnline)
+            : (isLight ? ThemeColors.Light.DockerOffline : ThemeColors.Dark.DockerOffline);
     }
     
     public void Dispose()

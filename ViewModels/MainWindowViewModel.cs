@@ -278,7 +278,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    partial void OnSearchTextChanged(string value) => NotifyFiltersChanged();
+    partial void OnSearchTextChanged(string value)
+    {
+        NotifyFiltersChanged();
+        GroupContainersByStack();
+    }
 
     private void NotifyFiltersChanged()
     {
@@ -1028,6 +1032,15 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(StoppedContainersCount));
     }
     
+    private bool MatchesSearch(ContainerViewModel c)
+    {
+        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+        return c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            || c.Image.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            || c.Id.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            || (!string.IsNullOrEmpty(c.StackName) && c.StackName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+    }
+
     private void GroupContainersByStack()
     {
         if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
@@ -1036,9 +1049,9 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
         
-        var allContainers = Containers.ToList();
+        var allContainers = Containers.Where(MatchesSearch).ToList();
         _logger.LogDebug("GroupContainersByStack: {Count} containers total", allContainers.Count);
-        
+
         var stackGroups = allContainers
             .Where(c => c.IsPartOfStack)
             .GroupBy(c => c.StackName)

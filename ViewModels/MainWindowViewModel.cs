@@ -137,13 +137,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _searchText = string.Empty;
 
     [ObservableProperty]
-    private bool _isLoading;
-
-    [ObservableProperty]
     private string _statusMessage = "Ready";
-
-    [ObservableProperty]
-    private ResourceType _selectedResourceType = ResourceType.Container;
 
     [ObservableProperty]
     private bool _showContainers = true;
@@ -312,7 +306,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             try
             {
-                IsLoading = true;
                 var result = await _dockerService.GetContainersAsync();
                 if (_disposed) return;
 
@@ -327,7 +320,6 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             finally
             {
-                IsLoading = false;
                 if (!_disposed) _containerSemaphore.Release();
             }
         }
@@ -849,7 +841,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             try
             {
-                IsLoading = true;
                 var result = await _dockerService.GetImagesAsync();
                 if (_disposed) return;
 
@@ -872,7 +863,6 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             finally
             {
-                IsLoading = false;
                 if (!_disposed) _imageSemaphore.Release();
             }
         }
@@ -889,7 +879,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             try
             {
-                IsLoading = true;
                 var result = await _dockerService.GetVolumesAsync();
                 if (_disposed) return;
 
@@ -912,7 +901,6 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             finally
             {
-                IsLoading = false;
                 if (!_disposed) _volumeSemaphore.Release();
             }
         }
@@ -942,7 +930,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             try
             {
-                IsLoading = true;
                 var result = await _dockerService.GetNetworksAsync();
                 if (_disposed) return;
 
@@ -965,7 +952,6 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             finally
             {
-                IsLoading = false;
                 if (!_disposed) _networkSemaphore.Release();
             }
         }

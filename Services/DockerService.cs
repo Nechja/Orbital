@@ -236,50 +236,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
     }
 
-    public async Task<ErrorOr<Success>> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await dockerClient.Containers.PauseContainerAsync(containerId, cancellationToken);
-            OnContainerEvent(containerId, "pause");
-            return Result.Success;
-        }
-        catch (DockerContainerNotFoundException)
-        {
-            return DockerErrors.Container.NotFound(containerId);
-        }
-        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            return DockerErrors.Container.NotRunning(containerId);
-        }
-        catch (Exception)
-        {
-            return DockerErrors.Container.OperationFailed(containerId, "pause");
-        }
-    }
-
-    public async Task<ErrorOr<Success>> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await dockerClient.Containers.UnpauseContainerAsync(containerId, cancellationToken);
-            OnContainerEvent(containerId, "unpause");
-            return Result.Success;
-        }
-        catch (DockerContainerNotFoundException)
-        {
-            return DockerErrors.Container.NotFound(containerId);
-        }
-        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            return DockerErrors.Container.NotPaused(containerId);
-        }
-        catch (Exception)
-        {
-            return DockerErrors.Container.OperationFailed(containerId, "unpause");
-        }
-    }
-
     public async Task<ErrorOr<IEnumerable<ImageInfo>>> GetImagesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -484,30 +440,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         }
     }
     
-    public async Task<ErrorOr<VolumeInfo>> CreateVolumeAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var parameters = new VolumesCreateParameters
-            {
-                Name = name,
-                Driver = driver ?? "local",
-                DriverOpts = options
-            };
-            
-            var volume = await dockerClient.Volumes.CreateAsync(parameters, cancellationToken);
-            return dockerMapper.MapToVolumeInfo(volume);
-        }
-        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            return DockerErrors.Volume.CreateFailed(name, "Volume already exists");
-        }
-        catch (Exception ex)
-        {
-            return DockerErrors.Volume.CreateFailed(name, ex.Message);
-        }
-    }
-    
     public async Task<ErrorOr<IEnumerable<NetworkInfo>>> GetNetworksAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -543,44 +475,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         catch (Exception)
         {
             return DockerErrors.Network.RemoveFailed(networkId);
-        }
-    }
-    
-    public async Task<ErrorOr<NetworkInfo>> CreateNetworkAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var parameters = new NetworksCreateParameters
-            {
-                Name = name,
-                Driver = driver ?? "bridge",
-                Options = options
-            };
-            
-            var response = await dockerClient.Networks.CreateNetworkAsync(parameters, cancellationToken);
-            var networks = await dockerClient.Networks.ListNetworksAsync(new NetworksListParameters
-            {
-                Filters = new Dictionary<string, IDictionary<string, bool>>
-                {
-                    ["id"] = new Dictionary<string, bool> { [response.ID] = true }
-                }
-            }, cancellationToken);
-            
-            var network = networks.FirstOrDefault();
-            if (network == null)
-            {
-                return DockerErrors.Network.CreateFailed(name, "Network created but not found");
-            }
-            
-            return dockerMapper.MapToNetworkInfo(network);
-        }
-        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            return DockerErrors.Network.CreateFailed(name, "Network already exists");
-        }
-        catch (Exception ex)
-        {
-            return DockerErrors.Network.CreateFailed(name, ex.Message);
         }
     }
     

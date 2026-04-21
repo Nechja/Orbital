@@ -9,22 +9,13 @@ public static class DockerErrors
         public static Error NotFound(string containerId) => 
             Error.NotFound("Container.NotFound", $"Container '{containerId}' was not found");
             
-        public static Error AlreadyExists(string containerName) => 
+        public static Error AlreadyExists(string containerName) =>
             Error.Conflict("Container.AlreadyExists", $"Container with name '{containerName}' already exists");
-            
-        public static Error AlreadyRunning(string containerId) => 
-            Error.Conflict("Container.AlreadyRunning", $"Container '{containerId}' is already running");
-            
-        public static Error AlreadyStopped(string containerId) => 
-            Error.Conflict("Container.AlreadyStopped", $"Container '{containerId}' is already stopped");
-            
-        public static Error NotRunning(string containerId) => 
+
+        public static Error NotRunning(string containerId) =>
             Error.Conflict("Container.NotRunning", $"Container '{containerId}' is not running");
-            
-        public static Error NotPaused(string containerId) => 
-            Error.Conflict("Container.NotPaused", $"Container '{containerId}' is not paused");
-            
-        public static Error InUse(string containerId) => 
+
+        public static Error InUse(string containerId) =>
             Error.Conflict("Container.InUse", $"Container '{containerId}' is running and cannot be removed");
             
         public static Error OperationFailed(string containerId, string operation) => 
@@ -66,11 +57,8 @@ public static class DockerErrors
         public static Error InUse(string volumeName) => 
             Error.Conflict("Volume.InUse", $"Volume '{volumeName}' is in use by one or more containers");
             
-        public static Error RemoveFailed(string volumeName) => 
+        public static Error RemoveFailed(string volumeName) =>
             Error.Failure("Volume.RemoveFailed", $"Failed to remove volume '{volumeName}'");
-            
-        public static Error CreateFailed(string volumeName, string reason) => 
-            Error.Failure("Volume.CreateFailed", $"Failed to create volume '{volumeName}': {reason}");
     }
     
     public static class Network
@@ -81,13 +69,10 @@ public static class DockerErrors
         public static Error InUse(string networkName) => 
             Error.Conflict("Network.InUse", $"Network '{networkName}' has active endpoints");
             
-        public static Error RemoveFailed(string networkName) => 
+        public static Error RemoveFailed(string networkName) =>
             Error.Failure("Network.RemoveFailed", $"Failed to remove network '{networkName}'");
-            
-        public static Error CreateFailed(string networkName, string reason) => 
-            Error.Failure("Network.CreateFailed", $"Failed to create network '{networkName}': {reason}");
-            
-        public static Error BuiltIn(string networkName) => 
+
+        public static Error BuiltIn(string networkName) =>
             Error.Conflict("Network.BuiltIn", $"Cannot remove built-in network '{networkName}'");
     }
     

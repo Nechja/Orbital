@@ -254,7 +254,7 @@
                              FontSize="13"
                              Padding="10,6"
                              CornerRadius="4"
-                             Watermark="Search..."
+                             PlaceholderText="Search..."
                              Width="200"
                              VerticalAlignment="Center">
                     <TextBox.Styles>

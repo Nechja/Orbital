@@ -2,6 +2,74 @@ namespace OrbitalDocking.Configuration;
 
 public static class ThemeColors
 {
+    public static (string Key, string Hex)[] PaletteFor(OrbitalDocking.Models.ThemeMode mode) => mode switch
+    {
+        OrbitalDocking.Models.ThemeMode.Light => BuildPalette(
+            Light.Primary, Light.Accent, Light.Background, Light.Surface, Light.Card,
+            Light.TextPrimary, Light.TextSecondary, Light.TextTertiary, Light.Border,
+            Light.Success, Light.Warning, Light.Error, Light.Danger, Light.DangerDark,
+            Light.Restart, Light.ActionAccent, Light.BackgroundInput, Light.BorderInput,
+            Light.TextContrast, Light.NetworkAccent, Light.LogsText, Light.LogsTimestamp,
+            Light.NavigationSelected),
+        OrbitalDocking.Models.ThemeMode.Soft => BuildPalette(
+            Soft.Primary, Soft.Accent, Soft.Background, Soft.Surface, Soft.Card,
+            Soft.TextPrimary, Soft.TextSecondary, Soft.TextTertiary, Soft.Border,
+            Soft.Success, Soft.Warning, Soft.Error, Soft.Danger, Soft.DangerDark,
+            Soft.Restart, Soft.ActionAccent, Soft.BackgroundInput, Soft.BorderInput,
+            Soft.TextContrast, Soft.NetworkAccent, Soft.LogsText, Soft.LogsTimestamp,
+            Soft.NavigationSelected),
+        OrbitalDocking.Models.ThemeMode.HighContrastDark => BuildPalette(
+            HighContrastDark.Primary, HighContrastDark.Accent, HighContrastDark.Background,
+            HighContrastDark.Surface, HighContrastDark.Card, HighContrastDark.TextPrimary,
+            HighContrastDark.TextSecondary, HighContrastDark.TextTertiary, HighContrastDark.Border,
+            HighContrastDark.Success, HighContrastDark.Warning, HighContrastDark.Error,
+            HighContrastDark.Danger, HighContrastDark.DangerDark, HighContrastDark.Restart,
+            HighContrastDark.ActionAccent, HighContrastDark.BackgroundInput, HighContrastDark.BorderInput,
+            HighContrastDark.TextContrast, HighContrastDark.NetworkAccent, HighContrastDark.LogsText,
+            HighContrastDark.LogsTimestamp, HighContrastDark.NavigationSelected),
+        _ => BuildPalette(
+            Dark.Primary, Dark.Accent, Dark.Background, Dark.Surface, Dark.Card,
+            Dark.TextPrimary, Dark.TextSecondary, Dark.TextTertiary, Dark.Border,
+            Dark.Success, Dark.Warning, Dark.Error, Dark.Danger, Dark.DangerDark,
+            Dark.Restart, Dark.ActionAccent, Dark.BackgroundInput, Dark.BorderInput,
+            Dark.TextContrast, Dark.NetworkAccent, Dark.LogsText, Dark.LogsTimestamp,
+            Dark.NavigationSelected),
+    };
+
+    private static (string Key, string Hex)[] BuildPalette(
+        string primary, string accent, string background, string surface, string card,
+        string textPrimary, string textSecondary, string textTertiary, string border,
+        string success, string warning, string error, string danger, string dangerDark,
+        string restart, string actionAccent, string backgroundInput, string borderInput,
+        string textContrast, string networkAccent, string logsText, string logsTimestamp,
+        string navigationSelected) =>
+    [
+        ("PrimaryColor", primary),
+        ("AccentColor", accent),
+        ("BackgroundColor", background),
+        ("SurfaceColor", surface),
+        ("CardColor", card),
+        ("TextPrimaryColor", textPrimary),
+        ("TextSecondaryColor", textSecondary),
+        ("TextTertiaryColor", textTertiary),
+        ("BorderColor", border),
+        ("SuccessColor", success),
+        ("WarningColor", warning),
+        ("ErrorColor", error),
+        ("DangerColor", danger),
+        ("DangerDarkColor", dangerDark),
+        ("RestartColor", restart),
+        ("ActionAccentColor", actionAccent),
+        ("BackgroundInputColor", backgroundInput),
+        ("BorderInputColor", borderInput),
+        ("TextContrastColor", textContrast),
+        ("NetworkAccentColor", networkAccent),
+        ("LogsTextColor", logsText),
+        ("LogsTimestampColor", logsTimestamp),
+        ("NavigationSelectedColor", navigationSelected),
+    ];
+
+
     public static class Dark
     {
         // Primary colors

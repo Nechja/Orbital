@@ -1,8 +1,10 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CommunityToolkit.Mvvm.Input;
 using OrbitalDocking.ViewModels;
 
 namespace OrbitalDocking.Views;
@@ -31,7 +33,7 @@ public partial class MainWindow : Window
         if (e.Property.Name == nameof(Bounds) && DataContext is MainWindowViewModel vm)
             vm.IsSmallScreen = Bounds.Width < 1000;
     }
-    
+
     private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm && vm.TrayService is not null)
@@ -49,108 +51,49 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnStopClick(object? sender, RoutedEventArgs e)
-    {
-        e.Handled = true; // Prevent bubble to container click
-        try
-        {
-            if (sender is Button button && button.DataContext is ContainerViewModel container)
-            {
-                var vm = DataContext as MainWindowViewModel;
-                if (vm != null)
-                {
-                    vm.SelectedContainer = container;
-                    await vm.StopContainerCommand.ExecuteAsync(null);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error stopping container: {ex.Message}");
-        }
-    }
+    private void OnStopClick(object? sender, RoutedEventArgs e) =>
+        InvokeContainerCommand(sender, e, vm => vm.StopContainerCommand);
 
-    private async void OnStartClick(object? sender, RoutedEventArgs e)
+    private void OnStartClick(object? sender, RoutedEventArgs e) =>
+        InvokeContainerCommand(sender, e, vm => vm.StartContainerCommand);
+
+    private void OnRestartClick(object? sender, RoutedEventArgs e) =>
+        InvokeContainerCommand(sender, e, vm => vm.RestartContainerCommand);
+
+    private void OnRemoveClick(object? sender, RoutedEventArgs e) =>
+        InvokeContainerCommand(sender, e, vm => vm.RemoveContainerCommand);
+
+    private void OnImageRemoveClick(object? sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        try
-        {
-            if (sender is Button button && button.DataContext is ContainerViewModel container)
-            {
-                var vm = DataContext as MainWindowViewModel;
-                if (vm != null)
-                {
-                    vm.SelectedContainer = container;
-                    await vm.StartContainerCommand.ExecuteAsync(null);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error starting container: {ex.Message}");
-        }
+        if (sender is not Button { DataContext: ImageViewModel image }) return;
+        if (DataContext is not MainWindowViewModel vm) return;
+
+        _ = ExecuteAsync(vm, () => vm.RemoveImageCommand.ExecuteAsync(image));
     }
 
-    private async void OnRestartClick(object? sender, RoutedEventArgs e)
+    private void InvokeContainerCommand(
+        object? sender,
+        RoutedEventArgs e,
+        Func<MainWindowViewModel, IAsyncRelayCommand> commandSelector)
     {
         e.Handled = true;
-        try
-        {
-            if (sender is Button button && button.DataContext is ContainerViewModel container)
-            {
-                var vm = DataContext as MainWindowViewModel;
-                if (vm != null)
-                {
-                    vm.SelectedContainer = container;
-                    await vm.RestartContainerCommand.ExecuteAsync(null);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error restarting container: {ex.Message}");
-        }
+        if (sender is not Button { DataContext: ContainerViewModel container }) return;
+        if (DataContext is not MainWindowViewModel vm) return;
+
+        vm.SelectedContainer = container;
+        _ = ExecuteAsync(vm, () => commandSelector(vm).ExecuteAsync(null));
     }
 
-    private async void OnRemoveClick(object? sender, RoutedEventArgs e)
+    private static async Task ExecuteAsync(MainWindowViewModel vm, Func<Task> action)
     {
-        e.Handled = true;
         try
         {
-            if (sender is Button button && button.DataContext is ContainerViewModel container)
-            {
-                var vm = DataContext as MainWindowViewModel;
-                if (vm != null)
-                {
-                    vm.SelectedContainer = container;
-                    await vm.RemoveContainerCommand.ExecuteAsync(null);
-                }
-            }
+            await action();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error removing container: {ex.Message}");
-        }
-    }
-
-
-    private async void OnImageRemoveClick(object? sender, RoutedEventArgs e)
-    {
-        e.Handled = true;
-        try
-        {
-            if (sender is Button button && button.DataContext is ImageViewModel image)
-            {
-                var vm = DataContext as MainWindowViewModel;
-                if (vm != null)
-                {
-                    await vm.RemoveImageCommand.ExecuteAsync(image);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error removing image: {ex.Message}");
+            vm.StatusMessage = $"Error: {ex.Message}";
         }
     }
 }

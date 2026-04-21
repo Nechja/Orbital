@@ -18,6 +18,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
 {
     private readonly DockerClient _dockerClient;
     private CancellationTokenSource? _cancellationTokenSource;
+    private Task? _streamingTask;
     private readonly StringBuilder _logsBuilder = new();
     private int _lastProcessedLength = 0;
     private string? _incompleteLine = null;
@@ -49,6 +50,11 @@ public partial class LogsViewModel : ObservableObject, IDisposable
 
     public bool HasErrors => ErrorContainers.Any();
 
+    public event EventHandler? BackRequested;
+
+    [RelayCommand]
+    private void Back() => BackRequested?.Invoke(this, EventArgs.Empty);
+
     public LogsViewModel(DockerClient dockerClient)
     {
         _dockerClient = dockerClient;
@@ -57,7 +63,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
     partial void OnSelectedContainerChanged(ContainerViewModel? value)
     {
         if (value is not null)
-            _ = LoadContainerLogsAsync(value.Id, value.Name);
+            LoadContainerLogs(value.Id, value.Name);
     }
 
     partial void OnSearchFilterChanged(string value)
@@ -68,7 +74,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         FilterLogs();
     }
 
-    public async Task LoadContainerLogsAsync(string containerId, string containerName)
+    public void LoadContainerLogs(string containerId, string containerName)
     {
         StopStreaming();
 
@@ -76,12 +82,11 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         _logLines.Clear();
         _lastProcessedLength = 0;
         _incompleteLine = null;
-
-        await Dispatcher.UIThread.InvokeAsync(() => LogsContent = string.Empty);
+        LogsContent = string.Empty;
         ShowingErrorOverview = false;
 
         _cancellationTokenSource = new CancellationTokenSource();
-        await StartStreamingLogsAsync(containerId, containerName);
+        _streamingTask = StartStreamingLogsAsync(containerId, containerName);
     }
 
     private async Task StartStreamingLogsAsync(string containerId, string containerName)
@@ -336,7 +341,7 @@ public partial class LogsViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task ViewContainerLogs(ErrorContainerInfo? errorInfo)
+    private void ViewContainerLogs(ErrorContainerInfo? errorInfo)
     {
         if (errorInfo is null) return;
 
@@ -345,7 +350,6 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         {
             ShowingErrorOverview = false;
             SelectedContainer = container;
-            await LoadContainerLogsAsync(container.Id, container.Name);
         }
     }
 
@@ -379,21 +383,22 @@ public partial class LogsViewModel : ObservableObject, IDisposable
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
+        _streamingTask = null;
     }
 
     partial void OnShowTimestampsChanged(bool value)
     {
         if (SelectedContainer is null) return;
-
-        StopStreaming();
-        _logsBuilder.Clear();
-        LogsContent = string.Empty;
-
-        _cancellationTokenSource = new CancellationTokenSource();
-        _ = StartStreamingLogsAsync(SelectedContainer.Id, SelectedContainer.Name);
+        LoadContainerLogs(SelectedContainer.Id, SelectedContainer.Name);
     }
 
-    public void Dispose() => StopStreaming();
+    public void Dispose()
+    {
+        var task = _streamingTask;
+        StopStreaming();
+        try { task?.Wait(TimeSpan.FromSeconds(1)); }
+        catch (AggregateException) { }
+    }
 }
 
 public class ErrorContainerInfo

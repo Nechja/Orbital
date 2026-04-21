@@ -22,13 +22,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore Orbital.sln
+      run: dotnet restore Orbital.slnx
 
     - name: Build
-      run: dotnet build Orbital.sln --configuration Release --no-restore
+      run: dotnet build Orbital.slnx --configuration Release --no-restore
 
     - name: Test
-      run: dotnet test Orbital.sln --no-build --verbosity normal --configuration Release
+      run: dotnet test Orbital.slnx --no-build --verbosity normal --configuration Release
 
     - name: Verify single-file publish
       run: |

@@ -8,11 +8,10 @@ using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OrbitalDocking.Services;
-using OrbitalDocking.ViewModels;
 
 namespace OrbitalDocking.ViewModels.Dialogs;
 
-public partial class CreateContainerDialogViewModel : ViewModelBase
+public partial class CreateContainerDialogViewModel : ObservableObject
 {
     private readonly IDockerService _dockerService;
     private readonly IDialogService _dialogService;

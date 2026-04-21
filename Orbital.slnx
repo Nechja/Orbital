@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OrbitalDocking.csproj" />
+  <Project Path="OrbitalDocking.Tests/OrbitalDocking.Tests.csproj" />
+</Solution>

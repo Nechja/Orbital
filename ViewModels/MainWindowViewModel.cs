@@ -437,47 +437,38 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     
     [RelayCommand]
-    private async Task StartStackAsync(StackViewModel? stack)
-    {
-        if (stack == null) return;
-        
-        StatusMessage = $"Starting stack {stack.Name}...";
-        var containersToStart = stack.Containers.Where(c => !c.IsRunning).ToList();
-        foreach (var container in containersToStart)
-        {
-            await _dockerService.StartContainerAsync(container.Id);
-        }
-        StatusMessage = $"Started stack {stack.Name}";
-        await RefreshContainersAsync();
-    }
-    
+    private Task StartStackAsync(StackViewModel? stack) =>
+        RunStackOperationAsync(stack, "Starting", "Started",
+            c => !c.IsRunning,
+            c => _dockerService.StartContainerAsync(c.Id));
+
     [RelayCommand]
-    private async Task StopStackAsync(StackViewModel? stack)
-    {
-        if (stack == null) return;
-        
-        StatusMessage = $"Stopping stack {stack.Name}...";
-        var containersToStop = stack.Containers.Where(c => c.IsRunning).ToList();
-        foreach (var container in containersToStop)
-        {
-            await _dockerService.StopContainerAsync(container.Id);
-        }
-        StatusMessage = $"Stopped stack {stack.Name}";
-        await RefreshContainersAsync();
-    }
-    
+    private Task StopStackAsync(StackViewModel? stack) =>
+        RunStackOperationAsync(stack, "Stopping", "Stopped",
+            c => c.IsRunning,
+            c => _dockerService.StopContainerAsync(c.Id));
+
     [RelayCommand]
-    private async Task RestartStackAsync(StackViewModel? stack)
+    private Task RestartStackAsync(StackViewModel? stack) =>
+        RunStackOperationAsync(stack, "Restarting", "Restarted",
+            _ => true,
+            c => _dockerService.RestartContainerAsync(c.Id));
+
+    private async Task RunStackOperationAsync(
+        StackViewModel? stack,
+        string inProgressVerb,
+        string completedVerb,
+        Func<ContainerViewModel, bool> predicate,
+        Func<ContainerViewModel, Task> operation)
     {
-        if (stack == null) return;
-        
-        StatusMessage = $"Restarting stack {stack.Name}...";
-        var containersToRestart = stack.Containers.ToList();
-        foreach (var container in containersToRestart)
+        if (stack is null) return;
+
+        StatusMessage = $"{inProgressVerb} stack {stack.Name}...";
+        foreach (var container in stack.Containers.Where(predicate).ToList())
         {
-            await _dockerService.RestartContainerAsync(container.Id);
+            await operation(container);
         }
-        StatusMessage = $"Restarted stack {stack.Name}";
+        StatusMessage = $"{completedVerb} stack {stack.Name}";
         await RefreshContainersAsync();
     }
     
@@ -781,85 +772,58 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ShowContainersView()
     {
-        ShowContainers = true;
-        ShowImages = false;
-        ShowVolumes = false;
-        ShowNetworks = false;
-        ShowLogs = false;
-        ShowSettings = false;
+        SetActiveView(ActiveView.Containers);
         OnPropertyChanged(nameof(FilteredContainers));
-        UpdateNavigationColors();
     }
 
     [RelayCommand]
     private void ShowImagesView()
     {
-        ShowContainers = false;
-        ShowImages = true;
-        ShowVolumes = false;
-        ShowNetworks = false;
-        ShowLogs = false;
-        ShowSettings = false;
+        SetActiveView(ActiveView.Images);
         _ = RefreshImagesAsync();
-        UpdateNavigationColors();
     }
 
     [RelayCommand]
     private void ShowVolumesView()
     {
-        ShowContainers = false;
-        ShowImages = false;
-        ShowVolumes = true;
-        ShowNetworks = false;
-        ShowLogs = false;
-        ShowSettings = false;
+        SetActiveView(ActiveView.Volumes);
         _ = RefreshVolumesAsync();
-        UpdateNavigationColors();
     }
 
     [RelayCommand]
     private void ShowNetworksView()
     {
-        ShowContainers = false;
-        ShowImages = false;
-        ShowVolumes = false;
-        ShowNetworks = true;
-        ShowLogs = false;
-        ShowSettings = false;
+        SetActiveView(ActiveView.Networks);
         _ = RefreshNetworksAsync();
-        UpdateNavigationColors();
     }
 
     [RelayCommand]
     private void ShowLogsView()
     {
-        ShowContainers = false;
-        ShowImages = false;
-        ShowVolumes = false;
-        ShowNetworks = false;
-        ShowLogs = true;
-        ShowSettings = false;
+        SetActiveView(ActiveView.Logs);
 
         LogsViewModel.AvailableContainers.Clear();
         foreach (var container in Containers.OrderBy(c => c.Name))
         {
             LogsViewModel.AvailableContainers.Add(container);
         }
-
-        UpdateNavigationColors();
     }
 
     [RelayCommand]
-    private void ShowSettingsView()
+    private void ShowSettingsView() => SetActiveView(ActiveView.Settings);
+
+    private void SetActiveView(ActiveView view)
     {
-        ShowContainers = false;
-        ShowImages = false;
-        ShowVolumes = false;
-        ShowNetworks = false;
-        ShowLogs = false;
-        ShowSettings = true;
+        ShowContainers = view == ActiveView.Containers;
+        ShowImages = view == ActiveView.Images;
+        ShowVolumes = view == ActiveView.Volumes;
+        ShowNetworks = view == ActiveView.Networks;
+        ShowLogs = view == ActiveView.Logs;
+        ShowSettings = view == ActiveView.Settings;
         UpdateNavigationColors();
     }
+
+    private enum ActiveView { Containers, Images, Volumes, Networks, Logs, Settings }
     
     private void UpdateNavigationColors()
     {
@@ -1178,17 +1142,17 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _disposed = true;
         _themeService.ThemeChanged -= OnThemeChanged;
-        _dockerService?.StopMonitoringEvents();
-        _subscriptions?.Dispose();
+        _dockerService.StopMonitoringEvents();
+        _subscriptions.Dispose();
 
         TrayService?.Dispose();
-        LogsViewModel?.Dispose();
+        LogsViewModel.Dispose();
 
-        _containerCache?.Dispose();
-        _containerSemaphore?.Dispose();
-        _imageSemaphore?.Dispose();
-        _volumeSemaphore?.Dispose();
-        _networkSemaphore?.Dispose();
+        _containerCache.Dispose();
+        _containerSemaphore.Dispose();
+        _imageSemaphore.Dispose();
+        _volumeSemaphore.Dispose();
+        _networkSemaphore.Dispose();
 
         foreach (var container in Containers)
         {

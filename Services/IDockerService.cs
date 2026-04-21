@@ -18,9 +18,8 @@ public interface IDockerService
     Task<ErrorOr<Success>> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveStackAsync(string stackName, IEnumerable<string> containerIds, CancellationToken cancellationToken = default);
-    Task<ErrorOr<Success>> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<ErrorOr<Success>> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    
+
+
     Task<ErrorOr<IEnumerable<ImageInfo>>> GetImagesAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveImageAsync(string imageId, bool force = false, CancellationToken cancellationToken = default);
@@ -34,12 +33,11 @@ public interface IDockerService
     
     Task<ErrorOr<IEnumerable<VolumeInfo>>> GetVolumesAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveVolumeAsync(string volumeName, bool force = false, CancellationToken cancellationToken = default);
-    Task<ErrorOr<VolumeInfo>> CreateVolumeAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default);
-    
+
     Task<ErrorOr<IEnumerable<NetworkInfo>>> GetNetworksAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveNetworkAsync(string networkId, CancellationToken cancellationToken = default);
-    Task<ErrorOr<NetworkInfo>> CreateNetworkAsync(string name, string? driver = null, Dictionary<string, string>? options = null, CancellationToken cancellationToken = default);
-    
+
+
     event EventHandler<ContainerEventArgs>? ContainerEvent;
     
     Task StartMonitoringEvents(CancellationToken cancellationToken = default);

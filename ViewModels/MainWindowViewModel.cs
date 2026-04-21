@@ -25,7 +25,7 @@ using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly IDockerService _dockerService;
     private readonly IThemeService _themeService;

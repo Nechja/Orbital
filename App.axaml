@@ -12,6 +12,13 @@
     <Application.Styles>
         <FluentTheme />
 
+        <Style Selector="TextBox">
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
+        </Style>
+
         <!-- Shared button styles -->
         <Style Selector="Button.action">
             <Setter Property="Background" Value="Transparent"/>

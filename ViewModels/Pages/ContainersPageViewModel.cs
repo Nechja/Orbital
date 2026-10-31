@@ -79,10 +79,38 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
     [ObservableProperty]
     private int _stoppedCount;
 
+    /// <summary>The container shown in the detail pane, if any.</summary>
+    [ObservableProperty]
+    private ContainerViewModel? _selectedContainer;
+
     /// <summary>Raised when the user asks to see a container's logs; the shell navigates to the logs page.</summary>
     public event EventHandler<ContainerViewModel>? LogsRequested;
 
     partial void OnSearchTextChanged(string value) => GroupByStack();
+
+    partial void OnSelectedContainerChanged(ContainerViewModel? oldValue, ContainerViewModel? newValue)
+    {
+        if (oldValue is not null)
+        {
+            oldValue.IsSelected = false;
+            oldValue.StopStatsMonitoring();
+        }
+
+        if (newValue is not null)
+        {
+            newValue.IsSelected = true;
+            if (newValue.IsRunning)
+                newValue.StartStatsMonitoring();
+        }
+    }
+
+    /// <summary>Selects a container for the detail pane; selecting it again deselects.</summary>
+    [RelayCommand]
+    private void Select(ContainerViewModel? container) =>
+        SelectedContainer = ReferenceEquals(container, SelectedContainer) ? null : container;
+
+    [RelayCommand]
+    private void CloseDetails() => SelectedContainer = null;
 
     [RelayCommand]
     public override Task RefreshAsync() => GuardedRefreshAsync(async () =>
@@ -235,6 +263,8 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
 
         foreach (var stale in Containers.Where(c => !incomingIds.Contains(c.Id)).ToList())
         {
+            if (ReferenceEquals(stale, SelectedContainer))
+                SelectedContainer = null;
             Containers.Remove(stale);
             _byId.Remove(stale.Id);
             stale.Dispose();
@@ -281,6 +311,7 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
             stack.Containers.Clear();
             foreach (var container in group.OrderBy(c => c.ServiceName).ThenBy(c => c.Name))
                 stack.Containers.Add(container);
+            stack.NotifyStateChanged();
             Stacks.Add(stack);
         }
 

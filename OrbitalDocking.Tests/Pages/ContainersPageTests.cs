@@ -98,4 +98,26 @@ public class ContainersPageTests
         _state.StatusMessage.Should().Contain("daemon unreachable");
         page.Containers.Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task Select_TogglesSelectionAndClearsItWhenTheContainerDisappears()
+    {
+        _docker.ReturnsContainers(Fixtures.Container("a", "web"), Fixtures.Container("b", "db"));
+        var page = CreatePage();
+        await page.RefreshAsync();
+        var web = page.Containers.Single(c => c.Id == "a");
+
+        page.SelectCommand.Execute(web);
+        page.SelectedContainer.Should().BeSameAs(web);
+        web.IsSelected.Should().BeTrue();
+
+        page.SelectCommand.Execute(web);
+        page.SelectedContainer.Should().BeNull("selecting the selected row deselects it");
+        web.IsSelected.Should().BeFalse();
+
+        page.SelectCommand.Execute(web);
+        _docker.ReturnsContainers(Fixtures.Container("b", "db"));
+        await page.RefreshAsync();
+        page.SelectedContainer.Should().BeNull("the selected container was removed");
+    }
 }

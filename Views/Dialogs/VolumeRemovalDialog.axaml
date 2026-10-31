@@ -30,7 +30,7 @@
             <Border Grid.Row="2" 
                     Margin="0,16,0,0"
                     Background="{DynamicResource SystemAltHighColor}"
-                    CornerRadius="8"
+                    CornerRadius="3"
                     BorderBrush="{DynamicResource SystemBaseLowColor}"
                     BorderThickness="1"
                     MinHeight="60"

@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:pages="using:OrbitalDocking.Views.Pages"
+             xmlns:c="using:OrbitalDocking.Controls"
+             x:Class="OrbitalDocking.Views.Components.ContainerDetailPane"
+             x:DataType="vm:ContainerViewModel">
+
+    <Border Width="340"
+            Background="{DynamicResource SurfaceColor}"
+            BorderBrush="{DynamicResource BorderColor}"
+            BorderThickness="1,0,0,0">
+        <DockPanel>
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="20,20,12,12">
+                <StackPanel Grid.Column="0" Spacing="8">
+                    <TextBlock Text="{Binding Name}"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryColor}"
+                               TextWrapping="Wrap"/>
+                    <Border Classes="pill" HorizontalAlignment="Left"
+                            Classes.running="{Binding IsRunning}"
+                            Classes.paused="{Binding IsPaused}"
+                            Classes.problem="{Binding IsProblematic}">
+                        <TextBlock Text="{Binding StateLabel}"/>
+                    </Border>
+                </StackPanel>
+                <Button Grid.Column="1" Classes="icon" VerticalAlignment="Top" ToolTip.Tip="Close"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).CloseDetailsCommand}">
+                    <c:Icon Data="{StaticResource Icon.X}"/>
+                </Button>
+            </Grid>
+
+            <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,0,16,12">
+                <Button Classes="ghost tint-primary" IsVisible="{Binding IsStopped}"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).StartContainerCommand}"
+                        CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.Play}"/><TextBlock Text="Start"/></StackPanel>
+                </Button>
+                <Button Classes="ghost tint-danger" IsVisible="{Binding IsRunning}"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).StopContainerCommand}"
+                        CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.Square}"/><TextBlock Text="Stop"/></StackPanel>
+                </Button>
+                <Button Classes="ghost tint-restart" IsVisible="{Binding IsRunning}"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RestartContainerCommand}"
+                        CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.RotateCw}"/><TextBlock Text="Restart"/></StackPanel>
+                </Button>
+                <Button Classes="ghost tint-accent"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).ShowLogsCommand}"
+                        CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.ScrollText}"/><TextBlock Text="Logs"/></StackPanel>
+                </Button>
+                <Button Classes="ghost tint-danger" IsEnabled="{Binding CanRemove}"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RemoveContainerCommand}"
+                        CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.Trash}"/><TextBlock Text="Remove"/></StackPanel>
+                </Button>
+            </WrapPanel>
+
+            <ScrollViewer>
+                <StackPanel Margin="20,4,20,20" Spacing="18">
+
+                    <Border Classes="stats" IsVisible="{Binding IsRunning}">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" >
+                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2" Margin="0,0,0,12">
+                                <TextBlock Classes="label" Text="CPU"/>
+                                <TextBlock Classes="stat" Text="{Binding CpuUsage}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" Margin="0,0,0,12">
+                                <TextBlock Classes="label" Text="MEMORY"/>
+                                <TextBlock Classes="stat" Text="{Binding MemoryUsage}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="2">
+                                <TextBlock Classes="label" Text="NETWORK"/>
+                                <TextBlock Classes="stat" Text="{Binding NetworkIO}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+                                <TextBlock Classes="label" Text="DISK"/>
+                                <TextBlock Classes="stat" Text="{Binding DiskIO}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="label" Text="IMAGE"/>
+                        <TextBlock Classes="detail" Text="{Binding Image}"/>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="label" Text="CONTAINER ID"/>
+                        <TextBlock Classes="detail mono" Text="{Binding Id}"/>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="label" Text="STATUS"/>
+                        <TextBlock Classes="detail" Text="{Binding Status}"/>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="label" Text="CREATED"/>
+                        <TextBlock Classes="detail" Text="{Binding Created, StringFormat='{}{0:MMM d, yyyy HH:mm}'}"/>
+                    </StackPanel>
+                    <StackPanel Spacing="4" IsVisible="{Binding IsPartOfStack}">
+                        <TextBlock Classes="label" Text="STACK"/>
+                        <TextBlock Classes="detail">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} / {1}">
+                                    <Binding Path="StackName"/>
+                                    <Binding Path="ServiceName"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

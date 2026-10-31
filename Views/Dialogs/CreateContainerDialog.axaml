@@ -65,7 +65,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="{DynamicResource BackgroundInputColor}" 
-                                        CornerRadius="4" 
+                                        CornerRadius="3" 
                                         Padding="10,6">
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" 
@@ -117,7 +117,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="{DynamicResource BackgroundInputColor}" 
-                                        CornerRadius="4" 
+                                        CornerRadius="3" 
                                         Padding="10,6">
                                     <Grid ColumnDefinitions="Auto,*,Auto">
                                         <TextBlock Grid.Column="0" 
@@ -190,7 +190,7 @@
                         Background="{DynamicResource PrimaryColor}"
                         Foreground="{DynamicResource TextContrastColor}"
                         BorderThickness="0"
-                        CornerRadius="4"
+                        CornerRadius="3"
                         FontWeight="SemiBold"
                         Command="{Binding CreateAndStartCommand}"/>
             </StackPanel>

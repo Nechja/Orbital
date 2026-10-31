@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace OrbitalDocking.Views.Components;
 
-public partial class ContainerCard : UserControl
+public partial class ContainerDetailPane : UserControl
 {
-    public ContainerCard()
+    public ContainerDetailPane()
     {
         InitializeComponent();
     }

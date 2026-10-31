@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace OrbitalDocking.Views.Components;
 
-public partial class StackGroup : UserControl
+public partial class ContainerRow : UserControl
 {
-    public StackGroup()
+    public ContainerRow()
     {
         InitializeComponent();
     }

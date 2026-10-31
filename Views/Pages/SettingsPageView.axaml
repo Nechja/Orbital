@@ -14,7 +14,7 @@
                 <Border Background="{DynamicResource SurfaceColor}"
                         BorderBrush="{DynamicResource BorderColor}"
                         BorderThickness="1"
-                        CornerRadius="8"
+                        CornerRadius="3"
                         Padding="24">
                     <StackPanel Spacing="16">
                         <TextBlock Classes="label" Text="APPEARANCE"/>
@@ -42,7 +42,7 @@
                 <Border Background="{DynamicResource SurfaceColor}"
                         BorderBrush="{DynamicResource BorderColor}"
                         BorderThickness="1"
-                        CornerRadius="8"
+                        CornerRadius="3"
                         Padding="24">
                     <StackPanel Spacing="16">
                         <TextBlock Classes="label" Text="DOCKER"/>
@@ -60,14 +60,16 @@
                         <Border Background="{DynamicResource BackgroundColor}"
                                 BorderBrush="{DynamicResource BorderColor}"
                                 BorderThickness="1"
-                                CornerRadius="4"
+                                CornerRadius="3"
                                 Padding="12,8">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Ellipse Classes="docker"
-                                         Classes.online="{Binding State.IsDockerConnected}"
-                                         Classes.connecting="{Binding State.IsDockerConnecting}"/>
+                                <TextBlock Classes="docker"
+                                           Classes.online="{Binding State.IsDockerConnected}"
+                                           Classes.connecting="{Binding State.IsDockerConnecting}"
+                                           Text="{Binding State.DockerVersion}"/>
                                 <TextBlock Text="{Binding State.StatusMessage}" FontSize="12"
-                                           Foreground="{DynamicResource TextSecondaryColor}" TextWrapping="Wrap"/>
+                                           Foreground="{DynamicResource TextSecondaryColor}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

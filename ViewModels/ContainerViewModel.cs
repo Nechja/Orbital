@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using ContainerState = OrbitalDocking.Models.ContainerState;
@@ -25,8 +24,9 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         _dockerClient = dockerClient;
     }
 
+    /// <summary>Set by the containers page when this row is shown in the detail pane.</summary>
     [ObservableProperty]
-    private bool _isExpanded;
+    private bool _isSelected;
 
     [ObservableProperty]
     private string _cpuUsage = "--";
@@ -54,7 +54,7 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     public string? StackName => _container.Labels?.GetValueOrDefault(AppConstants.Docker.ComposeProjectLabel);
     public string? ServiceName => _container.Labels?.GetValueOrDefault(AppConstants.Docker.ComposeServiceLabel);
     public bool IsPartOfStack => !string.IsNullOrEmpty(StackName);
-    public string StackColor => StackName.GetStackColor();
+    public string StateLabel => State.ToString();
 
     public bool IsRunning => State == ContainerState.Running;
     public bool IsPaused => State == ContainerState.Paused;
@@ -74,6 +74,7 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(Image));
         OnPropertyChanged(nameof(Status));
         OnPropertyChanged(nameof(State));
+        OnPropertyChanged(nameof(StateLabel));
         OnPropertyChanged(nameof(StackName));
         OnPropertyChanged(nameof(ServiceName));
         OnPropertyChanged(nameof(IsPartOfStack));
@@ -84,17 +85,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsProblematic));
         OnPropertyChanged(nameof(CanRemove));
         OnPropertyChanged(nameof(CreatedRelative));
-    }
-
-    [RelayCommand]
-    public void ToggleExpanded()
-    {
-        IsExpanded = !IsExpanded;
-
-        if (IsExpanded && IsRunning)
-            StartStatsMonitoring();
-        else
-            StopStatsMonitoring();
     }
 
     public void StartStatsMonitoring()

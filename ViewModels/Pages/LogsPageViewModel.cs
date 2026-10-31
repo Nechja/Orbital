@@ -1,413 +1,139 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Docker.DotNet;
-using Docker.DotNet.Models;
+using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels.Pages;
 
 public sealed partial class LogsPageViewModel : PageViewModel
 {
+    private static readonly string[] ErrorKeywords = { "error", "exception", "fatal", "critical", "failed" };
+
+    private readonly IContainerLogs _logs;
+    private readonly AppState _state;
+
+    public LogsPageViewModel(IContainerLogs logs, IUiDispatcher ui, AppState state)
+    {
+        _logs = logs;
+        _state = state;
+        Logs = new LogBufferViewModel(logs, ui);
+    }
+
     public override string Title => "Logs";
     public override string IconKey => "Icon.ScrollText";
 
-    private readonly DockerClient _dockerClient;
-    private CancellationTokenSource? _cancellationTokenSource;
-    private Task? _streamingTask;
-    private readonly StringBuilder _logsBuilder = new();
-    private int _lastProcessedLength = 0;
-    private string? _incompleteLine = null;
-    private readonly List<string> _logLines = new();
+    /// <summary>The live log view for the selected container.</summary>
+    public LogBufferViewModel Logs { get; }
 
-    [ObservableProperty]
-    private ObservableCollection<ContainerViewModel> _availableContainers = new();
+    /// <summary>Containers offered in the picker; the shell fills this from the containers page.</summary>
+    public ObservableCollection<ContainerViewModel> AvailableContainers { get; } = new();
 
     [ObservableProperty]
     private ContainerViewModel? _selectedContainer;
 
     [ObservableProperty]
-    private string _logsContent = string.Empty;
+    private bool _showingErrorOverview;
 
-    [ObservableProperty]
-    private bool _autoScroll = true;
+    public ObservableCollection<ErrorContainerInfo> ErrorContainers { get; } = new();
 
-    [ObservableProperty]
-    private bool _showTimestamps = true;
-
-    [ObservableProperty]
-    private string _searchFilter = string.Empty;
-
-    [ObservableProperty]
-    private bool _showingErrorOverview = false;
-
-    [ObservableProperty]
-    private ObservableCollection<ErrorContainerInfo> _errorContainers = new();
-
-    public bool HasErrors => ErrorContainers.Any();
-
-    public event EventHandler? BackRequested;
-
-    [RelayCommand]
-    private void Back() => BackRequested?.Invoke(this, EventArgs.Empty);
-
-    public LogsPageViewModel(DockerClient dockerClient)
-    {
-        _dockerClient = dockerClient;
-    }
+    public bool HasErrors => ErrorContainers.Count > 0;
 
     partial void OnSelectedContainerChanged(ContainerViewModel? value)
     {
-        if (value is not null)
-            LoadContainerLogs(value.Id, value.Name);
-    }
-
-    partial void OnSearchFilterChanged(string value)
-    {
-        _lastProcessedLength = 0;
-        _logLines.Clear();
-        _incompleteLine = null;
-        FilterLogs();
-    }
-
-    public void LoadContainerLogs(string containerId, string containerName)
-    {
-        StopStreaming();
-
-        _logsBuilder.Clear();
-        _logLines.Clear();
-        _lastProcessedLength = 0;
-        _incompleteLine = null;
-        LogsContent = string.Empty;
+        if (value is null) return;
         ShowingErrorOverview = false;
-
-        _cancellationTokenSource = new CancellationTokenSource();
-        _streamingTask = StartStreamingLogsAsync(containerId, containerName);
+        Logs.Follow(value.Id, value.Name);
     }
 
-    private async Task StartStreamingLogsAsync(string containerId, string containerName)
-    {
-        if (_cancellationTokenSource is null) return;
-
-        try
-        {
-            var parameters = new ContainerLogsParameters
-            {
-                ShowStdout = true,
-                ShowStderr = true,
-                Follow = true,
-                Timestamps = ShowTimestamps,
-                Tail = "100"
-            };
-
-            var stream = await _dockerClient.Containers.GetContainerLogsAsync(
-                containerId,
-                false,
-                parameters,
-                _cancellationTokenSource.Token);
-
-            var buffer = new byte[4096];
-            while (!_cancellationTokenSource.Token.IsCancellationRequested)
-            {
-                var result = await stream.ReadOutputAsync(buffer, 0, buffer.Length, _cancellationTokenSource.Token);
-                if (result.Count > 0)
-                {
-                    var text = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    _logsBuilder.Append(text);
-                    await Dispatcher.UIThread.InvokeAsync(() => FilterLogs());
-                }
-                else if (result.EOF)
-                {
-                    break;
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            _logsBuilder.AppendLine($"\n[ERROR] Failed to stream logs: {ex.Message}");
-            LogsContent = _logsBuilder.ToString();
-        }
-    }
-
-    private void FilterLogs()
-    {
-        var allLogs = _logsBuilder.ToString();
-
-        if (string.IsNullOrWhiteSpace(SearchFilter))
-        {
-            LogsContent = allLogs;
-            return;
-        }
-
-        if (allLogs.Length < _lastProcessedLength)
-        {
-            _logLines.Clear();
-            _incompleteLine = null;
-            _lastProcessedLength = 0;
-        }
-
-        if (allLogs.Length > _lastProcessedLength)
-        {
-            var newText = allLogs.AsSpan(_lastProcessedLength);
-            var start = 0;
-
-            for (var i = 0; i < newText.Length; i++)
-            {
-                if (newText[i] == '\n')
-                {
-                    var lineSpan = newText.Slice(start, i - start);
-                    var lineText = lineSpan.ToString();
-
-                    if (!string.IsNullOrEmpty(_incompleteLine))
-                    {
-                        lineText = _incompleteLine + lineText;
-                        _incompleteLine = null;
-                    }
-
-                    _logLines.Add(lineText);
-                    start = i + 1;
-                }
-            }
-
-            if (start < newText.Length)
-            {
-                var tail = newText.Slice(start).ToString();
-                _incompleteLine = string.IsNullOrEmpty(_incompleteLine) ? tail : _incompleteLine + tail;
-            }
-
-            _lastProcessedLength = allLogs.Length;
-        }
-
-        var sourceLines = (IEnumerable<string>)_logLines;
-        if (!string.IsNullOrEmpty(_incompleteLine))
-            sourceLines = sourceLines.Append(_incompleteLine);
-
-        var filtered = sourceLines.Where(line =>
-            line.Contains(SearchFilter, StringComparison.OrdinalIgnoreCase));
-
-        LogsContent = string.Join('\n', filtered);
-    }
-
+    /// <summary>Searches the recent logs of every running container for the current filter.</summary>
     [RelayCommand]
-    private async Task SearchAllLogs()
+    private async Task SearchAllLogsAsync()
     {
-        if (string.IsNullOrWhiteSpace(SearchFilter))
-            return;
+        var filter = Logs.SearchFilter;
+        if (string.IsNullOrWhiteSpace(filter)) return;
 
-        StopStreaming();
         ShowingErrorOverview = false;
-        _logsBuilder.Clear();
-        _logsBuilder.AppendLine($"=== SEARCHING ALL CONTAINERS FOR: '{SearchFilter}' ===\n");
+        SelectedContainer = null;
+        var report = new StringBuilder();
+        report.AppendLine($"=== Searching all running containers for '{filter}' ===").AppendLine();
 
-        var containers = AvailableContainers.Where(c => c.IsRunning).ToList();
-
-        foreach (var container in containers)
+        foreach (var container in AvailableContainers.Where(c => c.IsRunning).ToList())
         {
-            try
-            {
-                var parameters = new ContainerLogsParameters
-                {
-                    ShowStdout = true,
-                    ShowStderr = true,
-                    Follow = false,
-                    Timestamps = ShowTimestamps,
-                    Tail = "100"
-                };
+            var lines = await TailLinesAsync(container, timestamps: Logs.ShowTimestamps);
+            var matches = lines.Where(l => l.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (matches.Count == 0) continue;
 
-                var stream = await _dockerClient.Containers.GetContainerLogsAsync(
-                    container.Id,
-                    false,
-                    parameters,
-                    CancellationToken.None);
-
-                var containerLogs = new StringBuilder();
-                var buffer = new byte[4096];
-
-                while (true)
-                {
-                    var result = await stream.ReadOutputAsync(buffer, 0, buffer.Length, CancellationToken.None);
-                    if (result.Count > 0)
-                    {
-                        containerLogs.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
-                    }
-                    else if (result.EOF)
-                    {
-                        break;
-                    }
-                }
-
-                var logs = containerLogs.ToString();
-                var matchingLines = logs.Split('\n')
-                    .Where(line => line.Contains(SearchFilter, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                if (matchingLines.Any())
-                {
-                    _logsBuilder.AppendLine($"──────────────────────────────────────");
-                    _logsBuilder.AppendLine($"📦 {container.Name} ({matchingLines.Count} matches)");
-                    _logsBuilder.AppendLine($"──────────────────────────────────────");
-                    foreach (var line in matchingLines)
-                    {
-                        _logsBuilder.AppendLine(line);
-                    }
-                    _logsBuilder.AppendLine();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logsBuilder.AppendLine($"[ERROR] Failed to search logs for {container.Name}: {ex.Message}");
-            }
+            report.AppendLine($"--- {container.Name} ({matches.Count} matches) ---");
+            foreach (var line in matches)
+                report.AppendLine(line);
+            report.AppendLine();
         }
 
-        _logsBuilder.AppendLine("\n=== SEARCH COMPLETE ===");
-        LogsContent = _logsBuilder.ToString();
+        report.AppendLine("=== Search complete ===");
+        Logs.SearchFilter = string.Empty;
+        Logs.ShowText(report.ToString());
     }
 
+    /// <summary>Lists running containers whose recent logs mention an error keyword.</summary>
     [RelayCommand]
-    private async Task ShowErrors()
+    private async Task ShowErrorsAsync()
     {
         ShowingErrorOverview = true;
         ErrorContainers.Clear();
 
-        var containers = AvailableContainers.Where(c => c.IsRunning).ToList();
-        var errorKeywords = new[] { "error", "exception", "fatal", "critical", "failed" };
-
-        foreach (var container in containers)
+        foreach (var container in AvailableContainers.Where(c => c.IsRunning).ToList())
         {
-            try
-            {
-                var parameters = new ContainerLogsParameters
-                {
-                    ShowStdout = true,
-                    ShowStderr = true,
-                    Follow = false,
-                    Timestamps = false,
-                    Tail = "100"
-                };
+            var errorLines = (await TailLinesAsync(container, timestamps: false))
+                .Where(l => ErrorKeywords.Any(k => l.Contains(k, StringComparison.OrdinalIgnoreCase)))
+                .Take(10)
+                .ToList();
 
-                var stream = await _dockerClient.Containers.GetContainerLogsAsync(
-                    container.Id,
-                    false,
-                    parameters,
-                    CancellationToken.None);
-
-                var containerLogs = new StringBuilder();
-                var buffer = new byte[4096];
-
-                while (true)
-                {
-                    var result = await stream.ReadOutputAsync(buffer, 0, buffer.Length, CancellationToken.None);
-                    if (result.Count > 0)
-                    {
-                        containerLogs.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
-                    }
-                    else if (result.EOF)
-                    {
-                        break;
-                    }
-                }
-
-                var logs = containerLogs.ToString();
-                var errorLines = logs.Split('\n')
-                    .Where(line => errorKeywords.Any(keyword =>
-                        line.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
-                    .Take(10) // Limit to 10 error lines per container
-                    .ToList();
-
-                if (errorLines.Any())
-                {
-                    ErrorContainers.Add(new ErrorContainerInfo
-                    {
-                        ContainerId = container.Id,
-                        ContainerName = container.Name,
-                        ErrorCount = errorLines.Count,
-                        ErrorLines = errorLines
-                    });
-                }
-            }
-            catch (Exception)
-            {
-            }
+            if (errorLines.Count > 0)
+                ErrorContainers.Add(new ErrorContainerInfo(container.Id, container.Name, errorLines));
         }
 
         OnPropertyChanged(nameof(HasErrors));
     }
 
     [RelayCommand]
-    private void ViewContainerLogs(ErrorContainerInfo? errorInfo)
+    private void ViewContainerLogs(ErrorContainerInfo info)
     {
-        if (errorInfo is null) return;
-
-        var container = AvailableContainers.FirstOrDefault(c => c.Id == errorInfo.ContainerId);
-        if (container is not null)
-        {
-            ShowingErrorOverview = false;
-            SelectedContainer = container;
-        }
-    }
-
-    [RelayCommand]
-    private void ClearLogs()
-    {
-        _logsBuilder.Clear();
-        LogsContent = string.Empty;
+        var container = AvailableContainers.FirstOrDefault(c => c.Id == info.ContainerId);
+        if (container is null) return;
+        SelectedContainer = container;
     }
 
     [RelayCommand]
     private async Task ExportLogsAsync()
     {
+        var path = await Logs.ExportAsync();
+        _state.StatusMessage = path is null ? "Failed to export logs" : $"Logs exported to {path}";
+    }
+
+    private async Task<string[]> TailLinesAsync(ContainerViewModel container, bool timestamps)
+    {
         try
         {
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var containerName = SelectedContainer?.Name ?? "all";
-            var fileName = $"{containerName}_logs_{timestamp}.txt";
-            var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = Path.Combine(desktopPath, fileName);
-
-            await File.WriteAllTextAsync(filePath, LogsContent);
+            var text = await _logs.ReadTailAsync(container.Id, timestamps, 100, CancellationToken.None);
+            return text.Split('\n');
         }
         catch (Exception)
         {
+            return Array.Empty<string>();
         }
     }
 
-    private void StopStreaming()
-    {
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
-        _streamingTask = null;
-    }
-
-    partial void OnShowTimestampsChanged(bool value)
-    {
-        if (SelectedContainer is null) return;
-        LoadContainerLogs(SelectedContainer.Id, SelectedContainer.Name);
-    }
-
-    public override void Dispose()
-    {
-        var task = _streamingTask;
-        StopStreaming();
-        try { task?.Wait(TimeSpan.FromSeconds(1)); }
-        catch (AggregateException) { }
-    }
+    public override void Dispose() => Logs.Dispose();
 }
 
-public class ErrorContainerInfo
+public sealed record ErrorContainerInfo(string ContainerId, string ContainerName, List<string> ErrorLines)
 {
-    public string ContainerId { get; set; } = string.Empty;
-    public string ContainerName { get; set; } = string.Empty;
-    public int ErrorCount { get; set; }
-    public List<string> ErrorLines { get; set; } = new();
+    public int ErrorCount => ErrorLines.Count;
+    public string ErrorCountLabel => ErrorCount == 1 ? "1 error" : $"{ErrorCount} errors";
 }

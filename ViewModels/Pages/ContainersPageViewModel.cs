@@ -24,6 +24,7 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
     public ContainersPageViewModel(
         IDockerService docker,
         DockerClient? dockerClient,
+        IContainerLogs logs,
         IDialogService dialogs,
         AppState state,
         IUiDispatcher ui,
@@ -33,6 +34,7 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
         _dockerClient = dockerClient;
         _dialogs = dialogs;
         _logger = logger;
+        DetailLogs = new LogBufferViewModel(logs, ui);
 
         var dockerEvents = Observable.FromEventPattern<ContainerEventArgs>(
             h => Docker.ContainerEvent += h,
@@ -83,6 +85,37 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
     [ObservableProperty]
     private ContainerViewModel? _selectedContainer;
 
+    /// <summary>Live logs for the selected container, streamed only while the Logs tab is showing.</summary>
+    public LogBufferViewModel DetailLogs { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOverviewTab))]
+    [NotifyPropertyChangedFor(nameof(IsLogsTab))]
+    private string _detailTab = "overview";
+
+    public bool IsOverviewTab => DetailTab == "overview";
+    public bool IsLogsTab => DetailTab == "logs";
+
+    [RelayCommand]
+    private void SelectTab(string tab)
+    {
+        DetailTab = tab;
+        SyncDetailLogs();
+    }
+
+    private void SyncDetailLogs()
+    {
+        if (IsLogsTab && SelectedContainer is { } selected)
+        {
+            if (DetailLogs.ContainerId != selected.Id || !DetailLogs.IsFollowing)
+                DetailLogs.Follow(selected.Id, selected.Name);
+        }
+        else
+        {
+            DetailLogs.Stop();
+        }
+    }
+
     /// <summary>Raised when the user asks to see a container's logs; the shell navigates to the logs page.</summary>
     public event EventHandler<ContainerViewModel>? LogsRequested;
 
@@ -102,6 +135,8 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
             if (newValue.IsRunning)
                 newValue.StartStatsMonitoring();
         }
+
+        SyncDetailLogs();
     }
 
     /// <summary>Selects a container for the detail pane; selecting it again deselects.</summary>
@@ -323,6 +358,7 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
     public override void Dispose()
     {
         base.Dispose();
+        DetailLogs.Dispose();
         foreach (var container in Containers)
             container.Dispose();
     }

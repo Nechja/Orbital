@@ -19,14 +19,15 @@ public class MainWindowViewModelTests
     {
         var ui = new ImmediateUiDispatcher();
         var dialogs = Mock.Of<IDialogService>();
+        var logs = new FakeContainerLogs();
         return new MainWindowViewModel(
             _docker.Object,
             _state,
-            new ContainersPageViewModel(_docker.Object, null, dialogs, _state, ui, NullLogger<ContainersPageViewModel>.Instance),
+            new ContainersPageViewModel(_docker.Object, null, logs, dialogs, _state, ui, NullLogger<ContainersPageViewModel>.Instance),
             new ImagesPageViewModel(_docker.Object, dialogs, _state, ui),
             new VolumesPageViewModel(_docker.Object, dialogs, _state, ui),
             new NetworksPageViewModel(_docker.Object, dialogs, _state, ui),
-            new LogsPageViewModel(null!),
+            new LogsPageViewModel(logs, ui, _state),
             new SettingsPageViewModel(Mock.Of<IThemeService>(), _docker.Object, _state, NullLogger<SettingsPageViewModel>.Instance));
     }
 

@@ -16,7 +16,7 @@ public class ContainersPageTests
     private readonly AppState _state = new();
 
     private ContainersPageViewModel CreatePage() =>
-        new(_docker.Object, null, Mock.Of<IDialogService>(), _state, new ImmediateUiDispatcher(), NullLogger<ContainersPageViewModel>.Instance);
+        new(_docker.Object, null, new FakeContainerLogs(), Mock.Of<IDialogService>(), _state, new ImmediateUiDispatcher(), NullLogger<ContainersPageViewModel>.Instance);
 
     [Fact]
     public async Task Refresh_GroupsContainersIntoStacksAndStandalone()

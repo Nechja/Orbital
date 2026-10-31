@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
             provider.GetRequiredService<IDockerClientFactory>().CreateClient());
         services.AddSingleton<IDockerMapper, DockerMapper>();
         services.AddSingleton<IDockerService, DockerService>();
+        services.AddSingleton<IContainerLogs, DockerContainerLogs>();
 
         // UI services
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();

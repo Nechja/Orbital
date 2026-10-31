@@ -7,7 +7,7 @@
              x:Class="OrbitalDocking.Views.Components.ContainerDetailPane"
              x:DataType="vm:ContainerViewModel">
 
-    <Border Width="340"
+    <Border Width="400"
             Background="{DynamicResource SurfaceColor}"
             BorderBrush="{DynamicResource BorderColor}"
             BorderThickness="1,0,0,0">
@@ -47,11 +47,6 @@
                         CommandParameter="{Binding}">
                     <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.RotateCw}"/><TextBlock Text="Restart"/></StackPanel>
                 </Button>
-                <Button Classes="ghost tint-accent"
-                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).ShowLogsCommand}"
-                        CommandParameter="{Binding}">
-                    <StackPanel Orientation="Horizontal" Spacing="6"><c:Icon Data="{StaticResource Icon.ScrollText}"/><TextBlock Text="Logs"/></StackPanel>
-                </Button>
                 <Button Classes="ghost tint-danger" IsEnabled="{Binding CanRemove}"
                         Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RemoveContainerCommand}"
                         CommandParameter="{Binding}">
@@ -59,7 +54,36 @@
                 </Button>
             </WrapPanel>
 
-            <ScrollViewer>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="2" Margin="16,0,16,8">
+                <Button Classes="tab" Content="Overview" Classes.active="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).IsOverviewTab}"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).SelectTabCommand}" CommandParameter="overview"/>
+                <Button Classes="tab" Content="Logs" Classes.active="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).IsLogsTab}"
+                        Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).SelectTabCommand}" CommandParameter="logs"/>
+            </StackPanel>
+
+            <!-- Logs tab -->
+            <Grid RowDefinitions="Auto,*" IsVisible="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).IsLogsTab}" Margin="16,0,16,16">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+                    <TextBox Grid.Column="0" Classes="search" Width="NaN" HorizontalAlignment="Stretch" MinHeight="30"
+                             Text="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).DetailLogs.SearchFilter}" PlaceholderText="Filter lines"/>
+                    <CheckBox Grid.Column="1" Margin="10,0,0,0" IsChecked="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).DetailLogs.AutoScroll}" ToolTip.Tip="Auto-scroll"/>
+                    <Button Grid.Column="2" Classes="ghost tint-accent" Content="Open"
+                            ToolTip.Tip="Open in the Logs page"
+                            Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).ShowLogsCommand}" CommandParameter="{Binding}"/>
+                </Grid>
+                <Border Grid.Row="1" Classes="stats" Padding="0">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                  c:AutoScroll.IsEnabled="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).DetailLogs.AutoScroll}">
+                        <SelectableTextBlock Text="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).DetailLogs.Content}"
+                                             Classes="mono" FontSize="11"
+                                             Foreground="{DynamicResource LogsTextColor}"
+                                             Margin="12,10"/>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Overview tab -->
+            <ScrollViewer IsVisible="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).IsOverviewTab}">
                 <StackPanel Margin="20,4,20,20" Spacing="18">
 
                     <Border Classes="stats" IsVisible="{Binding IsRunning}">

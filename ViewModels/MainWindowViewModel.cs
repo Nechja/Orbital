@@ -45,7 +45,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             CurrentPage = Logs;
             Logs.SelectedContainer = container;
         };
-        Logs.BackRequested += (_, _) => CurrentPage = Containers;
 
         _ = ConnectAsync();
         _ = Task.Run(() => _docker.StartMonitoringEvents());

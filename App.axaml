@@ -1,126 +1,31 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:pages="using:OrbitalDocking.Views.Pages"
              x:Class="OrbitalDocking.App"
-             xmlns:local="using:OrbitalDocking"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://OrbitalDocking/Themes/Palette.axaml"/>
+                <ResourceInclude Source="avares://OrbitalDocking/Styles/Icons.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <!-- Page view models map to their views here; the shell hosts CurrentPage in a ContentControl. -->
     <Application.DataTemplates>
-        <local:ViewLocator/>
+        <DataTemplate DataType="vmp:ContainersPageViewModel"><pages:ContainersPageView/></DataTemplate>
+        <DataTemplate DataType="vmp:ImagesPageViewModel"><pages:ImagesPageView/></DataTemplate>
+        <DataTemplate DataType="vmp:VolumesPageViewModel"><pages:VolumesPageView/></DataTemplate>
+        <DataTemplate DataType="vmp:NetworksPageViewModel"><pages:NetworksPageView/></DataTemplate>
+        <DataTemplate DataType="vmp:LogsPageViewModel"><pages:LogsPageView/></DataTemplate>
+        <DataTemplate DataType="vmp:SettingsPageViewModel"><pages:SettingsPageView/></DataTemplate>
     </Application.DataTemplates>
-  
+
     <Application.Styles>
         <FluentTheme />
-
-        <Style Selector="TextBox">
-            <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
-        </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
-        </Style>
-
-        <!-- Shared button styles -->
-        <Style Selector="Button.action">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.action:pointerover">
-            <Setter Property="Opacity" Value="0.8"/>
-        </Style>
-
-        <Style Selector="Button.primary">
-            <Setter Property="Background" Value="{DynamicResource PrimaryColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.primary:pointerover">
-            <Setter Property="Opacity" Value="0.9"/>
-        </Style>
-
-        <Style Selector="Button.danger">
-            <Setter Property="Background" Value="{DynamicResource DangerColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.danger:pointerover">
-            <Setter Property="Opacity" Value="0.9"/>
-        </Style>
-
-        <Style Selector="Button.danger-dark">
-            <Setter Property="Background" Value="{DynamicResource DangerDarkColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.danger-dark:pointerover">
-            <Setter Property="Opacity" Value="0.9"/>
-        </Style>
-
-        <Style Selector="Button.restart">
-            <Setter Property="Background" Value="{DynamicResource RestartColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.restart:pointerover">
-            <Setter Property="Opacity" Value="0.9"/>
-        </Style>
-
-        <Style Selector="Button.accent">
-            <Setter Property="Background" Value="{DynamicResource ActionAccentColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource BackgroundColor}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.accent:pointerover">
-            <Setter Property="Opacity" Value="0.9"/>
-        </Style>
-
-        <Style Selector="Button.subtle">
-            <Setter Property="Background" Value="{DynamicResource CardColor}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.subtle:pointerover">
-            <Setter Property="Opacity" Value="0.8"/>
-        </Style>
-
-        <Style Selector="Button.outlined">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryColor}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderInputColor}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style Selector="Button.outlined:pointerover">
-            <Setter Property="Opacity" Value="0.8"/>
-        </Style>
+        <StyleInclude Source="avares://OrbitalDocking/Styles/Controls.axaml"/>
     </Application.Styles>
 </Application>

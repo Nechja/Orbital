@@ -3,6 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:OrbitalDocking.ViewModels"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:pages="using:OrbitalDocking.Views.Pages"
+             xmlns:c="using:OrbitalDocking.Controls"
              xmlns:components="using:OrbitalDocking.Views.Components"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="400"
              x:Class="OrbitalDocking.Views.Components.StackGroup"
@@ -65,25 +68,29 @@
                                 Content="START ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Name="StartStackButton"
+                                Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).StartStackCommand}"
+                                CommandParameter="{Binding}"
                                 IsVisible="{Binding !AllRunning}"/>
                         <Button Classes="danger"
                                 Content="STOP ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Name="StopStackButton"
+                                Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).StopStackCommand}"
+                                CommandParameter="{Binding}"
                                 IsVisible="{Binding !AllStopped}"/>
                         <Button Classes="restart"
                                 Content="RESTART ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Name="RestartStackButton"
+                                Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RestartStackCommand}"
+                                CommandParameter="{Binding}"
                                 IsVisible="{Binding AllRunning}"/>
                         <Button Classes="danger-dark"
                                 Content="REMOVE ALL"
                                 FontSize="10"
                                 Padding="8,4"
-                                Name="RemoveStackButton"
+                                Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RemoveStackCommand}"
+                                CommandParameter="{Binding}"
                                 IsVisible="{Binding AllStopped}"/>
                     </StackPanel>
                 </Grid>

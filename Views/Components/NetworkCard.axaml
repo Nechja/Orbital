@@ -3,6 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:OrbitalDocking.ViewModels"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:pages="using:OrbitalDocking.Views.Pages"
+             xmlns:c="using:OrbitalDocking.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="100"
              x:Class="OrbitalDocking.Views.Components.NetworkCard"
              x:DataType="vm:NetworkViewModel">
@@ -45,7 +48,8 @@
                     Classes="danger"
                     Content="REMOVE"
                     VerticalAlignment="Center"
-                    Name="RemoveButton"/>
+                    Command="{Binding $parent[pages:NetworksPageView].((vmp:NetworksPageViewModel)DataContext).RemoveNetworkCommand}"
+                    CommandParameter="{Binding}"/>
         </Grid>
     </Border>
 </UserControl>

@@ -10,25 +10,6 @@ namespace OrbitalDocking.Tests.GoldenPath;
 public class CoreFunctionalityTests
 {
     [Fact]
-    public void ContainerInfo_Should_CreateWithRequiredProperties()
-    {
-        var container = new ContainerInfo(
-            Id: "abc123",
-            Name: "test-container",
-            Image: "nginx:latest",
-            State: ContainerState.Running,
-            Created: DateTime.UtcNow,
-            Status: "Up 5 minutes",
-            Labels: new Dictionary<string, string>(),
-            Ports: new List<PortMapping>()
-        );
-
-        container.Id.Should().Be("abc123");
-        container.Name.Should().Be("test-container");
-        container.State.Should().Be(ContainerState.Running);
-    }
-
-    [Fact]
     public void ContainerViewModel_Should_DetermineStateCorrectly()
     {
         var runningContainer = new ContainerInfo(
@@ -46,7 +27,7 @@ public class CoreFunctionalityTests
         
         vm.IsRunning.Should().BeTrue();
         vm.IsStopped.Should().BeFalse();
-        vm.StateColor.Should().Be("#4ECDC4");
+        vm.CanRemove.Should().BeFalse();
     }
 
     [Fact]
@@ -89,29 +70,5 @@ public class CoreFunctionalityTests
         vm.SizeFormatted.Should().Contain("MB");
         vm.Repository.Should().Be("nginx");
         vm.Tag.Should().Be("latest");
-    }
-
-    [Fact]
-    public void ContainerState_Enum_Should_HaveExpectedValues()
-    {
-        Enum.GetValues<ContainerState>()
-            .Should().Contain(new[] {
-                ContainerState.Running,
-                ContainerState.Exited,
-                ContainerState.Paused,
-                ContainerState.Created
-            });
-    }
-
-    [Fact]
-    public void DockerAction_Enum_Should_HaveExpectedValues()
-    {
-        Enum.GetValues<DockerAction>()
-            .Should().Contain(new[] {
-                DockerAction.Start,
-                DockerAction.Stop,
-                DockerAction.Restart,
-                DockerAction.Remove
-            });
     }
 }

@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OrbitalDocking.Configuration;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
 
@@ -36,7 +35,6 @@ public partial class StackViewModel : ObservableObject
     
     public string CollectiveState => AllRunning ? "All Running" : AllStopped ? "All Stopped" : "Mixed";
     
-    public string StateColor => AllRunning ? ThemeColors.Dark.ContainerRunning : AllStopped ? ThemeColors.Dark.ContainerStopped : ThemeColors.Dark.ContainerPaused;
     
     public string ExpandSymbol => IsExpanded ? "−" : "+";
     

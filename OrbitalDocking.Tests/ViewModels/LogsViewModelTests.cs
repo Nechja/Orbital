@@ -3,17 +3,18 @@ using FluentAssertions;
 using Moq;
 using Docker.DotNet;
 using OrbitalDocking.ViewModels;
+using OrbitalDocking.ViewModels.Pages;
 using System.Collections.ObjectModel;
 
 namespace OrbitalDocking.Tests.ViewModels;
 
 public class LogsViewModelTests : IDisposable
 {
-    private readonly LogsViewModel _sut;
+    private readonly LogsPageViewModel _sut;
 
     public LogsViewModelTests()
     {
-        _sut = new LogsViewModel(null!);
+        _sut = new LogsPageViewModel(null!);
     }
 
     [Fact]

@@ -12,10 +12,11 @@ namespace OrbitalDocking.Tests.Pages;
 public class ResourcePagesTests
 {
     private readonly Mock<IDockerService> _docker = Fixtures.DockerService();
+    private readonly Mock<IDialogService> _dialogs = new();
     private readonly AppState _state = new();
 
     private ImagesPageViewModel CreateImagesPage() =>
-        new(_docker.Object, Mock.Of<IDialogService>(), _state, new ImmediateUiDispatcher());
+        new(_docker.Object, _dialogs.Object, _state, new ImmediateUiDispatcher());
 
     [Fact]
     public async Task Refresh_LoadsSortedItemsAndCount()
@@ -44,16 +45,66 @@ public class ResourcePagesTests
     }
 
     [Fact]
+    public async Task SortBy_OrdersItemsAndFlipsDirectionOnRepeat()
+    {
+        _docker.ReturnsImages(Fixtures.Image("redis", size: 300), Fixtures.Image("nginx", size: 100), Fixtures.Image("alpine", size: 200));
+        var page = CreateImagesPage();
+        await page.RefreshAsync();
+
+        page.SortByCommand.Execute("size");
+        page.Items.Select(i => i.Repository).Should().Equal("nginx", "alpine", "redis");
+
+        page.SortByCommand.Execute("size");
+        page.SortDescending.Should().BeTrue();
+        page.Items.Select(i => i.Repository).Should().Equal("redis", "alpine", "nginx");
+    }
+
+    [Fact]
+    public async Task RemoveSelected_AsksForConfirmationThenRemovesEachAndRefreshes()
+    {
+        _docker.ReturnsImages(Fixtures.Image("nginx"), Fixtures.Image("redis"), Fixtures.Image("alpine"));
+        _dialogs.Setup(d => d.ShowConfirmationAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
+        var page = CreateImagesPage();
+        await page.RefreshAsync();
+        foreach (var image in page.Items.Where(i => i.Repository != "alpine"))
+            page.SelectedItems.Add(image);
+        page.SelectedCount.Should().Be(2);
+
+        await page.RemoveSelectedCommand.ExecuteAsync(null);
+
+        _docker.Verify(x => x.RemoveImageAsync("sha256:nginxlatest", true, It.IsAny<CancellationToken>()), Times.Once);
+        _docker.Verify(x => x.RemoveImageAsync("sha256:redislatest", true, It.IsAny<CancellationToken>()), Times.Once);
+        _docker.Verify(x => x.RemoveImageAsync("sha256:alpinelatest", true, It.IsAny<CancellationToken>()), Times.Never);
+        _docker.Verify(x => x.GetImagesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _state.StatusMessage.Should().Be("Removed 2 images");
+    }
+
+    [Fact]
+    public async Task RemoveSelected_DoesNothingWhenDeclined()
+    {
+        _docker.ReturnsImages(Fixtures.Image("nginx"));
+        _dialogs.Setup(d => d.ShowConfirmationAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+        var page = CreateImagesPage();
+        await page.RefreshAsync();
+
+        page.SelectedItems.Add(page.Items.Single());
+
+        await page.RemoveSelectedCommand.ExecuteAsync(null);
+
+        _docker.Verify(x => x.RemoveImageAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task RemoveImage_CallsDockerThenRefreshes()
     {
         _docker.ReturnsImages(Fixtures.Image("nginx"));
         var page = CreateImagesPage();
         await page.RefreshAsync();
 
-        await page.RemoveImageCommand.ExecuteAsync(page.Items.Single());
+        await page.RemoveItemCommand.ExecuteAsync(page.Items.Single());
 
         _docker.Verify(x => x.RemoveImageAsync("sha256:nginxlatest", true, It.IsAny<CancellationToken>()), Times.Once);
         _docker.Verify(x => x.GetImagesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
-        _state.StatusMessage.Should().Be("Removed nginx:latest");
+        _state.StatusMessage.Should().Be("Removed image nginx:latest");
     }
 }

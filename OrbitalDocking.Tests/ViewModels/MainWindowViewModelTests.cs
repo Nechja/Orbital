@@ -24,8 +24,8 @@ public class MainWindowViewModelTests
             _state,
             new ContainersPageViewModel(_docker.Object, null, dialogs, _state, ui, NullLogger<ContainersPageViewModel>.Instance),
             new ImagesPageViewModel(_docker.Object, dialogs, _state, ui),
-            new VolumesPageViewModel(_docker.Object, _state, ui),
-            new NetworksPageViewModel(_docker.Object, _state, ui),
+            new VolumesPageViewModel(_docker.Object, dialogs, _state, ui),
+            new NetworksPageViewModel(_docker.Object, dialogs, _state, ui),
             new LogsPageViewModel(null!),
             new SettingsPageViewModel(Mock.Of<IThemeService>(), _docker.Object, _state, NullLogger<SettingsPageViewModel>.Instance));
     }

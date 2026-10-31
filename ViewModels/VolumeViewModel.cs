@@ -18,6 +18,8 @@ public partial class VolumeViewModel : ObservableObject
     public string Name => _volume.Name;
     public string ShortName => _volume.Name.Length > 25 ? _volume.Name.Substring(0, 22) + "..." : _volume.Name;
     public string Driver => _volume.Driver;
+    /// <summary>Docker names anonymous volumes with a 64-character hex id.</summary>
+    public bool IsAnonymous => _volume.Name.Length == 64 && _volume.Name.All(Uri.IsHexDigit);
     public string MountPoint => _volume.MountPoint;
     public DateTime Created => _volume.Created;
     public string CreatedRelative => _volume.Created.ToRelativeTime();

@@ -1,33 +1,122 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
              xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
-             xmlns:components="using:OrbitalDocking.Views.Components"
+             xmlns:conv="using:OrbitalDocking.Converters"
              xmlns:c="using:OrbitalDocking.Controls"
              x:Class="OrbitalDocking.Views.Pages.ImagesPageView"
              x:DataType="vmp:ImagesPageViewModel">
 
-    <Grid RowDefinitions="Auto,*" Margin="32,24,32,16">
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,20">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="32,24,32,16">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
                 <TextBlock Classes="page-title" Text="Images"/>
-                <TextBlock Classes="page-subtitle" Text="{Binding Items.Count, StringFormat='{}{0} shown'}"/>
+                <TextBlock Classes="page-subtitle" Text="{Binding Items.Count, StringFormat='{}{0} shown'}" TextTrimming="CharacterEllipsis"/>
             </StackPanel>
             <TextBox Grid.Column="1" Classes="search" Text="{Binding SearchText}" PlaceholderText="Search images"/>
-            <Button Grid.Column="2" Classes="icon" Margin="8,0,0,0"
-                    Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
+            <Button Grid.Column="2" Classes="icon" Margin="8,0,0,0" Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
                 <c:Icon Data="{StaticResource Icon.RefreshCw}"/>
             </Button>
         </Grid>
 
-        <ScrollViewer Grid.Row="1">
-            <ItemsControl ItemsSource="{Binding Items}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><StackPanel Spacing="8"/></ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate><components:ImageCard/></DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="2" Margin="0,0,0,8">
+                <Button Classes="ghost tint-danger"
+                        IsVisible="{Binding !!SelectedCount}"
+                        Content="{Binding SelectedCount, StringFormat='Remove selected ({0})'}"
+                        Command="{Binding RemoveSelectedCommand}"/>
+                <Button Classes="ghost" Content="Remove unused" Command="{Binding RemoveUnusedCommand}"
+                        ToolTip.Tip="Remove dangling images (docker image prune)"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Classes="table-header">
+            <Grid ColumnDefinitions="32,3*,110,90,130,110" Margin="12,0">
+                <Button Grid.Column="1" Classes="th" Command="{Binding SortByCommand}" CommandParameter="name">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="NAME"/>
+                        <c:Icon Width="12" Height="12" VerticalAlignment="Center">
+                            <c:Icon.Data>
+                                <MultiBinding Converter="{x:Static conv:SortIndicatorConverter.Instance}" ConverterParameter="name">
+                                    <Binding Path="SortColumn"/>
+                                    <Binding Path="SortDescending"/>
+                                </MultiBinding>
+                            </c:Icon.Data>
+                        </c:Icon>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="2" Classes="th" Command="{Binding SortByCommand}" CommandParameter="tag">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="TAG"/>
+                        <c:Icon Width="12" Height="12" VerticalAlignment="Center">
+                            <c:Icon.Data>
+                                <MultiBinding Converter="{x:Static conv:SortIndicatorConverter.Instance}" ConverterParameter="tag">
+                                    <Binding Path="SortColumn"/>
+                                    <Binding Path="SortDescending"/>
+                                </MultiBinding>
+                            </c:Icon.Data>
+                        </c:Icon>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="3" Classes="th" Command="{Binding SortByCommand}" CommandParameter="size">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="SIZE"/>
+                        <c:Icon Width="12" Height="12" VerticalAlignment="Center">
+                            <c:Icon.Data>
+                                <MultiBinding Converter="{x:Static conv:SortIndicatorConverter.Instance}" ConverterParameter="size">
+                                    <Binding Path="SortColumn"/>
+                                    <Binding Path="SortDescending"/>
+                                </MultiBinding>
+                            </c:Icon.Data>
+                        </c:Icon>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="4" Classes="th" Command="{Binding SortByCommand}" CommandParameter="created">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="CREATED"/>
+                        <c:Icon Width="12" Height="12" VerticalAlignment="Center">
+                            <c:Icon.Data>
+                                <MultiBinding Converter="{x:Static conv:SortIndicatorConverter.Instance}" ConverterParameter="created">
+                                    <Binding Path="SortColumn"/>
+                                    <Binding Path="SortDescending"/>
+                                </MultiBinding>
+                            </c:Icon.Data>
+                        </c:Icon>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <ListBox Grid.Row="3" Classes="table" ItemsSource="{Binding Items}" SelectedItems="{Binding SelectedItems}" SelectionMode="Multiple,Toggle">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:ImageViewModel">
+                    <Grid ColumnDefinitions="32,3*,110,90,130,110" Margin="12,0">
+                        <CheckBox Grid.Column="0" Classes="row-check" IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"/>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0,0,12,0">
+                            <TextBlock Grid.Column="0" Classes="cell primary" Classes.muted="{Binding IsDangling}" Text="{Binding Repository}" ToolTip.Tip="{Binding FullId}"/>
+                            <Border Grid.Column="1" Classes="pill" Margin="8,0,0,0" HorizontalAlignment="Left" IsVisible="{Binding IsDangling}"><TextBlock Text="dangling"/></Border>
+                        </Grid>
+                        <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Tag}"/>
+                        <TextBlock Grid.Column="3" Classes="cell" Text="{Binding SizeFormatted}"/>
+                        <TextBlock Grid.Column="4" Classes="cell muted" Text="{Binding CreatedRelative}" ToolTip.Tip="{Binding Created}"/>
+                        <StackPanel Grid.Column="5" Classes="row-actions" Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Classes="icon tint-primary" ToolTip.Tip="Run a container"
+                                    Command="{Binding $parent[ListBox].((vmp:ImagesPageViewModel)DataContext).RunImageCommand}"
+                                    CommandParameter="{Binding}">
+                                <c:Icon Data="{StaticResource Icon.Play}"/>
+                            </Button>
+                            <Button Classes="icon tint-accent" ToolTip.Tip="Pull latest" IsVisible="{Binding !IsDangling}"
+                                    Command="{Binding $parent[ListBox].((vmp:ImagesPageViewModel)DataContext).PullImageCommand}"
+                                    CommandParameter="{Binding}">
+                                <c:Icon Data="{StaticResource Icon.Download}"/>
+                            </Button>
+                            <Button Classes="icon tint-danger" ToolTip.Tip="Remove image"
+                                    Command="{Binding $parent[ListBox].((vmp:ImagesPageViewModel)DataContext).RemoveItemCommand}"
+                                    CommandParameter="{Binding}">
+                                <c:Icon Data="{StaticResource Icon.Trash}"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </Grid>
 </UserControl>

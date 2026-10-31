@@ -241,7 +241,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         try
         {
             var images = await dockerClient.Images.ListImagesAsync(
-                new ImagesListParameters { All = true },
+                new ImagesListParameters { All = false },
                 cancellationToken);
 
             return images.Select(dockerMapper.MapToImageInfo).ToList();

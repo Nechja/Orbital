@@ -21,7 +21,7 @@ public sealed class DialogService : IDialogService
     }
 
     public Task<bool> ShowConfirmationAsync(string title, string message) =>
-        new ConfirmationDialog { Title = title, Message = message }.ShowDialog<bool>(Owner);
+        new ConfirmationDialog { Title = title, Message = message, ConfirmText = "Remove" }.ShowDialog<bool>(Owner);
 
     public Task<VolumeRemovalChoice> ShowVolumeRemovalDialogAsync(string subject, IReadOnlyList<VolumeMount> volumes)
     {

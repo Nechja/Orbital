@@ -6,7 +6,6 @@ using OrbitalDocking.Models;
 
 namespace OrbitalDocking.Services;
 
-/// <summary>User preferences that survive restarts. Add fields here; the store round-trips them as JSON.</summary>
 public sealed record Preferences(
     ThemeMode Theme = ThemeMode.Dark,
     bool SidebarCollapsed = false,
@@ -22,7 +21,6 @@ public interface IPreferencesStore
     void Save(Preferences preferences);
 }
 
-/// <summary>Stores preferences as JSON under the user's config directory (e.g. ~/.config/Orbital on Linux).</summary>
 public sealed class JsonPreferencesStore : IPreferencesStore
 {
     private readonly string _path;
@@ -59,7 +57,6 @@ public sealed class JsonPreferencesStore : IPreferencesStore
         }
         catch (Exception)
         {
-            // Preferences are a convenience; never fail the app over them.
         }
     }
 }

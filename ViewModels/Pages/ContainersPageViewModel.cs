@@ -63,13 +63,10 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
     public override string Title => "Containers";
     public override string IconKey => "Icon.Box";
 
-    /// <summary>Every known container, unfiltered. View model instances are reused across refreshes.</summary>
     public ObservableCollection<ContainerViewModel> Containers { get; } = new();
 
-    /// <summary>Compose stacks matching the search, each holding its containers.</summary>
     public ObservableCollection<StackViewModel> Stacks { get; } = new();
 
-    /// <summary>Containers matching the search that are not part of a stack.</summary>
     public ObservableCollection<ContainerViewModel> StandaloneContainers { get; } = new();
 
     [ObservableProperty]
@@ -81,11 +78,9 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
     [ObservableProperty]
     private int _stoppedCount;
 
-    /// <summary>The container shown in the detail pane, if any.</summary>
     [ObservableProperty]
     private ContainerViewModel? _selectedContainer;
 
-    /// <summary>Live logs for the selected container, streamed only while the Logs tab is showing.</summary>
     public LogBufferViewModel DetailLogs { get; }
 
     [ObservableProperty]
@@ -116,7 +111,6 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
         }
     }
 
-    /// <summary>Raised when the user asks to see a container's logs; the shell navigates to the logs page.</summary>
     public event EventHandler<ContainerViewModel>? LogsRequested;
 
     partial void OnSearchTextChanged(string value) => GroupByStack();
@@ -139,7 +133,6 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
         SyncDetailLogs();
     }
 
-    /// <summary>Selects a container for the detail pane; selecting it again deselects.</summary>
     [RelayCommand]
     private void Select(ContainerViewModel? container) =>
         SelectedContainer = ReferenceEquals(container, SelectedContainer) ? null : container;
@@ -277,7 +270,6 @@ public sealed partial class ContainersPageViewModel : DockerPageViewModel
             : _dialogs.ShowVolumeRemovalDialogAsync(subject, named);
     }
 
-    /// <summary>Removes the named volumes among <paramref name="volumes"/>. Returns true if there were any.</summary>
     private async Task<bool> RemoveNamedVolumesAsync(IEnumerable<VolumeMount> volumes)
     {
         var names = volumes.Select(v => v.Name).Where(n => !string.IsNullOrEmpty(n)).Distinct().ToList();

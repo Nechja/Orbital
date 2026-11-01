@@ -5,7 +5,6 @@ using Avalonia.Data.Converters;
 
 namespace OrbitalDocking.Converters;
 
-/// <summary>Resolves an icon resource key (e.g. "Icon.Box") to its Geometry from application resources.</summary>
 public sealed class IconKeyConverter : IValueConverter
 {
     public static readonly IconKeyConverter Instance = new();

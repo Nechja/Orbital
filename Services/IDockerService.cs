@@ -19,7 +19,6 @@ public interface IDockerService
     Task<ErrorOr<Success>> RemoveContainerAsync(string containerId, bool force = false, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveStackAsync(string stackName, IEnumerable<string> containerIds, CancellationToken cancellationToken = default);
 
-
     Task<ErrorOr<IEnumerable<ImageInfo>>> GetImagesAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> PullImageAsync(string imageName, IProgress<string>? progress = null, CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveImageAsync(string imageId, bool force = false, CancellationToken cancellationToken = default);
@@ -36,7 +35,6 @@ public interface IDockerService
 
     Task<ErrorOr<IEnumerable<NetworkInfo>>> GetNetworksAsync(CancellationToken cancellationToken = default);
     Task<ErrorOr<Success>> RemoveNetworkAsync(string networkId, CancellationToken cancellationToken = default);
-
 
     event EventHandler<ContainerEventArgs>? ContainerEvent;
     

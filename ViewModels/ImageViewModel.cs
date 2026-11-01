@@ -16,7 +16,6 @@ public partial class ImageViewModel : ObservableObject
 
     public string FullId => _image.Id;
     public string Id => _image.Id.Length > 19 ? _image.Id.Substring(7, 12) : _image.Id;
-    /// <summary>True for untagged images that no tag points at (Docker's dangling images).</summary>
     public bool IsDangling => string.IsNullOrEmpty(_image.Repository) || _image.Repository == "<none>";
     public string Repository => IsDangling ? "<none>" : _image.Repository;
     public string Tag => string.IsNullOrEmpty(_image.Tag) || _image.Tag == "<none>" ? (IsDangling ? "<none>" : "latest") : _image.Tag;

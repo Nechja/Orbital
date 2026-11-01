@@ -17,7 +17,6 @@ public static class DateTimeExtensions
         if (timeSpan.TotalDays < 30)
             return $"{(int)timeSpan.TotalDays} days ago";
         
-        // For very old items, either show formatted date (containers) or relative time (images/volumes/networks)
         if (useFormattedDateForOld)
             return dateTime.ToString("MMM dd, yyyy");
             

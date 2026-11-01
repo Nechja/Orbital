@@ -3,7 +3,6 @@ using OrbitalDocking.Services;
 
 namespace OrbitalDocking.Tests.TestSupport;
 
-/// <summary>Serves canned log chunks per container id; FollowAsync completes after the last chunk.</summary>
 public sealed class FakeContainerLogs : IContainerLogs
 {
     private readonly Dictionary<string, string[]> _chunks = new();

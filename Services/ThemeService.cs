@@ -5,10 +5,6 @@ using OrbitalDocking.Themes;
 
 namespace OrbitalDocking.Services;
 
-/// <summary>
-/// Switches the application's theme variant and remembers the choice. Colors live in
-/// Themes/Palette.axaml and follow the variant automatically through DynamicResource.
-/// </summary>
 public sealed class ThemeService : IThemeService
 {
     private readonly Application _application;

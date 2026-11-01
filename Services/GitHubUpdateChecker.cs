@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace OrbitalDocking.Services;
 
-/// <summary>Compares the running version with the latest GitHub release of Nechja/Orbital.</summary>
 public sealed class GitHubUpdateChecker : IUpdateChecker
 {
     public const string LatestReleaseUrl = "https://api.github.com/repos/Nechja/Orbital/releases/latest";
@@ -51,7 +50,6 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
         }
     }
 
-    /// <summary>Accepts "v1.2.3", "1.2.3.4", or "1.2"; ignores any pre-release or build suffix. Always yields major.minor.patch.</summary>
     public static bool TryParseVersion(string text, out Version version)
     {
         version = new Version(0, 0, 0);
@@ -65,7 +63,6 @@ public sealed class GitHubUpdateChecker : IUpdateChecker
         return true;
     }
 
-    /// <summary>The version stamped at build time (-p:Version=...), without the commit-hash suffix.</summary>
     private static Version ReadAssemblyVersion()
     {
         var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;

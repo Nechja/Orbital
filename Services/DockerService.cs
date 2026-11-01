@@ -188,7 +188,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
         {
             var containerIdList = containerIds.ToList();
             
-            // First, stop all running containers in the stack
             var runningContainers = new List<string>();
             foreach (var containerId in containerIdList)
             {
@@ -202,11 +201,9 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 }
                 catch
                 {
-                    // Container might already be gone, continue
                 }
             }
             
-            // Stop all running containers in parallel
             if (runningContainers.Any())
             {
                 var stopTasks = runningContainers.Select(id => 
@@ -215,14 +212,12 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
                 await Task.WhenAll(stopTasks);
             }
             
-            // Now remove all containers in the stack
             var removeTasks = containerIdList.Select(id => 
                 dockerClient.Containers.RemoveContainerAsync(id, new ContainerRemoveParameters { Force = true, RemoveVolumes = false }, cancellationToken)
             );
             
             await Task.WhenAll(removeTasks);
             
-            // Fire events for each removed container
             foreach (var containerId in containerIdList)
             {
                 OnContainerEvent(containerId, "remove");
@@ -305,8 +300,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
             return DockerErrors.Image.RemoveFailed(imageId);
         }
     }
-
-
 
     public async Task<ErrorOr<DockerSystemInfo>> GetSystemInfoAsync(CancellationToken cancellationToken = default)
     {
@@ -392,7 +385,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
     {
         try
         {
-            // System prune is not directly available, so we prune each component
             await dockerClient.Containers.PruneContainersAsync(cancellationToken: cancellationToken);
             await dockerClient.Images.PruneImagesAsync(cancellationToken: cancellationToken);
             await dockerClient.Volumes.PruneAsync(new VolumesPruneParameters { Filters = new Dictionary<string, IDictionary<string, bool>> { ["all"] = new Dictionary<string, bool> { ["true"] = true } } }, cancellationToken);
@@ -404,7 +396,6 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
             return DockerErrors.Prune.SystemFailed();
         }
     }
-
 
     public async Task<ErrorOr<IEnumerable<VolumeInfo>>> GetVolumesAsync(CancellationToken cancellationToken = default)
     {

@@ -24,7 +24,6 @@ public static class Fixtures
     public static DockerSystemInfo SystemInfo(string version = "24.0.7") =>
         new(version, "1.43", "linux", "x86_64", 0, 0, 0, 0, 0, 0, "overlay2");
 
-    /// <summary>A Docker service whose list calls succeed with empty results and whose mutations succeed.</summary>
     public static Mock<IDockerService> DockerService()
     {
         var mock = new Mock<IDockerService>();

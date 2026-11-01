@@ -14,7 +14,6 @@
         </ResourceDictionary>
     </Application.Resources>
 
-    <!-- Page view models map to their views here; the shell hosts CurrentPage in a ContentControl. -->
     <Application.DataTemplates>
         <DataTemplate DataType="vmp:ContainersPageViewModel"><pages:ContainersPageView/></DataTemplate>
         <DataTemplate DataType="vmp:ImagesPageViewModel"><pages:ImagesPageView/></DataTemplate>

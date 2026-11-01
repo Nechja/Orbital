@@ -17,7 +17,6 @@ public partial class StackViewModel : ObservableObject
 
     public string Name { get; }
 
-    /// <summary>A stable hue derived from the stack name, used to color its header.</summary>
     public string Color { get; }
 
     [ObservableProperty]
@@ -33,7 +32,6 @@ public partial class StackViewModel : ObservableObject
     public bool AllStopped => StoppedCount == ContainerCount && ContainerCount > 0;
     public string CollectiveState => AllRunning ? "all running" : AllStopped ? "all stopped" : "mixed";
 
-    /// <summary>Call after the Containers collection or their states change.</summary>
     public void NotifyStateChanged()
     {
         OnPropertyChanged(nameof(ContainerCount));

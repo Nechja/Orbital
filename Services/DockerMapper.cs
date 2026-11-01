@@ -108,11 +108,9 @@ public class DockerMapper : IDockerMapper
     
     private static bool IsReadWrite(string? mode)
     {
-        // If mode is null or empty, default to read-write
         if (string.IsNullOrEmpty(mode))
             return true;
             
-        // Check if mode contains "ro" (read-only)
         return !mode.Contains("ro", StringComparison.OrdinalIgnoreCase);
     }
 }

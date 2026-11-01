@@ -64,7 +64,6 @@
             </ScrollViewer>
         </Grid>
 
-        <!-- Detail pane for the selected container; the ContentControl keeps the page as its own DataContext. -->
         <ContentControl Grid.Column="1"
                         Content="{Binding SelectedContainer}"
                         IsVisible="{Binding SelectedContainer, Converter={x:Static ObjectConverters.IsNotNull}}">

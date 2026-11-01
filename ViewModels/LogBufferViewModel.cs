@@ -11,10 +11,6 @@ using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels;
 
-/// <summary>
-/// A live log view for one container: follows its output, keeps the last N lines, and exposes
-/// the filtered text for display. Shared by the Logs page and the container detail pane.
-/// </summary>
 public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
 {
     private readonly IContainerLogs _logs;
@@ -29,7 +25,6 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
         _ui = ui;
     }
 
-    /// <summary>The text to display: all buffered lines, or only those matching <see cref="SearchFilter"/>.</summary>
     [ObservableProperty]
     private string _content = string.Empty;
 
@@ -50,7 +45,6 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
 
     public bool IsFollowing => _cts is not null;
 
-    /// <summary>Starts following a container's logs, replacing whatever was shown.</summary>
     public void Follow(string containerId, string containerName)
     {
         Stop();
@@ -63,7 +57,6 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsFollowing));
     }
 
-    /// <summary>Stops following but keeps the text on screen.</summary>
     public void Stop()
     {
         _cts?.Cancel();
@@ -72,7 +65,6 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsFollowing));
     }
 
-    /// <summary>Shows static text (e.g. a cross-container search result) instead of a live stream.</summary>
     public void ShowText(string text)
     {
         Stop();
@@ -88,7 +80,6 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
         Reset();
     }
 
-    /// <summary>Writes the displayed text to the desktop. Returns the path, or null on failure.</summary>
     public async Task<string?> ExportAsync()
     {
         try

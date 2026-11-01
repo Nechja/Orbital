@@ -57,7 +57,7 @@ public class CoreFunctionalityTests
             Id: "sha256:abc",
             Repository: "nginx",
             Tag: "latest",
-            Size: 1024 * 1024 * 150, // 150 MB
+            Size: 1024 * 1024 * 150,
             Created: DateTime.UtcNow,
             Architecture: "amd64",
             OS: "linux",

@@ -8,10 +8,6 @@ using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels.Pages;
 
-/// <summary>
-/// Base for pages that talk to Docker: shared services, a guarded refresh, periodic refresh,
-/// and a helper that runs an operation while reporting progress to the status bar.
-/// </summary>
 public abstract class DockerPageViewModel : PageViewModel
 {
     private readonly SemaphoreSlim _refreshGate = new(1, 1);
@@ -32,7 +28,6 @@ public abstract class DockerPageViewModel : PageViewModel
 
     public abstract Task RefreshAsync();
 
-    /// <summary>Runs <paramref name="body"/> unless a refresh is already in flight or the page is disposed.</summary>
     protected async Task GuardedRefreshAsync(Func<Task> body)
     {
         if (_disposed || !await _refreshGate.WaitAsync(0)) return;
@@ -54,7 +49,6 @@ public abstract class DockerPageViewModel : PageViewModel
     protected void StartPeriodicRefresh(TimeSpan dueTime, TimeSpan period) =>
         Subscriptions.Add(Observable.Timer(dueTime, period).Subscribe(_ => RefreshAsync()));
 
-    /// <summary>Reports progress, runs a Docker operation, reports the outcome, then refreshes.</summary>
     protected async Task RunAsync(string inProgress, string done, Func<Task<ErrorOr<Success>>> operation)
     {
         State.StatusMessage = inProgress;

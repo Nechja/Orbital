@@ -4,7 +4,6 @@ using Avalonia.Interactivity;
 
 namespace OrbitalDocking.Views.Dialogs;
 
-/// <summary>A yes/no prompt. Title is the question, Message the consequence. Closes with true on confirm.</summary>
 public partial class ConfirmationDialog : Window
 {
     public static readonly StyledProperty<string> MessageProperty =

@@ -3,7 +3,6 @@
         xmlns:c="using:OrbitalDocking.Controls"
         xmlns:vmp="using:OrbitalDocking.ViewModels.Pages">
 
-    <!-- ===== Typography ===== -->
     <Style Selector="Window">
         <Setter Property="FontFamily" Value="fonts:Inter#Inter"/>
     </Style>
@@ -28,7 +27,6 @@
         <Setter Property="FontFamily" Value="Consolas,Menlo,DejaVu Sans Mono,monospace"/>
     </Style>
 
-    <!-- ===== Inputs ===== -->
     <Style Selector="TextBox">
         <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
         <Setter Property="CaretBrush" Value="{DynamicResource PrimaryColor}"/>
@@ -51,7 +49,6 @@
         <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
     </Style>
 
-    <!-- ===== Buttons ===== -->
     <Style Selector="Button.icon">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -163,7 +160,6 @@
         <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
     </Style>
 
-    <!-- Tabs: text buttons with an underline on the active one -->
     <Style Selector="Button.tab">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0,0,0,2"/>
@@ -193,7 +189,6 @@
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor}"/>
     </Style>
 
-    <!-- ===== List sections and rows ===== -->
     <Style Selector="Border.section">
         <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
@@ -209,7 +204,6 @@
         <Setter Property="BorderThickness" Value="0,1,0,0"/>
     </Style>
 
-    <!-- A row is a stretch button so the whole thing is clickable; actions reveal on hover or selection. -->
     <Style Selector="Button.row">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -239,7 +233,6 @@
         <Setter Property="IsVisible" Value="True"/>
     </Style>
 
-    <!-- State pill: tinted background, state-colored text. Default is the stopped look. -->
     <Style Selector="Border.pill">
         <Setter Property="CornerRadius" Value="3"/>
         <Setter Property="Padding" Value="9,2"/>
@@ -272,7 +265,6 @@
     </Style>
     <Style Selector="Border.pill.problem > TextBlock"><Setter Property="Foreground" Value="{DynamicResource StateDeadColor}"/></Style>
 
-    <!-- Detail pane -->
     <Style Selector="TextBlock.detail">
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
@@ -291,7 +283,6 @@
         <Setter Property="Padding" Value="14,12"/>
     </Style>
 
-    <!-- ===== Tables (ListBox rows under a fixed header) ===== -->
     <Style Selector="Border.table-header">
         <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
@@ -365,7 +356,6 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
-    <!-- ===== Sidebar navigation ===== -->
     <Style Selector="Border.sidebar">
         <Setter Property="Width" Value="220"/>
         <Setter Property="Transitions">
@@ -377,7 +367,6 @@
     <Style Selector="Border.sidebar.collapsed">
         <Setter Property="Width" Value="64"/>
     </Style>
-    <!-- On the rail: labels and badges hide, content centers, and tooltips carry the names. -->
     <Style Selector="Border.sidebar.collapsed TextBlock.nav-text, Border.sidebar.collapsed Panel.nav-extra">
         <Setter Property="IsVisible" Value="False"/>
     </Style>
@@ -453,7 +442,6 @@
         <Setter Property="HorizontalAlignment" Value="Center"/>
     </Style>
 
-    <!-- ===== Docker connection text in the status bar ===== -->
     <Style Selector="TextBlock.docker">
         <Setter Property="FontSize" Value="11"/>
         <Setter Property="VerticalAlignment" Value="Center"/>

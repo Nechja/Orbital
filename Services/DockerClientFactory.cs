@@ -51,10 +51,11 @@ public class DockerClientFactory : IDockerClientFactory
 
     public static IEnumerable<string> CandidateSockets(string home)
     {
+        var root = home.TrimEnd('/');
         yield return "/var/run/docker.sock";
-        yield return Path.Combine(home, ".docker", "run", "docker.sock");
-        yield return Path.Combine(home, ".orbstack", "run", "docker.sock");
-        yield return Path.Combine(home, ".colima", "default", "docker.sock");
-        yield return Path.Combine(home, ".rd", "docker.sock");
+        yield return root + "/.docker/run/docker.sock";
+        yield return root + "/.orbstack/run/docker.sock";
+        yield return root + "/.colima/default/docker.sock";
+        yield return root + "/.rd/docker.sock";
     }
 }

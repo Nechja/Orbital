@@ -9,7 +9,8 @@ A free, open-source Docker GUI
 
 No subscriptions, no corporate restrictions, just a simple tool to manage your containers.
 
-<img width="1228" height="766" alt="image" src="https://github.com/user-attachments/assets/1a7d88f9-b0d0-4b24-9db2-f88c59b7e929" />
+<img width="948" height="1116" alt="image" src="https://github.com/user-attachments/assets/28ca7199-5eb2-4ee3-b53b-f35ecf2da7fa" />
+
 
   - Core Features
     - Real-time container monitoring via Docker events

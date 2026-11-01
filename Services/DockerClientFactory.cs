@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using Docker.DotNet;
 using OrbitalDocking.Configuration;
@@ -15,17 +17,44 @@ public class DockerClientFactory : IDockerClientFactory
     }
 
     public static string GetDockerEndpoint() =>
-        GetDockerEndpoint(Environment.GetEnvironmentVariable("DOCKER_HOST"), RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+        GetDockerEndpoint(
+            Environment.GetEnvironmentVariable("DOCKER_HOST"),
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            File.Exists);
 
-    public static string GetDockerEndpoint(string? dockerHost, bool isWindows)
+    public static string GetDockerEndpoint(string? dockerHost, bool isWindows) =>
+        GetDockerEndpoint(dockerHost, isWindows, string.Empty, _ => false);
+
+    public static string GetDockerEndpoint(string? dockerHost, bool isWindows, string home, Func<string, bool> socketExists)
     {
         if (!string.IsNullOrWhiteSpace(dockerHost))
         {
             return dockerHost;
         }
 
-        return isWindows
-            ? AppConstants.Docker.WindowsDockerEndpoint
-            : AppConstants.Docker.DefaultDockerEndpoint;
+        if (isWindows)
+        {
+            return AppConstants.Docker.WindowsDockerEndpoint;
+        }
+
+        foreach (var socket in CandidateSockets(home))
+        {
+            if (socketExists(socket))
+            {
+                return "unix://" + socket;
+            }
+        }
+
+        return AppConstants.Docker.DefaultDockerEndpoint;
+    }
+
+    public static IEnumerable<string> CandidateSockets(string home)
+    {
+        yield return "/var/run/docker.sock";
+        yield return Path.Combine(home, ".docker", "run", "docker.sock");
+        yield return Path.Combine(home, ".orbstack", "run", "docker.sock");
+        yield return Path.Combine(home, ".colima", "default", "docker.sock");
+        yield return Path.Combine(home, ".rd", "docker.sock");
     }
 }

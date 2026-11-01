@@ -18,4 +18,35 @@ public class DockerClientFactoryTests
     {
         DockerClientFactory.GetDockerEndpoint(dockerHost, isWindows).Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData("/var/run/docker.sock", "unix:///var/run/docker.sock")]
+    [InlineData("/Users/kay/.docker/run/docker.sock", "unix:///Users/kay/.docker/run/docker.sock")]
+    [InlineData("/Users/kay/.orbstack/run/docker.sock", "unix:///Users/kay/.orbstack/run/docker.sock")]
+    [InlineData("/Users/kay/.colima/default/docker.sock", "unix:///Users/kay/.colima/default/docker.sock")]
+    [InlineData("/Users/kay/.rd/docker.sock", "unix:///Users/kay/.rd/docker.sock")]
+    public void GetDockerEndpoint_UsesTheFirstSocketThatExists(string existing, string expected)
+    {
+        DockerClientFactory.GetDockerEndpoint(null, false, "/Users/kay", path => path == existing).Should().Be(expected);
+    }
+
+    [Fact]
+    public void GetDockerEndpoint_PrefersTheSystemSocketWhenSeveralExist()
+    {
+        var existing = new HashSet<string> { "/var/run/docker.sock", "/Users/kay/.orbstack/run/docker.sock" };
+
+        DockerClientFactory.GetDockerEndpoint(null, false, "/Users/kay", existing.Contains).Should().Be("unix:///var/run/docker.sock");
+    }
+
+    [Fact]
+    public void GetDockerEndpoint_FallsBackToTheDefaultWhenNoSocketExists()
+    {
+        DockerClientFactory.GetDockerEndpoint(null, false, "/Users/kay", _ => false).Should().Be(AppConstants.Docker.DefaultDockerEndpoint);
+    }
+
+    [Fact]
+    public void GetDockerEndpoint_DockerHostWinsOverExistingSockets()
+    {
+        DockerClientFactory.GetDockerEndpoint("tcp://10.0.0.5:2375", false, "/Users/kay", _ => true).Should().Be("tcp://10.0.0.5:2375");
+    }
 }

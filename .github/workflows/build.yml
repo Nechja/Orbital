@@ -20,6 +20,9 @@ jobs:
           - os: windows-latest
             rid: win-x64
             binary: OrbitalDocking.exe
+          - os: macos-latest
+            rid: osx-arm64
+            binary: OrbitalDocking
 
     runs-on: ${{ matrix.os }}
 

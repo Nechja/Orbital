@@ -17,10 +17,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly IDockerService _docker;
     private readonly IPreferencesStore _preferences;
+    private readonly IUpdateChecker _updates;
 
     public MainWindowViewModel(
         IDockerService docker,
         IPreferencesStore preferences,
+        IUpdateChecker updates,
         AppState state,
         ContainersPageViewModel containers,
         ImagesPageViewModel images,
@@ -31,7 +33,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         _docker = docker;
         _preferences = preferences;
-        _isSidebarCollapsed = preferences.Load().SidebarCollapsed;
+        _updates = updates;
+        var saved = preferences.Load();
+        _isSidebarCollapsed = saved.SidebarCollapsed;
         State = state;
         Containers = containers;
         Images = images;
@@ -56,6 +60,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         // Start every page's periodic refresh so sidebar counts are populated without visiting each page.
         foreach (var page in Pages)
             page.Activate();
+
+        if (saved.CheckForUpdatesOnStartup)
+            _ = CheckForUpdatesAsync();
+    }
+
+    /// <summary>Asks GitHub for the latest release and records the answer in <see cref="AppState"/>.</summary>
+    public async Task CheckForUpdatesAsync()
+    {
+        State.LatestUpdate = await _updates.CheckAsync();
     }
 
     public AppState State { get; }

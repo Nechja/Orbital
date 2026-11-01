@@ -14,14 +14,63 @@ public sealed partial class SettingsPageViewModel : PageViewModel
 {
     private readonly IThemeService _themes;
     private readonly IDockerService _docker;
+    private readonly IUpdateChecker _updates;
+    private readonly IPreferencesStore _preferences;
     private readonly ILogger<SettingsPageViewModel> _logger;
 
-    public SettingsPageViewModel(IThemeService themes, IDockerService docker, AppState state, ILogger<SettingsPageViewModel> logger)
+    public SettingsPageViewModel(
+        IThemeService themes,
+        IDockerService docker,
+        IUpdateChecker updates,
+        IPreferencesStore preferences,
+        AppState state,
+        ILogger<SettingsPageViewModel> logger)
     {
         _themes = themes;
         _docker = docker;
+        _updates = updates;
+        _preferences = preferences;
         _logger = logger;
         State = state;
+        _checkForUpdatesOnStartup = preferences.Load().CheckForUpdatesOnStartup;
+    }
+
+    public string CurrentVersion => _updates.CurrentVersion is { Major: 0, Minor: 0, Build: <= 0 } ? "development build" : $"v{_updates.CurrentVersion}";
+
+    [ObservableProperty]
+    private bool _checkForUpdatesOnStartup;
+
+    [ObservableProperty]
+    private bool _isCheckingForUpdates;
+
+    [ObservableProperty]
+    private string _updateStatus = "Not checked yet";
+
+    partial void OnCheckForUpdatesOnStartupChanged(bool value) =>
+        _preferences.Save(_preferences.Load() with { CheckForUpdatesOnStartup = value });
+
+    [RelayCommand]
+    private async Task CheckForUpdatesAsync()
+    {
+        IsCheckingForUpdates = true;
+        UpdateStatus = "Checking...";
+        var result = await _updates.CheckAsync();
+        State.LatestUpdate = result;
+        IsCheckingForUpdates = false;
+        UpdateStatus = result switch
+        {
+            { Error: { } error } => $"Check failed: {error}",
+            { IsUpdateAvailable: true, Latest: { } latest } => $"v{latest} is available",
+            { IsDevelopmentBuild: true, Latest: { } latest } => $"Latest release is v{latest}",
+            _ => "You're on the latest release",
+        };
+    }
+
+    [RelayCommand]
+    private void OpenRelease()
+    {
+        if (State.LatestUpdate?.ReleaseUrl is { } url)
+            OpenUrl(url);
     }
 
     public override string Title => "Settings";

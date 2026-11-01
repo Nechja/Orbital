@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
 
         // UI services
         services.AddSingleton<IPreferencesStore, JsonPreferencesStore>();
+        services.AddSingleton<IUpdateChecker, GitHubUpdateChecker>();
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<IDialogService, DialogService>();

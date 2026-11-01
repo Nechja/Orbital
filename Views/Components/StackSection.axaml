@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:pages="using:OrbitalDocking.Views.Pages"
+             xmlns:components="using:OrbitalDocking.Views.Components"
+             xmlns:c="using:OrbitalDocking.Controls"
+             x:Class="OrbitalDocking.Views.Components.StackSection"
+             x:DataType="vm:StackViewModel">
+
+    <Border Classes="section">
+        <StackPanel>
+            <Border Classes="section-header">
+            <Grid ColumnDefinitions="Auto,*,Auto" Height="48" Margin="8,0,8,0">
+                <Button Grid.Column="0" Classes="icon" Command="{Binding ToggleExpandCommand}" ToolTip.Tip="Collapse">
+                    <Panel>
+                        <c:Icon Data="{StaticResource Icon.ChevronDown}" IsVisible="{Binding IsExpanded}"/>
+                        <c:Icon Data="{StaticResource Icon.ChevronRight}" IsVisible="{Binding !IsExpanded}"/>
+                    </Panel>
+                </Button>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <TextBlock Text="{Binding Name}"
+                               FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding Color}"/>
+                    <TextBlock Classes="page-subtitle">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} containers · {1}">
+                                <Binding Path="ContainerCount"/>
+                                <Binding Path="CollectiveState"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Button Classes="ghost tint-primary" Content="Start all" IsVisible="{Binding !AllRunning}"
+                            Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).StartStackCommand}"
+                            CommandParameter="{Binding}"/>
+                    <Button Classes="ghost tint-danger" Content="Stop all" IsVisible="{Binding !AllStopped}"
+                            Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).StopStackCommand}"
+                            CommandParameter="{Binding}"/>
+                    <Button Classes="ghost tint-restart" Content="Restart all" IsVisible="{Binding AllRunning}"
+                            Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RestartStackCommand}"
+                            CommandParameter="{Binding}"/>
+                    <Button Classes="icon" ToolTip.Tip="More">
+                        <Button.Flyout>
+                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                <MenuItem Header="Remove stack" Classes="danger"
+                                          IsEnabled="{Binding AllStopped}"
+                                          Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).RemoveStackCommand}"
+                                          CommandParameter="{Binding}"/>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                        <c:Icon Data="{StaticResource Icon.EllipsisVertical}"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Containers}" IsVisible="{Binding IsExpanded}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Classes="row-separator">
+                            <components:ContainerRow/>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:m="using:OrbitalDocking.Models"
+             x:Class="OrbitalDocking.Views.Pages.SettingsPageView"
+             x:DataType="vmp:SettingsPageViewModel">
+
+    <Grid RowDefinitions="Auto,*" Margin="32,24,32,16">
+        <TextBlock Grid.Row="0" Classes="page-title" Text="Settings" Margin="0,0,0,20"/>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="24" MaxWidth="720" HorizontalAlignment="Left">
+
+                <Border Background="{DynamicResource SurfaceColor}"
+                        BorderBrush="{DynamicResource BorderColor}"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="24">
+                    <StackPanel Spacing="16">
+                        <TextBlock Classes="label" Text="APPEARANCE"/>
+                        <TextBlock Text="Theme" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryColor}"/>
+                        <StackPanel Spacing="10">
+                            <RadioButton GroupName="Theme" Content="Dark"
+                                         IsChecked="{Binding IsDarkTheme, Mode=OneWay}"
+                                         Command="{Binding SetThemeCommand}" CommandParameter="{x:Static m:ThemeMode.Dark}"/>
+                            <RadioButton GroupName="Theme" Content="Light"
+                                         IsChecked="{Binding IsLightTheme, Mode=OneWay}"
+                                         Command="{Binding SetThemeCommand}" CommandParameter="{x:Static m:ThemeMode.Light}"/>
+                            <RadioButton GroupName="Theme" Content="Soft (pastels)"
+                                         IsChecked="{Binding IsSoftTheme, Mode=OneWay}"
+                                         Command="{Binding SetThemeCommand}" CommandParameter="{x:Static m:ThemeMode.Soft}"/>
+                            <RadioButton GroupName="Theme" Content="High contrast dark"
+                                         IsChecked="{Binding IsHighContrastDarkTheme, Mode=OneWay}"
+                                         Command="{Binding SetThemeCommand}" CommandParameter="{x:Static m:ThemeMode.HighContrastDark}"/>
+                            <RadioButton GroupName="Theme" Content="Follow system"
+                                         IsChecked="{Binding IsSystemTheme, Mode=OneWay}"
+                                         Command="{Binding SetThemeCommand}" CommandParameter="{x:Static m:ThemeMode.System}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource SurfaceColor}"
+                        BorderBrush="{DynamicResource BorderColor}"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="24">
+                    <StackPanel Spacing="16">
+                        <TextBlock Classes="label" Text="DOCKER"/>
+                        <TextBlock Text="Connection" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryColor}"/>
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" Text="Socket" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextSecondaryColor}"/>
+                            <TextBox Grid.Column="1" Text="{Binding DockerEndpoint}" IsReadOnly="True" Margin="12,0"
+                                     Background="{DynamicResource BackgroundColor}"
+                                     BorderBrush="{DynamicResource BorderColor}"
+                                     Foreground="{DynamicResource TextPrimaryColor}"/>
+                            <Button Grid.Column="2" Classes="outlined" Content="Test connection"
+                                    Command="{Binding TestDockerConnectionCommand}"/>
+                        </Grid>
+                        <Border Background="{DynamicResource BackgroundColor}"
+                                BorderBrush="{DynamicResource BorderColor}"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Classes="docker"
+                                           Classes.online="{Binding State.IsDockerConnected}"
+                                           Classes.connecting="{Binding State.IsDockerConnecting}"
+                                           Text="{Binding State.DockerVersion}"/>
+                                <TextBlock Text="{Binding State.StatusMessage}" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryColor}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Button Classes="action" Content="GitHub" HorizontalAlignment="Left"
+                        Foreground="{DynamicResource TextTertiaryColor}"
+                        Command="{Binding OpenGitHubCommand}"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

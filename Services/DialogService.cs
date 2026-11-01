@@ -1,41 +1,47 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using OrbitalDocking.Models;
+using OrbitalDocking.ViewModels.Dialogs;
 using OrbitalDocking.Views.Dialogs;
 
 namespace OrbitalDocking.Services;
 
-public class DialogService : IDialogService
+public sealed class DialogService : IDialogService
 {
-    public async Task<bool> ShowConfirmationAsync(string title, string message, Window owner)
-    {
-        var dialog = new ConfirmationDialog
-        {
-            Title = title,
-            Message = message
-        };
-        
-        var result = await dialog.ShowDialog<bool>(owner);
-        return result;
-    }
-    
-    public async Task<VolumeRemovalChoice> ShowVolumeRemovalDialogAsync(string containerName, List<VolumeMount> volumes, Window owner)
-    {
-        var namedVolumes = volumes
-            .Where(v => !string.IsNullOrEmpty(v.Name))
-            .Select(v => v.Name)
-            .Distinct()
-            .ToList();
+    private readonly IDockerService _docker;
 
+    public DialogService(IDockerService docker)
+    {
+        _docker = docker;
+    }
+
+    public Task<bool> ShowConfirmationAsync(string title, string message) =>
+        new ConfirmationDialog { Title = title, Message = message, ConfirmText = "Remove" }.ShowDialog<bool>(Owner);
+
+    public Task<VolumeRemovalChoice> ShowVolumeRemovalDialogAsync(string subject, IReadOnlyList<VolumeMount> volumes)
+    {
         var dialog = new VolumeRemovalDialog
         {
-            ContainerName = containerName,
-            VolumeNames = namedVolumes
+            ContainerName = subject,
+            VolumeNames = volumes.Select(v => v.Name).Where(n => !string.IsNullOrEmpty(n)).Distinct().ToList()
         };
-        
-        var result = await dialog.ShowDialog<VolumeRemovalChoice>(owner);
-        return result;
+        return dialog.ShowDialog<VolumeRemovalChoice>(Owner);
     }
+
+    public async Task<bool> ShowCreateContainerDialogAsync(string repository, string tag)
+    {
+        var viewModel = new CreateContainerDialogViewModel(_docker, this, repository, tag);
+        var dialog = new CreateContainerDialog { DataContext = viewModel };
+        await dialog.ShowDialog(Owner);
+        return viewModel.DialogResult == true;
+    }
+
+    private static Window Owner =>
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow
+        ?? throw new InvalidOperationException("No main window to own the dialog");
 }

@@ -4,16 +4,17 @@ namespace OrbitalDocking.Extensions;
 
 public static class StackColorExtensions
 {
-    private static readonly string[] Colors = 
+    // Cool hues that sit with the teal/purple theme; no warm oranges or salmons.
+    private static readonly string[] Colors =
     {
         "#4ECDC4", // Teal
-        "#95E1D3", // Light teal
-        "#FFB347", // Orange
-        "#87CEEB", // Sky blue
-        "#DDA0DD", // Plum
-        "#98D8C8", // Mint
-        "#FFA07A", // Light salmon
-        "#B19CD9"  // Light purple
+        "#7CC4F5", // Sky
+        "#B19CD9", // Lavender
+        "#7FE0B8", // Mint
+        "#F08CB8", // Rose
+        "#8FA3F0", // Periwinkle
+        "#5FD3E6", // Aqua
+        "#D6A5F0"  // Lilac
     };
 
     public static string GetStackColor(this string? stackName, string? fallbackColor = null)

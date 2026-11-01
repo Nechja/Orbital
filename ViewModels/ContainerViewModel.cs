@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using ContainerState = OrbitalDocking.Models.ContainerState;
 using OrbitalDocking.Configuration;
 using OrbitalDocking.Extensions;
 using OrbitalDocking.Models;
-using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels;
 
@@ -16,27 +16,17 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
 {
     private ContainerInfo _container;
     private CancellationTokenSource? _statsTokenSource;
-    private Task? _statsMonitoringTask;
-    private readonly IThemeService? _themeService;
     private readonly DockerClient? _dockerClient;
-    
-    public ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null, IThemeService? themeService = null)
+
+    public ContainerViewModel(ContainerInfo container, DockerClient? dockerClient = null)
     {
         _container = container;
         _dockerClient = dockerClient;
-        _themeService = themeService;
-        
-        if (_themeService != null)
-        {
-            _themeService.ThemeChanged += OnThemeChanged;
-        }
     }
 
+    /// <summary>Set by the containers page when this row is shown in the detail pane.</summary>
     [ObservableProperty]
-    private bool _isExpanded = false;
-
-    [ObservableProperty]
-    private bool _isCompactMode = false;
+    private bool _isSelected;
 
     [ObservableProperty]
     private string _cpuUsage = "--";
@@ -51,51 +41,27 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     private string _diskIO = "--";
 
     public string Id => _container.Id;
-    public string ShortId => _container.Id.Length > AppConstants.UI.ContainerIdDisplayLength 
-        ? _container.Id.Substring(0, AppConstants.UI.ContainerIdDisplayLength) 
+    public string ShortId => _container.Id.Length > AppConstants.UI.ContainerIdDisplayLength
+        ? _container.Id.Substring(0, AppConstants.UI.ContainerIdDisplayLength)
         : _container.Id;
     public string Name => _container.Name;
     public string Image => _container.Image;
-    public Models.ContainerState State => _container.State;
+    public ContainerState State => _container.State;
     public string Status => _container.Status;
     public DateTime Created => _container.Created;
     public string CreatedRelative => Created.ToRelativeTime(true);
-    
-    public string? StackName => _container.Labels?.ContainsKey("com.docker.compose.project") == true 
-        ? _container.Labels["com.docker.compose.project"] 
-        : null;
-    
-    public string? ServiceName => _container.Labels?.ContainsKey("com.docker.compose.service") == true 
-        ? _container.Labels["com.docker.compose.service"] 
-        : null;
-    
+
+    public string? StackName => _container.Labels?.GetValueOrDefault(AppConstants.Docker.ComposeProjectLabel);
+    public string? ServiceName => _container.Labels?.GetValueOrDefault(AppConstants.Docker.ComposeServiceLabel);
     public bool IsPartOfStack => !string.IsNullOrEmpty(StackName);
-    
-    public string StackColor => StackName.GetStackColor(StateColor);
+    public string StateLabel => State.ToString();
 
-    public bool IsRunning => State == Models.ContainerState.Running;
-    public bool IsPaused => State == Models.ContainerState.Paused;
-    public bool IsStopped => State == Models.ContainerState.Exited || State == Models.ContainerState.Created;
-    public bool IsRestarting => State == Models.ContainerState.Restarting;
-    public bool IsProblematic => State == Models.ContainerState.Restarting || State == Models.ContainerState.Dead;
+    public bool IsRunning => State == ContainerState.Running;
+    public bool IsPaused => State == ContainerState.Paused;
+    public bool IsStopped => State is ContainerState.Exited or ContainerState.Created;
+    public bool IsRestarting => State == ContainerState.Restarting;
+    public bool IsProblematic => State is ContainerState.Restarting or ContainerState.Dead;
     public bool CanRemove => IsStopped || IsProblematic;
-
-    public string StateColor
-    {
-        get
-        {
-            var isDark = _themeService?.CurrentTheme != ThemeMode.Light;
-            return State switch
-            {
-                Models.ContainerState.Running => isDark ? ThemeColors.Dark.ContainerRunning : ThemeColors.Light.ContainerRunning,
-                Models.ContainerState.Paused => isDark ? ThemeColors.Dark.ContainerPaused : ThemeColors.Light.ContainerPaused,
-                Models.ContainerState.Exited => isDark ? ThemeColors.Dark.ContainerStopped : ThemeColors.Light.ContainerStopped,
-                Models.ContainerState.Dead => isDark ? ThemeColors.Dark.ContainerDead : ThemeColors.Light.ContainerDead,
-                Models.ContainerState.Restarting => isDark ? ThemeColors.Dark.ContainerRestarting : ThemeColors.Light.ContainerRestarting,
-                _ => isDark ? ThemeColors.Dark.ContainerStopped : ThemeColors.Light.ContainerStopped
-            };
-        }
-    }
 
     public void UpdateFrom(ContainerInfo container)
     {
@@ -103,35 +69,29 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
             return;
 
         _container = container;
-        
+
+        OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(Image));
         OnPropertyChanged(nameof(Status));
         OnPropertyChanged(nameof(State));
+        OnPropertyChanged(nameof(StateLabel));
+        OnPropertyChanged(nameof(StackName));
+        OnPropertyChanged(nameof(ServiceName));
+        OnPropertyChanged(nameof(IsPartOfStack));
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(IsPaused));
         OnPropertyChanged(nameof(IsStopped));
-        OnPropertyChanged(nameof(StateColor));
+        OnPropertyChanged(nameof(IsRestarting));
+        OnPropertyChanged(nameof(IsProblematic));
+        OnPropertyChanged(nameof(CanRemove));
         OnPropertyChanged(nameof(CreatedRelative));
-    }
-
-    public void ToggleExpanded()
-    {
-        IsExpanded = !IsExpanded;
-        
-        if (IsExpanded && IsRunning)
-        {
-            StartStatsMonitoring();
-        }
-        else
-        {
-            StopStatsMonitoring();
-        }
     }
 
     public void StartStatsMonitoring()
     {
         StopStatsMonitoring();
         _statsTokenSource = new CancellationTokenSource();
-        _statsMonitoringTask = MonitorStats(_statsTokenSource.Token);
+        _ = MonitorStats(_statsTokenSource.Token);
     }
 
     public void StopStatsMonitoring()
@@ -144,7 +104,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         {
             _statsTokenSource?.Dispose();
             _statsTokenSource = null;
-            _statsMonitoringTask = null;
         }
     }
 
@@ -152,10 +111,7 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     {
         if (_dockerClient == null)
         {
-            CpuUsage = "N/A";
-            MemoryUsage = "N/A";
-            NetworkIO = "N/A";
-            DiskIO = "N/A";
+            CpuUsage = MemoryUsage = NetworkIO = DiskIO = "N/A";
             return;
         }
 
@@ -167,29 +123,28 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
                 ContainerStatsResponse? latestStats = null;
                 var progress = new SynchronousProgress<ContainerStatsResponse>(stats => latestStats = stats);
 
-                await _dockerClient.Containers.GetContainerStatsAsync(
-                    Id,
-                    parameters,
-                    progress,
-                    cancellationToken);
+                await _dockerClient.Containers.GetContainerStatsAsync(Id, parameters, progress, cancellationToken);
 
                 if (latestStats != null && !cancellationToken.IsCancellationRequested)
-                {
                     UpdateStatsFromResponse(latestStats);
-                }
 
                 await Task.Delay(AppConstants.Timing.StatsUpdateInterval, cancellationToken);
             }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
             catch
             {
-                // Try simpler approach - just show basic info
-                CpuUsage = "--";
-                MemoryUsage = "--";
-                NetworkIO = "--";
-                DiskIO = "--";
-
-                // Stats error - wait before retry
-                await Task.Delay(AppConstants.Timing.StatsErrorRetryDelay, cancellationToken);
+                CpuUsage = MemoryUsage = NetworkIO = DiskIO = "--";
+                try
+                {
+                    await Task.Delay(AppConstants.Timing.StatsErrorRetryDelay, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
             }
         }
     }
@@ -198,7 +153,7 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     /// IProgress implementation that invokes the callback synchronously on the calling thread,
     /// avoiding the race condition in Progress&lt;T&gt; which posts to a captured SynchronizationContext.
     /// </summary>
-    private class SynchronousProgress<T> : IProgress<T>
+    private sealed class SynchronousProgress<T> : IProgress<T>
     {
         private readonly Action<T> _handler;
         public SynchronousProgress(Action<T> handler) => _handler = handler;
@@ -209,21 +164,17 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
     {
         try
         {
-            // Calculate CPU percentage
             var cpuDelta = stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage;
             var systemDelta = stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage;
             var onlineCpus = stats.CPUStats.OnlineCPUs > 0 ? stats.CPUStats.OnlineCPUs : 1;
             var cpuPercent = systemDelta > 0 ? (cpuDelta / (double)systemDelta) * onlineCpus * 100.0 : 0;
-            
             CpuUsage = $"{cpuPercent:F1}%";
-            
-            // Calculate memory usage
+
             var memoryMB = stats.MemoryStats.Usage / (1024.0 * 1024.0);
             var limitMB = stats.MemoryStats.Limit / (1024.0 * 1024.0);
             var memoryPercent = limitMB > 0 ? (memoryMB / limitMB) * 100 : 0;
             MemoryUsage = $"{memoryMB:F0} MB ({memoryPercent:F0}%)";
-            
-            // Network stats
+
             if (stats.Networks != null)
             {
                 long totalRx = 0, totalTx = 0;
@@ -238,17 +189,14 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
             {
                 NetworkIO = "↓0B ↑0B";
             }
-            
-            // Disk I/O stats
-            if (stats.BlkioStats?.IoServiceBytesRecursive != null && stats.BlkioStats.IoServiceBytesRecursive.Count > 0)
+
+            if (stats.BlkioStats?.IoServiceBytesRecursive is { Count: > 0 } io)
             {
                 long totalRead = 0, totalWrite = 0;
-                foreach (var io in stats.BlkioStats.IoServiceBytesRecursive)
+                foreach (var entry in io)
                 {
-                    if (io.Op == "read" || io.Op == "Read") 
-                        totalRead += (long)io.Value;
-                    if (io.Op == "write" || io.Op == "Write") 
-                        totalWrite += (long)io.Value;
+                    if (string.Equals(entry.Op, "read", StringComparison.OrdinalIgnoreCase)) totalRead += (long)entry.Value;
+                    if (string.Equals(entry.Op, "write", StringComparison.OrdinalIgnoreCase)) totalWrite += (long)entry.Value;
                 }
                 DiskIO = $"R:{FormatBytes(totalRead)} W:{FormatBytes(totalWrite)}";
             }
@@ -262,8 +210,8 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
             // Stats parsing error - ignore
         }
     }
-    
-    private string FormatBytes(long bytes)
+
+    private static string FormatBytes(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB" };
         int order = 0;
@@ -276,24 +224,5 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         return $"{size:F0}{sizes[order]}";
     }
 
-    
-    private void OnThemeChanged(object? sender, ThemeChangedEventArgs e)
-    {
-        OnPropertyChanged(nameof(StateColor));
-    }
-    
-    public void UpdateThemeColors()
-    {
-        OnPropertyChanged(nameof(StateColor));
-    }
-    
-    public void Dispose()
-    {
-        if (_themeService != null)
-        {
-            _themeService.ThemeChanged -= OnThemeChanged;
-        }
-        StopStatsMonitoring();
-        // Don't dispose _dockerClient here - it's shared across all containers
-    }
+    public void Dispose() => StopStatsMonitoring();
 }

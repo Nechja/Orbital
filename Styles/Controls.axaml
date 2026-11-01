@@ -1,0 +1,464 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:OrbitalDocking.Controls"
+        xmlns:vmp="using:OrbitalDocking.ViewModels.Pages">
+
+    <!-- ===== Typography ===== -->
+    <Style Selector="Window">
+        <Setter Property="FontFamily" Value="fonts:Inter#Inter"/>
+    </Style>
+    <Style Selector="TextBlock.page-title">
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBlock.page-subtitle">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryColor}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryColor}"/>
+        <Setter Property="LetterSpacing" Value="1"/>
+    </Style>
+    <Style Selector="TextBlock.mono, SelectableTextBlock.mono">
+        <Setter Property="FontFamily" Value="Consolas,Menlo,DejaVu Sans Mono,monospace"/>
+    </Style>
+
+    <!-- ===== Inputs ===== -->
+    <Style Selector="TextBox">
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+    <Style Selector="TextBox.search">
+        <Setter Property="Width" Value="260"/>
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource TextTertiaryColor}"/>
+    </Style>
+
+    <!-- ===== Buttons ===== -->
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="7"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+
+    <Style Selector="Button.action">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.action:pointerover">
+        <Setter Property="Opacity" Value="0.8"/>
+    </Style>
+
+    <Style Selector="Button.primary, Button.danger, Button.danger-dark, Button.restart, Button.accent, Button.subtle, Button.outlined">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextContrastColor}"/>
+    </Style>
+    <Style Selector="Button.primary:pointerover, Button.danger:pointerover, Button.danger-dark:pointerover, Button.restart:pointerover, Button.accent:pointerover">
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+    <Style Selector="Button.subtle:pointerover, Button.outlined:pointerover">
+        <Setter Property="Opacity" Value="0.8"/>
+    </Style>
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="{DynamicResource DangerColor}"/>
+    </Style>
+    <Style Selector="Button.danger-dark">
+        <Setter Property="Background" Value="{DynamicResource DangerDarkColor}"/>
+    </Style>
+    <Style Selector="Button.restart">
+        <Setter Property="Background" Value="{DynamicResource RestartColor}"/>
+    </Style>
+    <Style Selector="Button.accent">
+        <Setter Property="Background" Value="{DynamicResource ActionAccentColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundColor}"/>
+    </Style>
+    <Style Selector="Button.subtle">
+        <Setter Property="Background" Value="{DynamicResource CardColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+        <Setter Property="Padding" Value="12,6"/>
+    </Style>
+    <Style Selector="Button.outlined">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderInputColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,6"/>
+    </Style>
+
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.ghost.tint-danger">
+        <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
+    </Style>
+    <Style Selector="Button.ghost.tint-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
+    </Style>
+    <Style Selector="Button.ghost.tint-primary, Button.icon.tint-primary"><Setter Property="Foreground" Value="{DynamicResource PrimaryColor}"/></Style>
+    <Style Selector="Button.ghost.tint-restart, Button.icon.tint-restart"><Setter Property="Foreground" Value="{DynamicResource RestartColor}"/></Style>
+    <Style Selector="Button.ghost.tint-accent, Button.icon.tint-accent"><Setter Property="Foreground" Value="{DynamicResource ActionAccentColor}"/></Style>
+    <Style Selector="Button.icon.tint-danger"><Setter Property="Foreground" Value="{DynamicResource DangerColor}"/></Style>
+    <Style Selector="Button.ghost.tint-primary:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.icon.tint-primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.ghost.tint-restart:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.icon.tint-restart:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource RestartColor}"/>
+    </Style>
+    <Style Selector="Button.ghost.tint-accent:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.icon.tint-accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource ActionAccentColor}"/>
+    </Style>
+    <Style Selector="Button.icon.tint-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
+    </Style>
+    <Style Selector="MenuItem.danger">
+        <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
+    </Style>
+
+    <!-- Tabs: text buttons with an underline on the active one -->
+    <Style Selector="Button.tab">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0,0,0,2"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Padding" Value="4,8"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryColor}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="0,0,12,0"/>
+    </Style>
+    <Style Selector="Button.tab /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+    <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.tab.active">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.tab.active /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+
+    <!-- ===== List sections and rows ===== -->
+    <Style Selector="Border.section">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+    <Style Selector="Border.section-header">
+        <Setter Property="Background" Value="{DynamicResource BorderColor}"/>
+    </Style>
+    <Style Selector="Border.row-separator">
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderLightColor}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+    </Style>
+
+    <!-- A row is a stretch button so the whole thing is clickable; actions reveal on hover or selection. -->
+    <Style Selector="Button.row">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.row /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+    <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.row:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+    </Style>
+    <Style Selector="Button.row.selected /template/ ContentPresenter#PART_ContentPresenter,
+                     Button.row.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource CardColor}"/>
+    </Style>
+    <Style Selector="StackPanel.row-actions">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="Button.row:pointerover StackPanel.row-actions,
+                     Button.row.selected StackPanel.row-actions">
+        <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
+    <!-- State pill: tinted background, state-colored text. Default is the stopped look. -->
+    <Style Selector="Border.pill">
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Padding" Value="9,2"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Background">
+            <SolidColorBrush Color="{DynamicResource StateStoppedColor}" Opacity="0.16"/>
+        </Setter>
+    </Style>
+    <Style Selector="Border.pill > TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource StateStoppedColor}"/>
+    </Style>
+    <Style Selector="Border.pill.running">
+        <Setter Property="Background">
+            <SolidColorBrush Color="{DynamicResource StateRunningColor}" Opacity="0.16"/>
+        </Setter>
+    </Style>
+    <Style Selector="Border.pill.running > TextBlock"><Setter Property="Foreground" Value="{DynamicResource StateRunningColor}"/></Style>
+    <Style Selector="Border.pill.paused">
+        <Setter Property="Background">
+            <SolidColorBrush Color="{DynamicResource StatePausedColor}" Opacity="0.16"/>
+        </Setter>
+    </Style>
+    <Style Selector="Border.pill.paused > TextBlock"><Setter Property="Foreground" Value="{DynamicResource StatePausedColor}"/></Style>
+    <Style Selector="Border.pill.problem">
+        <Setter Property="Background">
+            <SolidColorBrush Color="{DynamicResource StateDeadColor}" Opacity="0.16"/>
+        </Setter>
+    </Style>
+    <Style Selector="Border.pill.problem > TextBlock"><Setter Property="Foreground" Value="{DynamicResource StateDeadColor}"/></Style>
+
+    <!-- Detail pane -->
+    <Style Selector="TextBlock.detail">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="TextBlock.stat">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryColor}"/>
+    </Style>
+    <Style Selector="Border.stats">
+        <Setter Property="Background" Value="{DynamicResource BackgroundColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Padding" Value="14,12"/>
+    </Style>
+
+    <!-- ===== Tables (ListBox rows under a fixed header) ===== -->
+    <Style Selector="Border.table-header">
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Height" Value="36"/>
+    </Style>
+    <Style Selector="Button.th">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryColor}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.th:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.th TextBlock">
+        <Setter Property="LetterSpacing" Value="1"/>
+    </Style>
+
+    <Style Selector="ListBox.table">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    <Style Selector="ListBox.table ListBoxItem">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="44"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderLightColor}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="ListBox.table ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+    <Style Selector="ListBox.table ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+    </Style>
+    <Style Selector="ListBox.table ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                     ListBox.table ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     ListBox.table ListBoxItem:selected:focus /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource CardColor}"/>
+    </Style>
+    <Style Selector="ListBox.table ListBoxItem:pointerover StackPanel.row-actions,
+                     ListBox.table ListBoxItem:selected StackPanel.row-actions">
+        <Setter Property="IsVisible" Value="True"/>
+    </Style>
+    <Style Selector="TextBlock.cell">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+    <Style Selector="TextBlock.cell.primary">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+    <Style Selector="TextBlock.cell.muted">
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryColor}"/>
+    </Style>
+    <Style Selector="CheckBox.row-check">
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ===== Sidebar navigation ===== -->
+    <Style Selector="Border.sidebar">
+        <Setter Property="Width" Value="220"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Width" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed">
+        <Setter Property="Width" Value="64"/>
+    </Style>
+    <!-- On the rail: labels and badges hide, content centers, and tooltips carry the names. -->
+    <Style Selector="Border.sidebar.collapsed TextBlock.nav-text, Border.sidebar.collapsed Panel.nav-extra">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed Grid.nav-row">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed Button.nav-footer">
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="ToolTip.Tip" Value="Settings"/>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed ListBox.nav ListBoxItem" x:DataType="vmp:PageViewModel">
+        <Setter Property="ToolTip.Tip" Value="{Binding Title}"/>
+    </Style>
+
+    <Style Selector="ListBox.nav">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Margin" Value="0,1"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter,
+                     ListBox.nav ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter,
+                     ListBox.nav ListBoxItem:selected:focus /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource CardColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+
+    <Style Selector="Button.nav-footer">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/>
+    </Style>
+    <Style Selector="Button.nav-footer:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+    <Style Selector="Button.nav-footer.active /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource CardColor}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryColor}"/>
+    </Style>
+
+    <Style Selector="Border.badge">
+        <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Padding" Value="6,1"/>
+        <Setter Property="MinWidth" Value="36"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.badge > TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextTertiaryColor}"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ===== Docker connection text in the status bar ===== -->
+    <Style Selector="TextBlock.docker">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{DynamicResource DangerColor}"/>
+    </Style>
+    <Style Selector="TextBlock.docker.online"><Setter Property="Foreground" Value="{DynamicResource TextSecondaryColor}"/></Style>
+    <Style Selector="TextBlock.docker.connecting"><Setter Property="Foreground" Value="{DynamicResource WarningColor}"/></Style>
+</Styles>

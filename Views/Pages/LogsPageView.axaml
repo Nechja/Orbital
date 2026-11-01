@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:c="using:OrbitalDocking.Controls"
+             x:Class="OrbitalDocking.Views.Pages.LogsPageView"
+             x:DataType="vmp:LogsPageViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="32,24,32,16">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                <TextBlock Classes="page-title" Text="Logs"/>
+                <TextBlock Classes="page-subtitle" Text="{Binding Logs.ContainerName, FallbackValue='No container selected', TargetNullValue='No container selected'}"/>
+            </StackPanel>
+            <TextBox Grid.Column="1" Classes="search" Text="{Binding Logs.SearchFilter}" PlaceholderText="Filter lines"/>
+        </Grid>
+
+        <!-- Toolbar -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,0,0,8">
+            <ComboBox Grid.Column="0"
+                      ItemsSource="{Binding AvailableContainers}"
+                      SelectedItem="{Binding SelectedContainer}"
+                      MinWidth="240"
+                      PlaceholderText="Select a container"
+                      VerticalAlignment="Center">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="vm:ContainerViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding Name}" Foreground="{DynamicResource TextPrimaryColor}" TextTrimming="CharacterEllipsis" MaxWidth="260"/>
+                            <TextBlock Text="{Binding StateLabel}" FontSize="11" Foreground="{DynamicResource TextTertiaryColor}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" Margin="8,0,0,0">
+                <Button Classes="ghost tint-primary" Content="Search all" Command="{Binding SearchAllLogsCommand}"
+                        ToolTip.Tip="Search the recent logs of every running container for the filter text"/>
+                <Button Classes="ghost tint-restart" Content="Errors" Command="{Binding ShowErrorsCommand}"
+                        ToolTip.Tip="List running containers whose recent logs mention errors"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="12">
+                <CheckBox IsChecked="{Binding Logs.AutoScroll}" Content="Auto-scroll" FontSize="12" Foreground="{DynamicResource TextSecondaryColor}"/>
+                <CheckBox IsChecked="{Binding Logs.ShowTimestamps}" Content="Timestamps" FontSize="12" Foreground="{DynamicResource TextSecondaryColor}"/>
+                <Button Classes="ghost" Content="Clear" Command="{Binding Logs.ClearCommand}"/>
+                <Button Classes="ghost" Content="Export" Command="{Binding ExportLogsCommand}" ToolTip.Tip="Save the shown text to your desktop"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="2" Classes="section">
+            <Panel>
+                <ScrollViewer IsVisible="{Binding !ShowingErrorOverview}"
+                              HorizontalScrollBarVisibility="Auto"
+                              c:AutoScroll.IsEnabled="{Binding Logs.AutoScroll}">
+                    <SelectableTextBlock Text="{Binding Logs.Content}"
+                                         Classes="mono"
+                                         FontSize="12"
+                                         Foreground="{DynamicResource LogsTextColor}"
+                                         Margin="16,12"/>
+                </ScrollViewer>
+
+                <ScrollViewer IsVisible="{Binding ShowingErrorOverview}">
+                    <StackPanel Margin="16" Spacing="12">
+                        <TextBlock Text="Containers with recent errors" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryColor}"/>
+                        <ItemsControl ItemsSource="{Binding ErrorContainers}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Spacing="12"/></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vmp:ErrorContainerInfo">
+                                    <Border Background="{DynamicResource BackgroundColor}"
+                                            BorderBrush="{DynamicResource BorderColor}"
+                                            BorderThickness="1" CornerRadius="3" Padding="14,12">
+                                        <StackPanel Spacing="10">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding ContainerName}" FontSize="13" FontWeight="Medium"
+                                                               Foreground="{DynamicResource TextPrimaryColor}" VerticalAlignment="Center"/>
+                                                    <Border Classes="pill problem">
+                                                        <TextBlock Text="{Binding ErrorCountLabel}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Classes="ghost tint-accent" Content="View logs"
+                                                        Command="{Binding $parent[ItemsControl].((vmp:LogsPageViewModel)DataContext).ViewContainerLogsCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                            <ItemsControl ItemsSource="{Binding ErrorLines}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding}" Classes="mono" FontSize="11"
+                                                                   Foreground="{DynamicResource DangerColor}" TextWrapping="Wrap" Margin="0,1"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="No errors found in any running container"
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryColor}"
+                                   IsVisible="{Binding !HasErrors}" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Panel>
+        </Border>
+    </Grid>
+</UserControl>

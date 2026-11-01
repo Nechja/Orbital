@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OrbitalDocking.ViewModels"
+             xmlns:vmp="using:OrbitalDocking.ViewModels.Pages"
+             xmlns:components="using:OrbitalDocking.Views.Components"
+             xmlns:c="using:OrbitalDocking.Controls"
+             x:Class="OrbitalDocking.Views.Pages.ContainersPageView"
+             x:DataType="vmp:ContainersPageViewModel">
+
+    <Grid ColumnDefinitions="*,Auto">
+        <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="32,24,32,16">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,20">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <TextBlock Classes="page-title" Text="Containers"/>
+                    <TextBlock Classes="page-subtitle">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} running · {1} stopped">
+                                <Binding Path="RunningCount"/>
+                                <Binding Path="StoppedCount"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+                <TextBox Grid.Column="1" Classes="search" Text="{Binding SearchText}" PlaceholderText="Search containers"/>
+                <Button Grid.Column="2" Classes="icon" Margin="8,0,0,0"
+                        Command="{Binding RefreshCommand}" ToolTip.Tip="Refresh">
+                    <c:Icon Data="{StaticResource Icon.RefreshCw}"/>
+                </Button>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Spacing="24">
+                    <ItemsControl ItemsSource="{Binding Stacks}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><StackPanel Spacing="24"/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate><components:StackSection/></DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Classes="section" IsVisible="{Binding !!StandaloneContainers.Count}">
+                        <StackPanel>
+                            <Border Classes="section-header">
+                                <StackPanel Orientation="Horizontal" Spacing="10" Height="48" Margin="16,0">
+                                    <TextBlock Text="Standalone" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AccentColor}" VerticalAlignment="Center"/>
+                                    <TextBlock Classes="page-subtitle"
+                                               Text="{Binding StandaloneContainers.Count, StringFormat='{}{0} containers'}"/>
+                                </StackPanel>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding StandaloneContainers}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="row-separator">
+                                            <components:ContainerRow/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Detail pane for the selected container; the ContentControl keeps the page as its own DataContext. -->
+        <ContentControl Grid.Column="1"
+                        Content="{Binding SelectedContainer}"
+                        IsVisible="{Binding SelectedContainer, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate DataType="vm:ContainerViewModel">
+                    <components:ContainerDetailPane/>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+    </Grid>
+</UserControl>

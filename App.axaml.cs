@@ -11,7 +11,7 @@ namespace OrbitalDocking;
 public partial class App : Application
 {
     private ServiceProvider? _serviceProvider;
-    
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -25,21 +25,29 @@ public partial class App : Application
             services.AddOrbitalDockingServices();
             _serviceProvider = services.BuildServiceProvider();
 
-            var mainWindowViewModel = _serviceProvider.GetRequiredService<MainWindowViewModel>();
-
-            desktop.MainWindow = new MainWindow
+            var mainWindow = new MainWindow
             {
-                DataContext = mainWindowViewModel,
+                DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>(),
+            };
+            desktop.MainWindow = mainWindow;
+
+            // Closing the window hides it to the tray; Exit from the tray menu shuts down.
+            var tray = _serviceProvider.GetRequiredService<ITrayService>();
+            tray.Initialize();
+            tray.ExitRequested += (_, _) => desktop.Shutdown();
+            mainWindow.Closing += (_, e) =>
+            {
+                e.Cancel = true;
+                mainWindow.Hide();
             };
 
-            desktop.Exit += OnExit;
+            desktop.Exit += (_, _) =>
+            {
+                (mainWindow.DataContext as MainWindowViewModel)?.Dispose();
+                _serviceProvider.Dispose();
+            };
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
-    {
-        _serviceProvider?.Dispose();
     }
 }

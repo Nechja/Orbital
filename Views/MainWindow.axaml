@@ -101,6 +101,11 @@
                            TextTrimming="CharacterEllipsis"/>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                    <Button Classes="ghost tint-primary" FontSize="11" Padding="6,2"
+                            IsVisible="{Binding State.IsUpdateAvailable}"
+                            Content="{Binding State.UpdateLabel}"
+                            Command="{Binding Settings.OpenReleaseCommand}"
+                            ToolTip.Tip="Open the release on GitHub"/>
                     <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryColor}"
                                Text="{Binding Containers.RunningCount, StringFormat='{}{0} running'}"/>
                     <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryColor}"

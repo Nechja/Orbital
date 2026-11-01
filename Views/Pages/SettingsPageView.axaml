@@ -75,9 +75,34 @@
                     </StackPanel>
                 </Border>
 
-                <Button Classes="action" Content="GitHub" HorizontalAlignment="Left"
-                        Foreground="{DynamicResource TextTertiaryColor}"
-                        Command="{Binding OpenGitHubCommand}"/>
+                <Border Background="{DynamicResource SurfaceColor}"
+                        BorderBrush="{DynamicResource BorderColor}"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="24">
+                    <StackPanel Spacing="16">
+                        <TextBlock Classes="label" Text="ABOUT"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="Orbital Docking" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryColor}"/>
+                            <TextBlock Text="{Binding CurrentVersion}" FontSize="13" Foreground="{DynamicResource TextSecondaryColor}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="Auto,Auto,*">
+                            <Button Grid.Column="0" Classes="outlined" Content="Check for updates"
+                                    Command="{Binding CheckForUpdatesCommand}"
+                                    IsEnabled="{Binding !IsCheckingForUpdates}"/>
+                            <Button Grid.Column="1" Classes="ghost tint-primary" Content="Open release" Margin="8,0,0,0"
+                                    IsVisible="{Binding State.IsUpdateAvailable}"
+                                    Command="{Binding OpenReleaseCommand}"/>
+                            <TextBlock Grid.Column="2" Text="{Binding UpdateStatus}" FontSize="12" Margin="12,0,0,0"
+                                       Foreground="{DynamicResource TextSecondaryColor}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        </Grid>
+                        <CheckBox IsChecked="{Binding CheckForUpdatesOnStartup}" Content="Check for updates when Orbital starts"
+                                  FontSize="12" Foreground="{DynamicResource TextSecondaryColor}"/>
+                        <Button Classes="action" Content="GitHub" HorizontalAlignment="Left"
+                                Foreground="{DynamicResource TextTertiaryColor}"
+                                Command="{Binding OpenGitHubCommand}"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

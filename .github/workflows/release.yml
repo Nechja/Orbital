@@ -57,8 +57,19 @@ jobs:
     - name: Build
       run: dotnet build Orbital.slnx --configuration Release --no-restore
 
+    - name: Determine version
+      shell: bash
+      run: |
+        # Tag v1.2.3 (or a manual run with that tag) stamps 1.2.3 into the assembly so the in-app update check can compare.
+        REF="${{ github.event.inputs.tag || github.ref_name }}"
+        if [[ "$REF" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+          echo "APP_VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+        else
+          echo "APP_VERSION=0.0.0" >> "$GITHUB_ENV"
+        fi
+
     - name: Publish Self-Contained Single File
-      run: dotnet publish OrbitalDocking.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=true -p:TrimMode=partial -o ./publish
+      run: dotnet publish OrbitalDocking.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:Version=${{ env.APP_VERSION }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=true -p:TrimMode=partial -o ./publish
 
     - name: Prepare artifacts (Linux/macOS)
       if: runner.os != 'Windows'

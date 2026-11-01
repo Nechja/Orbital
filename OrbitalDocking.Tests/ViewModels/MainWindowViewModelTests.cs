@@ -15,6 +15,7 @@ public class MainWindowViewModelTests
     private readonly Mock<IDockerService> _docker = Fixtures.DockerService();
     private readonly AppState _state = new();
     private readonly InMemoryPreferencesStore _preferences = new();
+    private readonly FakeUpdateChecker _updates = new() { Latest = new Version(0, 4, 0) };
 
     private MainWindowViewModel CreateShell()
     {
@@ -24,13 +25,14 @@ public class MainWindowViewModelTests
         return new MainWindowViewModel(
             _docker.Object,
             _preferences,
+            _updates,
             _state,
             new ContainersPageViewModel(_docker.Object, null, logs, dialogs, _state, ui, NullLogger<ContainersPageViewModel>.Instance),
             new ImagesPageViewModel(_docker.Object, dialogs, _state, ui),
             new VolumesPageViewModel(_docker.Object, dialogs, _state, ui),
             new NetworksPageViewModel(_docker.Object, dialogs, _state, ui),
             new LogsPageViewModel(logs, ui, _state),
-            new SettingsPageViewModel(Mock.Of<IThemeService>(), _docker.Object, _state, NullLogger<SettingsPageViewModel>.Instance));
+            new SettingsPageViewModel(Mock.Of<IThemeService>(), _docker.Object, _updates, _preferences, _state, NullLogger<SettingsPageViewModel>.Instance));
     }
 
     [Fact]
@@ -78,6 +80,26 @@ public class MainWindowViewModelTests
         shell.CurrentPage.Should().BeSameAs(shell.Logs);
         shell.Logs.AvailableContainers.Should().Contain(web);
         shell.Logs.SelectedContainer.Should().BeSameAs(web);
+    }
+
+    [Fact]
+    public async Task Startup_ChecksForUpdates_OnlyWhenEnabled()
+    {
+        using (var shell = CreateShell())
+        {
+            await Task.Delay(50);
+            _updates.Calls.Should().Be(1);
+            _state.IsUpdateAvailable.Should().BeTrue();
+            _state.UpdateLabel.Should().Be("v0.4.0 available");
+        }
+
+        _preferences.Save(new Preferences(CheckForUpdatesOnStartup: false));
+        _state.LatestUpdate = null;
+        using (CreateShell())
+        {
+            await Task.Delay(50);
+            _updates.Calls.Should().Be(1, "the startup check is off");
+        }
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels;
 
@@ -20,6 +21,15 @@ public partial class AppState : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsDockerConnected))]
     [NotifyPropertyChangedFor(nameof(IsDockerConnecting))]
     private DockerConnection _dockerConnection = DockerConnection.Connecting;
+
+    /// <summary>Result of the most recent update check, if one has run.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsUpdateAvailable))]
+    [NotifyPropertyChangedFor(nameof(UpdateLabel))]
+    private UpdateCheckResult? _latestUpdate;
+
+    public bool IsUpdateAvailable => LatestUpdate?.IsUpdateAvailable == true;
+    public string UpdateLabel => LatestUpdate is { IsUpdateAvailable: true, Latest: { } v } ? $"v{v} available" : string.Empty;
 
     public bool IsDockerConnected => DockerConnection == DockerConnection.Connected;
     public bool IsDockerConnecting => DockerConnection == DockerConnection.Connecting;

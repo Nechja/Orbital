@@ -9,7 +9,12 @@ namespace OrbitalDocking.Services;
 /// <summary>User preferences that survive restarts. Add fields here; the store round-trips them as JSON.</summary>
 public sealed record Preferences(
     ThemeMode Theme = ThemeMode.Dark,
-    bool SidebarCollapsed = false);
+    bool SidebarCollapsed = false,
+    bool CheckForUpdatesOnStartup = true);
+
+[JsonSourceGenerationOptions(WriteIndented = true, UseStringEnumConverter = true)]
+[JsonSerializable(typeof(Preferences))]
+internal partial class PreferencesJsonContext : JsonSerializerContext;
 
 public interface IPreferencesStore
 {
@@ -20,12 +25,6 @@ public interface IPreferencesStore
 /// <summary>Stores preferences as JSON under the user's config directory (e.g. ~/.config/Orbital on Linux).</summary>
 public sealed class JsonPreferencesStore : IPreferencesStore
 {
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        WriteIndented = true,
-        Converters = { new JsonStringEnumConverter() },
-    };
-
     private readonly string _path;
 
     public JsonPreferencesStore()
@@ -43,7 +42,7 @@ public sealed class JsonPreferencesStore : IPreferencesStore
         try
         {
             if (!File.Exists(_path)) return new Preferences();
-            return JsonSerializer.Deserialize<Preferences>(File.ReadAllText(_path), Options) ?? new Preferences();
+            return JsonSerializer.Deserialize(File.ReadAllText(_path), PreferencesJsonContext.Default.Preferences) ?? new Preferences();
         }
         catch (Exception)
         {
@@ -56,7 +55,7 @@ public sealed class JsonPreferencesStore : IPreferencesStore
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
-            File.WriteAllText(_path, JsonSerializer.Serialize(preferences, Options));
+            File.WriteAllText(_path, JsonSerializer.Serialize(preferences, PreferencesJsonContext.Default.Preferences));
         }
         catch (Exception)
         {

@@ -6,10 +6,6 @@ using Avalonia.Data.Converters;
 
 namespace OrbitalDocking.Converters;
 
-/// <summary>
-/// Given (sortColumn, sortDescending) and a column name as the parameter, yields the chevron
-/// geometry for that column's header, or null when the table is sorted by another column.
-/// </summary>
 public sealed class SortIndicatorConverter : IMultiValueConverter
 {
     public static readonly SortIndicatorConverter Instance = new();

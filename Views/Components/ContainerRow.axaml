@@ -7,7 +7,6 @@
              x:Class="OrbitalDocking.Views.Components.ContainerRow"
              x:DataType="vm:ContainerViewModel">
 
-    <!-- The whole row is a button that selects the container for the detail pane. -->
     <Button Classes="row"
             Classes.selected="{Binding IsSelected}"
             Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).SelectCommand}"

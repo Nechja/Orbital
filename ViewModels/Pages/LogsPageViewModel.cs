@@ -28,10 +28,8 @@ public sealed partial class LogsPageViewModel : PageViewModel
     public override string Title => "Logs";
     public override string IconKey => "Icon.ScrollText";
 
-    /// <summary>The live log view for the selected container.</summary>
     public LogBufferViewModel Logs { get; }
 
-    /// <summary>Containers offered in the picker; the shell fills this from the containers page.</summary>
     public ObservableCollection<ContainerViewModel> AvailableContainers { get; } = new();
 
     [ObservableProperty]
@@ -51,7 +49,6 @@ public sealed partial class LogsPageViewModel : PageViewModel
         Logs.Follow(value.Id, value.Name);
     }
 
-    /// <summary>Searches the recent logs of every running container for the current filter.</summary>
     [RelayCommand]
     private async Task SearchAllLogsAsync()
     {
@@ -80,7 +77,6 @@ public sealed partial class LogsPageViewModel : PageViewModel
         Logs.ShowText(report.ToString());
     }
 
-    /// <summary>Lists running containers whose recent logs mention an error keyword.</summary>
     [RelayCommand]
     private async Task ShowErrorsAsync()
     {
@@ -121,7 +117,7 @@ public sealed partial class LogsPageViewModel : PageViewModel
         try
         {
             var text = await _logs.ReadTailAsync(container.Id, timestamps, 100, CancellationToken.None);
-            return text.Split('\n');
+            return text.Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
         }
         catch (Exception)
         {

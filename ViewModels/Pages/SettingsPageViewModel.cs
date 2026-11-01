@@ -79,7 +79,7 @@ public sealed partial class SettingsPageViewModel : PageViewModel
     public AppState State { get; }
 
     [ObservableProperty]
-    private string _dockerEndpoint = AppConstants.Docker.DefaultDockerEndpoint;
+    private string _dockerEndpoint = DockerClientFactory.GetDockerEndpoint();
 
     public bool IsDarkTheme => _themes.CurrentTheme == ThemeMode.Dark;
     public bool IsLightTheme => _themes.CurrentTheme == ThemeMode.Light;

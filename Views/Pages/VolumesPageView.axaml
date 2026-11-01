@@ -25,7 +25,7 @@
                         Content="{Binding SelectedCount, StringFormat='Remove selected ({0})'}"
                         Command="{Binding RemoveSelectedCommand}"/>
                 <Button Classes="ghost" Content="Remove unused" Command="{Binding RemoveUnusedCommand}"
-                        ToolTip.Tip="Remove anonymous volumes no container uses (docker volume prune)"/>
+                        ToolTip.Tip="Remove volumes no container uses (docker volume prune -a)"/>
         </StackPanel>
 
         <Border Grid.Row="2" Classes="table-header">

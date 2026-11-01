@@ -8,7 +8,6 @@ using Xunit;
 
 namespace OrbitalDocking.Tests.Pages;
 
-/// <summary>Images stands in for the three list pages, which share ResourcePageViewModel.</summary>
 public class ResourcePagesTests
 {
     private readonly Mock<IDockerService> _docker = Fixtures.DockerService();

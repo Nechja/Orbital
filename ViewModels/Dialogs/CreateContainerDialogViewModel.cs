@@ -61,16 +61,13 @@ public partial class CreateContainerDialogViewModel : ObservableObject
         
         ImageFullName = $"{imageName}:{imageTag}";
         
-        // Generate initial container name
         GenerateName();
         
-        // TODO: Auto-detect exposed ports from image
     }
 
     [RelayCommand]
     private void GenerateName()
     {
-        // Generate a unique name based on image and timestamp
         var baseName = _imageName.Replace("/", "-").Replace(":", "-");
         var timestamp = DateTime.Now.ToString("MMdd-HHmmss");
         ContainerName = $"{baseName}-{timestamp}";
@@ -109,7 +106,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
 
         try
         {
-            // Build port bindings dictionary
             var portBindings = new Dictionary<string, IList<Docker.DotNet.Models.PortBinding>>();
             foreach (var port in PortMappings.Where(p => !string.IsNullOrWhiteSpace(p.ContainerPort)))
             {
@@ -123,7 +119,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
                 };
             }
 
-            // Build environment variables
             var envVars = EnvironmentVariables
                 .Where(e => !string.IsNullOrWhiteSpace(e.Key))
                 .Select(e => $"{e.Key}={e.Value}")
@@ -140,7 +135,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
                 }
             };
 
-            // Create the container
             var result = await _dockerService.CreateContainerAsync(createParams);
             
             if (result.IsError)
@@ -151,7 +145,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
 
             CreatedContainerId = result.Value.ID;
 
-            // Start the container
             var startResult = await _dockerService.StartContainerAsync(CreatedContainerId);
             if (startResult.IsError)
             {
@@ -177,7 +170,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
 
     private void CloseDialog()
     {
-        // The dialog service will handle closing
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
@@ -189,11 +181,9 @@ public partial class CreateContainerDialogViewModel : ObservableObject
     {
         ValidationSummary = "";
         
-        // Validate container name
         if (!await ValidateContainerName())
             return false;
 
-        // Validate at least one port mapping if any are specified
         var hasValidPort = !PortMappings.Any() || 
                           PortMappings.Any(p => !string.IsNullOrWhiteSpace(p.ContainerPort));
         
@@ -203,7 +193,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
             return false;
         }
 
-        // Check for port conflicts
         foreach (var port in PortMappings.Where(p => !string.IsNullOrWhiteSpace(p.HostPort)))
         {
             if (!int.TryParse(port.HostPort, out var portNum) || portNum < 1 || portNum > 65535)
@@ -212,7 +201,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
                 return false;
             }
 
-            // TODO: Check if port is already in use
         }
 
         return true;
@@ -227,7 +215,6 @@ public partial class CreateContainerDialogViewModel : ObservableObject
             return false;
         }
 
-        // Check if name already exists
         var containers = await _dockerService.GetContainersAsync();
         if (!containers.IsError && containers.Value.Any(c => c.Name == ContainerName))
         {

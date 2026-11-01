@@ -3,10 +3,6 @@ using Avalonia.Controls;
 
 namespace OrbitalDocking.Controls;
 
-/// <summary>
-/// Attached property: when enabled on a ScrollViewer, keeps it scrolled to the end as its content grows.
-/// Usage: &lt;ScrollViewer c:AutoScroll.IsEnabled="{Binding AutoScroll}"&gt;
-/// </summary>
 public static class AutoScroll
 {
     public static readonly AttachedProperty<bool> IsEnabledProperty =

@@ -17,7 +17,6 @@ public static class ServiceCollectionExtensions
                    .SetMinimumLevel(LogLevel.Information);
         });
 
-        // Docker
         services.AddSingleton<IDockerClientFactory, DockerClientFactory>();
         services.AddSingleton<DockerClient>(provider =>
             provider.GetRequiredService<IDockerClientFactory>().CreateClient());
@@ -25,7 +24,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IDockerService, DockerService>();
         services.AddSingleton<IContainerLogs, DockerContainerLogs>();
 
-        // UI services
         services.AddSingleton<IPreferencesStore, JsonPreferencesStore>();
         services.AddSingleton<IUpdateChecker, GitHubUpdateChecker>();
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
@@ -34,7 +32,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITrayService, TrayService>();
         services.AddSingleton<AppState>();
 
-        // Pages and shell (one window, so one instance of each)
         services.AddSingleton<ContainersPageViewModel>();
         services.AddSingleton<ImagesPageViewModel>();
         services.AddSingleton<VolumesPageViewModel>();

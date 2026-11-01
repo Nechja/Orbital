@@ -24,7 +24,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         _dockerClient = dockerClient;
     }
 
-    /// <summary>Set by the containers page when this row is shown in the detail pane.</summary>
     [ObservableProperty]
     private bool _isSelected;
 
@@ -149,10 +148,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>
-    /// IProgress implementation that invokes the callback synchronously on the calling thread,
-    /// avoiding the race condition in Progress&lt;T&gt; which posts to a captured SynchronizationContext.
-    /// </summary>
     private sealed class SynchronousProgress<T> : IProgress<T>
     {
         private readonly Action<T> _handler;
@@ -207,7 +202,6 @@ public partial class ContainerViewModel : ObservableObject, IDisposable
         }
         catch
         {
-            // Stats parsing error - ignore
         }
     }
 

@@ -4,10 +4,6 @@ using Avalonia.Media;
 
 namespace OrbitalDocking.Controls;
 
-/// <summary>
-/// Renders a stroke-based 24x24 icon geometry (see Styles/Icons.axaml) using the inherited Foreground.
-/// Usage: &lt;c:Icon Data="{StaticResource Icon.Play}"/&gt;
-/// </summary>
 public class Icon : TemplatedControl
 {
     public static readonly StyledProperty<Geometry?> DataProperty =

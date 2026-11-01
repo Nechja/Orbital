@@ -19,14 +19,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <!-- Main content with padding -->
         <Grid Grid.Row="0" Margin="32,32,32,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             
-            <!-- Image name at top -->
             <TextBlock Grid.Row="0"
                        Text="{Binding ImageFullName}"
                        FontSize="11"
@@ -34,9 +32,7 @@
                        Opacity="0.8"
                        Margin="0,0,0,24"/>
             
-            <!-- Simple content area -->
             <StackPanel Grid.Row="1" Spacing="20">
-            <!-- Name input - minimal -->
             <TextBox Text="{Binding ContainerName}"
                      Background="Transparent"
                      BorderBrush="{DynamicResource BorderInputColor}"
@@ -46,7 +42,6 @@
                      Padding="0,0,0,8"
                      PlaceholderText="Container name"/>
             
-            <!-- Quick config buttons -->
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Button Classes="outlined"
                         Content="+ Port"
@@ -57,10 +52,8 @@
                         Command="{Binding AddEnvironmentVariableCommand}"/>
             </StackPanel>
             
-            <!-- Dynamic config display - super minimal -->
             <ScrollViewer MaxHeight="100" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="8">
-                    <!-- Ports -->
                     <ItemsControl ItemsSource="{Binding PortMappings}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -112,7 +105,6 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     
-                    <!-- Environment variables -->
                     <ItemsControl ItemsSource="{Binding EnvironmentVariables}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -168,7 +160,6 @@
             </StackPanel>
         </Grid>
         
-        <!-- Action button zone with background -->
         <Border Grid.Row="1"
                 Background="{DynamicResource SurfaceColor}"
                 BorderBrush="{DynamicResource BorderColor}"

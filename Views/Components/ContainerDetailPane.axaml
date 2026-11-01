@@ -61,7 +61,6 @@
                         Command="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).SelectTabCommand}" CommandParameter="logs"/>
             </StackPanel>
 
-            <!-- Logs tab -->
             <Grid RowDefinitions="Auto,*" IsVisible="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).IsLogsTab}" Margin="16,0,16,16">
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
                     <TextBox Grid.Column="0" Classes="search" Width="NaN" HorizontalAlignment="Stretch" MinHeight="30"
@@ -82,7 +81,6 @@
                 </Border>
             </Grid>
 
-            <!-- Overview tab -->
             <ScrollViewer IsVisible="{Binding $parent[pages:ContainersPageView].((vmp:ContainersPageViewModel)DataContext).IsOverviewTab}">
                 <StackPanel Margin="20,4,20,20" Spacing="18">
 

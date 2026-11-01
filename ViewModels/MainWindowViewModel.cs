@@ -9,10 +9,6 @@ using OrbitalDocking.ViewModels.Pages;
 
 namespace OrbitalDocking.ViewModels;
 
-/// <summary>
-/// The shell: owns the pages, tracks which one is current, and reports Docker connectivity.
-/// Everything resource-specific lives in the page view models.
-/// </summary>
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly IDockerService _docker;
@@ -57,7 +53,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _ = ConnectAsync();
         _ = Task.Run(() => _docker.StartMonitoringEvents());
 
-        // Start every page's periodic refresh so sidebar counts are populated without visiting each page.
         foreach (var page in Pages)
             page.Activate();
 
@@ -65,7 +60,6 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _ = CheckForUpdatesAsync();
     }
 
-    /// <summary>Asks GitHub for the latest release and records the answer in <see cref="AppState"/>.</summary>
     public async Task CheckForUpdatesAsync()
     {
         State.LatestUpdate = await _updates.CheckAsync();
@@ -79,19 +73,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public LogsPageViewModel Logs { get; }
     public SettingsPageViewModel Settings { get; }
 
-    /// <summary>Pages listed in the sidebar, in order. Settings is reached from the sidebar footer.</summary>
     public IReadOnlyList<PageViewModel> Pages { get; }
 
     [ObservableProperty]
     private PageViewModel _currentPage;
 
-    /// <summary>Sidebar selection. Null while a page outside <see cref="Pages"/> (Settings) is current.</summary>
     [ObservableProperty]
     private PageViewModel? _selectedNavPage;
 
     public bool IsSettingsActive => CurrentPage == Settings;
 
-    /// <summary>When true the sidebar shows icons only.</summary>
     [ObservableProperty]
     private bool _isSidebarCollapsed;
 

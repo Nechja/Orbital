@@ -31,7 +31,6 @@ public partial class App : Application
             };
             desktop.MainWindow = mainWindow;
 
-            // Closing the window hides it to the tray; Exit from the tray menu shuts down.
             var tray = _serviceProvider.GetRequiredService<ITrayService>();
             tray.Initialize();
             tray.ExitRequested += (_, _) => desktop.Shutdown();

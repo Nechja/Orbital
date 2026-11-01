@@ -21,7 +21,6 @@ public partial class PortMappingViewModel : ObservableObject
     {
         ContainerPort = containerPort;
         Protocol = protocol;
-        // Auto-suggest same port for host
         HostPort = containerPort;
     }
 }

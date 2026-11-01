@@ -10,11 +10,6 @@ using OrbitalDocking.Services;
 
 namespace OrbitalDocking.ViewModels.Pages;
 
-/// <summary>
-/// A page that lists one kind of Docker resource (images, volumes, networks) as a sortable,
-/// searchable table with single and bulk removal. Subclasses supply loading, matching, sort keys,
-/// and the remove operation.
-/// </summary>
 public abstract partial class ResourcePageViewModel<TItem> : DockerPageViewModel
 {
     private readonly TimeSpan _refreshInterval;
@@ -40,16 +35,13 @@ public abstract partial class ResourcePageViewModel<TItem> : DockerPageViewModel
     [ObservableProperty]
     private bool _sortDescending;
 
-    /// <summary>Items matching the current search, in sort order.</summary>
     public ObservableCollection<TItem> Items { get; } = new();
 
-    /// <summary>The list's selection; the view binds its SelectedItems to this collection.</summary>
     public ObservableCollection<TItem> SelectedItems { get; } = new();
 
     [ObservableProperty]
     private int _selectedCount;
 
-    /// <summary>Singular/plural noun for status messages, e.g. "image".</summary>
     protected abstract string Noun { get; }
     protected abstract string DefaultSortColumn { get; }
     protected abstract Task<ErrorOr<IReadOnlyList<TItem>>> LoadAsync();
@@ -61,7 +53,6 @@ public abstract partial class ResourcePageViewModel<TItem> : DockerPageViewModel
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
-    /// <summary>First activation starts periodic refresh (which refreshes immediately); later ones refresh once.</summary>
     public override void Activate()
     {
         if (_started)
@@ -94,7 +85,6 @@ public abstract partial class ResourcePageViewModel<TItem> : DockerPageViewModel
         });
     });
 
-    /// <summary>Sorts by a column; sorting by the current column again flips the direction.</summary>
     [RelayCommand]
     private void SortBy(string column)
     {
@@ -112,7 +102,6 @@ public abstract partial class ResourcePageViewModel<TItem> : DockerPageViewModel
     private Task RemoveItemAsync(TItem item) =>
         RunAsync($"Removing {Noun} {Describe(item)}...", $"Removed {Noun} {Describe(item)}", () => RemoveAsync(item));
 
-    /// <summary>Removes every selected item after confirmation.</summary>
     [RelayCommand]
     private async Task RemoveSelectedAsync()
     {
@@ -137,7 +126,6 @@ public abstract partial class ResourcePageViewModel<TItem> : DockerPageViewModel
         await RefreshAsync();
     }
 
-    /// <summary>Runs Docker's prune for this resource type after confirmation.</summary>
     [RelayCommand]
     private async Task RemoveUnusedAsync()
     {

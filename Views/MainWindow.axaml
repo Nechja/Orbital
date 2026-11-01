@@ -18,7 +18,6 @@
     <Grid RowDefinitions="*,Auto">
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
 
-            <!-- Sidebar: full width with labels, or an icon rail when collapsed -->
             <Border Grid.Column="0"
                     Classes="sidebar"
                     Classes.collapsed="{Binding IsSidebarCollapsed}"
@@ -73,11 +72,9 @@
                 </DockPanel>
             </Border>
 
-            <!-- Current page -->
             <ContentControl Grid.Column="1" Content="{Binding CurrentPage}"/>
         </Grid>
 
-        <!-- Status bar -->
         <Border Grid.Row="1"
                 Background="{DynamicResource SurfaceColor}"
                 BorderBrush="{DynamicResource BorderColor}"

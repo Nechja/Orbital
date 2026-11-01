@@ -74,6 +74,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool IsSettingsActive => CurrentPage == Settings;
 
+    /// <summary>When true the sidebar shows icons only.</summary>
+    [ObservableProperty]
+    private bool _isSidebarCollapsed;
+
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarCollapsed = !IsSidebarCollapsed;
+
     partial void OnCurrentPageChanged(PageViewModel value)
     {
         SelectedNavPage = Pages.Contains(value) ? value : null;

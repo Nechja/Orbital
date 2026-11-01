@@ -16,19 +16,30 @@
         Background="{DynamicResource BackgroundColor}">
 
     <Grid RowDefinitions="*,Auto">
-        <Grid Grid.Row="0" ColumnDefinitions="220,*">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
 
-            <!-- Sidebar -->
+            <!-- Sidebar: full width with labels, or an icon rail when collapsed -->
             <Border Grid.Column="0"
+                    Classes="sidebar"
+                    Classes.collapsed="{Binding IsSidebarCollapsed}"
                     Background="{DynamicResource SurfaceColor}"
                     BorderBrush="{DynamicResource BorderColor}"
                     BorderThickness="0,0,1,0">
                 <DockPanel Margin="12,16">
-                    <TextBlock DockPanel.Dock="Top"
-                               Text="Orbital"
-                               FontSize="15" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryColor}"
-                               Margin="10,0,10,20"/>
+                    <Grid DockPanel.Dock="Top" Classes="nav-row" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                        <TextBlock Grid.Column="0" Classes="nav-text"
+                                   Text="Orbital"
+                                   FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryColor}"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"/>
+                        <Button Grid.Column="1" Classes="icon" Command="{Binding ToggleSidebarCommand}" ToolTip.Tip="Toggle sidebar">
+                            <Panel>
+                                <c:Icon Data="{StaticResource Icon.PanelLeftClose}" IsVisible="{Binding !IsSidebarCollapsed}"/>
+                                <c:Icon Data="{StaticResource Icon.PanelLeftOpen}" IsVisible="{Binding IsSidebarCollapsed}"/>
+                            </Panel>
+                        </Button>
+                    </Grid>
 
                     <Button DockPanel.Dock="Bottom"
                             Classes="nav-footer"
@@ -36,7 +47,7 @@
                             Command="{Binding ShowSettingsCommand}">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <c:Icon Data="{StaticResource Icon.Settings}"/>
-                            <TextBlock Text="Settings" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Classes="nav-text" Text="Settings" FontSize="13" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
@@ -45,15 +56,16 @@
                              SelectedItem="{Binding SelectedNavPage}">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vmp:PageViewModel">
-                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Grid Classes="nav-row" ColumnDefinitions="Auto,*,Auto">
                                     <c:Icon Grid.Column="0"
-                                            Data="{Binding IconKey, Converter={x:Static conv:IconKeyConverter.Instance}}"
-                                            Margin="0,0,10,0"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="13" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Classes="badge"
-                                            IsVisible="{Binding Count, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <TextBlock Text="{Binding Count}"/>
-                                    </Border>
+                                            Data="{Binding IconKey, Converter={x:Static conv:IconKeyConverter.Instance}}"/>
+                                    <TextBlock Grid.Column="1" Classes="nav-text" Text="{Binding Title}" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <Panel Grid.Column="2" Classes="nav-extra">
+                                        <Border Classes="badge"
+                                                IsVisible="{Binding Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="{Binding Count}"/>
+                                        </Border>
+                                    </Panel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

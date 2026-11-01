@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:OrbitalDocking.Controls">
+        xmlns:c="using:OrbitalDocking.Controls"
+        xmlns:vmp="using:OrbitalDocking.ViewModels.Pages">
 
     <!-- ===== Typography ===== -->
     <Style Selector="Window">
@@ -365,6 +366,32 @@
     </Style>
 
     <!-- ===== Sidebar navigation ===== -->
+    <Style Selector="Border.sidebar">
+        <Setter Property="Width" Value="220"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Width" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed">
+        <Setter Property="Width" Value="64"/>
+    </Style>
+    <!-- On the rail: labels and badges hide, content centers, and tooltips carry the names. -->
+    <Style Selector="Border.sidebar.collapsed TextBlock.nav-text, Border.sidebar.collapsed Panel.nav-extra">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed Grid.nav-row">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed Button.nav-footer">
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="ToolTip.Tip" Value="Settings"/>
+    </Style>
+    <Style Selector="Border.sidebar.collapsed ListBox.nav ListBoxItem" x:DataType="vmp:PageViewModel">
+        <Setter Property="ToolTip.Tip" Value="{Binding Title}"/>
+    </Style>
+
     <Style Selector="ListBox.nav">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -416,8 +443,8 @@
     <Style Selector="Border.badge">
         <Setter Property="Background" Value="{DynamicResource BackgroundTertiaryColor}"/>
         <Setter Property="CornerRadius" Value="3"/>
-        <Setter Property="Padding" Value="7,1"/>
-        <Setter Property="MinWidth" Value="22"/>
+        <Setter Property="Padding" Value="6,1"/>
+        <Setter Property="MinWidth" Value="36"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.badge > TextBlock">

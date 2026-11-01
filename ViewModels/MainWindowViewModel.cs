@@ -16,9 +16,11 @@ namespace OrbitalDocking.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly IDockerService _docker;
+    private readonly IPreferencesStore _preferences;
 
     public MainWindowViewModel(
         IDockerService docker,
+        IPreferencesStore preferences,
         AppState state,
         ContainersPageViewModel containers,
         ImagesPageViewModel images,
@@ -28,6 +30,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         SettingsPageViewModel settings)
     {
         _docker = docker;
+        _preferences = preferences;
+        _isSidebarCollapsed = preferences.Load().SidebarCollapsed;
         State = state;
         Containers = containers;
         Images = images;
@@ -80,6 +84,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     private void ToggleSidebar() => IsSidebarCollapsed = !IsSidebarCollapsed;
+
+    partial void OnIsSidebarCollapsedChanged(bool value) =>
+        _preferences.Save(_preferences.Load() with { SidebarCollapsed = value });
 
     partial void OnCurrentPageChanged(PageViewModel value)
     {

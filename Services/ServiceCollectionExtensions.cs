@@ -26,6 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IContainerLogs, DockerContainerLogs>();
 
         // UI services
+        services.AddSingleton<IPreferencesStore, JsonPreferencesStore>();
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<IDialogService, DialogService>();

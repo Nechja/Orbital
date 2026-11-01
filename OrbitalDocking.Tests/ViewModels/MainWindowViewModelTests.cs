@@ -14,6 +14,7 @@ public class MainWindowViewModelTests
 {
     private readonly Mock<IDockerService> _docker = Fixtures.DockerService();
     private readonly AppState _state = new();
+    private readonly InMemoryPreferencesStore _preferences = new();
 
     private MainWindowViewModel CreateShell()
     {
@@ -22,6 +23,7 @@ public class MainWindowViewModelTests
         var logs = new FakeContainerLogs();
         return new MainWindowViewModel(
             _docker.Object,
+            _preferences,
             _state,
             new ContainersPageViewModel(_docker.Object, null, logs, dialogs, _state, ui, NullLogger<ContainersPageViewModel>.Instance),
             new ImagesPageViewModel(_docker.Object, dialogs, _state, ui),
@@ -76,6 +78,19 @@ public class MainWindowViewModelTests
         shell.CurrentPage.Should().BeSameAs(shell.Logs);
         shell.Logs.AvailableContainers.Should().Contain(web);
         shell.Logs.SelectedContainer.Should().BeSameAs(web);
+    }
+
+    [Fact]
+    public void SidebarState_IsRestoredAndRemembered()
+    {
+        _preferences.Save(new Preferences(SidebarCollapsed: true));
+        using var shell = CreateShell();
+        shell.IsSidebarCollapsed.Should().BeTrue("the saved preference is applied on startup");
+
+        shell.ToggleSidebarCommand.Execute(null);
+
+        shell.IsSidebarCollapsed.Should().BeFalse();
+        _preferences.Current.SidebarCollapsed.Should().BeFalse("the change is written back");
     }
 
     [Fact]

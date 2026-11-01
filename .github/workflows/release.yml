@@ -69,7 +69,7 @@ jobs:
         fi
 
     - name: Publish Self-Contained Single File
-      run: dotnet publish OrbitalDocking.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:Version=${{ env.APP_VERSION }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=true -p:TrimMode=partial -o ./publish
+      run: dotnet publish OrbitalDocking.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:Version=${{ env.APP_VERSION }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=true -p:TrimMode=partial -p:DebugType=none -p:DebugSymbols=false -o ./publish
 
     - name: Prepare artifacts (Linux/macOS)
       if: runner.os != 'Windows'
@@ -158,6 +158,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
+        Remove-Item publish/*.pdb -ErrorAction SilentlyContinue
         Compress-Archive -Path publish/* -DestinationPath ${{ matrix.artifact }}.zip
 
     - name: Upload artifacts

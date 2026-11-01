@@ -60,7 +60,7 @@ public class LogsPageTests
 
         await page.SearchAllLogsCommand.ExecuteAsync(null);
 
-        page.Logs.Content.Should().Contain("--- web (1 matches) ---").And.Contain("--- api (1 matches) ---");
+        page.Logs.Content.Should().Contain("--- web (1 matches) ---").And.Contain("--- api (1 matches) ---").And.NotContain("\r");
         page.Logs.IsFollowing.Should().BeFalse();
     }
 }

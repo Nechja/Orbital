@@ -137,7 +137,7 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
     {
         var text = _partialLine + chunk;
         var parts = text.Split('\n');
-        _lines.AddRange(parts.Take(parts.Length - 1));
+        _lines.AddRange(parts.Take(parts.Length - 1).Select(p => p.TrimEnd('\r')));
         _partialLine = parts[^1];
 
         var overflow = _lines.Count - AppConstants.UI.MaxLogLines;
@@ -150,8 +150,8 @@ public sealed partial class LogBufferViewModel : ObservableObject, IDisposable
     private void Render()
     {
         IEnumerable<string> lines = _lines;
-        if (_partialLine.Length > 0)
-            lines = lines.Append(_partialLine);
+        if (_partialLine.TrimEnd('\r') is { Length: > 0 } trailing)
+            lines = lines.Append(trailing);
         if (!string.IsNullOrWhiteSpace(SearchFilter))
             lines = lines.Where(l => l.Contains(SearchFilter, StringComparison.OrdinalIgnoreCase));
         Content = string.Join('\n', lines);

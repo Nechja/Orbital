@@ -23,6 +23,18 @@ public class LogBufferTests
     }
 
     [Fact]
+    public async Task Follow_NormalizesCrLfAcrossChunkBoundaries()
+    {
+        var logs = new FakeContainerLogs().With("a", "line one\r\nline two\r", "\nline three\r\n");
+        var buffer = new LogBufferViewModel(logs, new ImmediateUiDispatcher());
+
+        buffer.Follow("a", "web");
+        await Settle();
+
+        buffer.Content.Should().Be("line one\nline two\nline three");
+    }
+
+    [Fact]
     public async Task SearchFilter_ShowsOnlyMatchingLinesWithoutLosingTheBuffer()
     {
         var logs = new FakeContainerLogs().With("a", "GET /\nERROR boom\nGET /health\n");

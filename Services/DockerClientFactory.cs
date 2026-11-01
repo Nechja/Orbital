@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Docker.DotNet;
+using OrbitalDocking.Configuration;
 
 namespace OrbitalDocking.Services;
 
@@ -13,19 +14,18 @@ public class DockerClientFactory : IDockerClientFactory
             .CreateClient();
     }
 
-    private string GetDockerEndpoint()
+    public static string GetDockerEndpoint() =>
+        GetDockerEndpoint(Environment.GetEnvironmentVariable("DOCKER_HOST"), RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+
+    public static string GetDockerEndpoint(string? dockerHost, bool isWindows)
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return "npipe://./pipe/docker_engine";
-        }
-        
-        var dockerHost = Environment.GetEnvironmentVariable("DOCKER_HOST");
-        if (!string.IsNullOrEmpty(dockerHost))
+        if (!string.IsNullOrWhiteSpace(dockerHost))
         {
             return dockerHost;
         }
 
-        return "unix:///var/run/docker.sock";
+        return isWindows
+            ? AppConstants.Docker.WindowsDockerEndpoint
+            : AppConstants.Docker.DefaultDockerEndpoint;
     }
 }

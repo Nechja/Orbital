@@ -121,7 +121,7 @@ public sealed partial class LogsPageViewModel : PageViewModel
         try
         {
             var text = await _logs.ReadTailAsync(container.Id, timestamps, 100, CancellationToken.None);
-            return text.Split('\n');
+            return text.Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
         }
         catch (Exception)
         {

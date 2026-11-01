@@ -366,7 +366,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
     {
         try
         {
-            await dockerClient.Volumes.PruneAsync(cancellationToken: cancellationToken);
+            await dockerClient.Volumes.PruneAsync(new VolumesPruneParameters { Filters = new Dictionary<string, IDictionary<string, bool>> { ["all"] = new Dictionary<string, bool> { ["true"] = true } } }, cancellationToken);
             return Result.Success;
         }
         catch (Exception)
@@ -395,7 +395,7 @@ public class DockerService(DockerClient dockerClient, IDockerMapper dockerMapper
             // System prune is not directly available, so we prune each component
             await dockerClient.Containers.PruneContainersAsync(cancellationToken: cancellationToken);
             await dockerClient.Images.PruneImagesAsync(cancellationToken: cancellationToken);
-            await dockerClient.Volumes.PruneAsync(cancellationToken: cancellationToken);
+            await dockerClient.Volumes.PruneAsync(new VolumesPruneParameters { Filters = new Dictionary<string, IDictionary<string, bool>> { ["all"] = new Dictionary<string, bool> { ["true"] = true } } }, cancellationToken);
             await dockerClient.Networks.PruneNetworksAsync(cancellationToken: cancellationToken);
             return Result.Success;
         }
